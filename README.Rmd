@@ -1,0 +1,104 @@
+---
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan"
+subtitle: "(Version 0.6.2)"
+author: "Mickaël Canouil"
+date: '`r format(Sys.Date(), "%d %B %Y")`'
+output:  pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+# Files description
+At this stage, you were procided with the following files:
+
+  * `readme.pdf` the file you are actually reading;
+  * `RHAPSODY_WP3_PreDiab.Rmd`, a Rmarkdown script which perform phenotype QC and preliminary modelling in a reproducible way;
+  * `RHAPSODY_WP3_PreDiab.html`, an example of the output.
+
+# Run the analysis (from section 1 to 6)
+## R Setup
+Please use `r R.version.string` (if not possible, newer version "3.4.*" can be used).  
+Be sure the needed packages are installed or copy/paste the following command.
+```{r}
+install.packages(c(
+    "knitr", "parallel", "grid", "scales", "tidyverse", 
+    "broom", "viridis", "readxl", "writexl", "cowplot", 
+    "kableExtra", "opal", "lme4", "lmerTest", "Hmisc", 
+    "data.tree", "rmarkdown"
+))
+```
+
+`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+
+## Run the Rmarkdown script
+Only use the following parameters (according to your local RHAPSODY node information) from the command line (left all other Rmarkdown parameters to default).
+```{r}
+# set the output directory or leave at is; 
+# output will be generated where the Rmarkdown file is
+wd <- './' 
+
+# Analysis
+rmarkdown::render(
+    input = 'RHAPSODY_WP3_PreDiab.Rmd', 
+    output_format = "html_document", 
+    output_dir = wd,
+    params = list(
+        cohort_name = 'CohortName',
+        author_name = 'Firstname LASTNAME',
+        opal_server = 'http://localhost:8080',
+        opal_login = 'administrator',
+        opal_password = 'password',
+        output_directory = wd,
+        # Don't change the following at this stage
+        vcf_input_directory = './vcfs',
+        imputation_quality_tag = 'INFO', 
+        output_code = FALSE, 
+        vcftools_binary_path = '/vcftools/vcftools_latest/bin', 
+        format_vcfs = FALSE,
+        variants_analysis = FALSE
+    ),
+    encoding = 'UTF-8'
+)
+```
+
+`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+
+## Report results/bugs
+
+### If everything ran smoothly
+A document `RHAPSODY_WP3_PreDiab.html` should be available within the directory you specified (`wd`).  
+Please check if there is no obvious errors in it and report back to mickael.canouil@cnrs.fr
+
+### If something went wrong
+In that case, you can try to run the Rmarkdown interactively using either Rstudio software to execute each chunk one at a time or copy/paste each chunk into R.  
+In both cases you will have to copy/paste all parameters before running R code chunks in `"params_debug"` chunk on line 272 (set `eval=TRUE` and `include=TRUE`).
+
+````markdown
+`r ''````{r params_debug, eval = TRUE, include = TRUE}
+params <- list(
+    cohort_name = 'CohortName',
+    author_name = 'Firstname LASTNAME',
+    opal_server = 'http://localhost:8080',
+    opal_login = 'administrator',
+    opal_password = 'password',
+    output_directory = wd,
+    # Don't change the following at this stage
+    vcf_input_directory = './vcfs',
+    imputation_quality_tag = 'INFO',
+    output_code = FALSE,
+    vcftools_binary_path = '/vcftools/vcftools_latest/bin', 
+    format_vcfs = FALSE,
+    variants_analysis = FALSE
+)
+```
+````
+
+Once you identified where the error occurs, send the following information to mickael.canouil@cnrs.fr:
+
+  * error messages (Screenshot or copy/paste it)
+  * R code chunk where the error occurs
+  * if possible, the result of `str(object)`, where object is the R object from which the error comes from (screenshot is fine)
+
+
