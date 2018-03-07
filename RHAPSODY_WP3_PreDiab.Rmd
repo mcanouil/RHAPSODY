@@ -75,20 +75,19 @@ if (knitr:::is_latex_output()) {
 library(parallel)
 library(grid)
 library(scales)
-library(tidyverse)
 library(broom)
 library(viridis)
 library(readxl)
 library(writexl)
 library(cowplot)
-
 library(knitr)
 library(kableExtra)
-
 library(opal)
 library(lme4)
 library(lmerTest)
 library(Hmisc)
+
+library(tidyverse)
 
 library(data.tree)
 ```
