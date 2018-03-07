@@ -11,7 +11,7 @@ knitr::opts_chunk$set(eval = FALSE)
 ```
 
 # Files description
-At this stage, you were procided with the following files:
+At this stage, you were provided with the following files:
 
   * `readme.pdf` the file you are actually reading;
   * `RHAPSODY_WP3_PreDiab.Rmd`, a Rmarkdown script which perform phenotype QC and preliminary modelling in a reproducible way;
