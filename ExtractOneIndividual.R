@@ -27,10 +27,10 @@ opal.logout(o)
 rm(list = c("o", "itable"))
 
 
-FirstIndividual <- DM$SUBJID[1]
+randomIndividual <- sample(DM$SUBJID, 1)
 data_OneIndividual <- lapply(whichTable, function (iTable) {
     get(iTable) %>% 
-        filter(SUBJID==FirstIndividual) %>% 
+        filter(SUBJID==randomIndividual) %>% 
         mutate(SUBJID = "1")
 }) %>% 
     `names<-`(whichTable)
