@@ -12,7 +12,7 @@ params:
     vcftools_binary_path: './vcftools/vcftools_latest/bin'
     format_vcfs: FALSE
     variants_analysis: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.6.2)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.6.3)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -41,6 +41,13 @@ output:
         df_print: kable
         keep_tex: true
         latex_engine: pdflatex
+    word_document:
+        toc: true
+        toc_depth: 4
+        fig_width: 5
+        fig_height: 4
+        df_print: kable
+        keep_md: true
 ---
 
 ```{r setup, include = FALSE, echo = FALSE}
@@ -1878,6 +1885,9 @@ listChrDirectories[grep("22", listChrDirectories)] %>%
 `r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
 
 ## Output tree structure
+```{r debug_setup2, eval = TRUE, echo = FALSE}
+opts_chunk$set(eval = TRUE)
+```
 ```{r directory_structure}
 dir_tree <- c(
     list.files(path = params$output_directory, pattern = "^22.*", full.names = TRUE) %>% 
