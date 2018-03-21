@@ -1,6 +1,6 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan"
-subtitle: "(Version 0.6.3)"
+subtitle: "(Version 0.6.4)"
 author: "Mickaël Canouil"
 date: '`r format(Sys.Date(), "%d %B %Y")`'
 output:  pdf_document

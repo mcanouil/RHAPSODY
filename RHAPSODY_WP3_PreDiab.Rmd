@@ -12,7 +12,7 @@ params:
     vcftools_binary_path: './vcftools/vcftools_latest/bin'
     format_vcfs: FALSE
     variants_analysis: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.6.3)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.6.4)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -438,14 +438,6 @@ if (
 1.  Make sure measured biomarker data are in the same units across all the cohorts.  
 Fasting and 2-h plasma glucose in mmol/l and HbA1c in mmol/mol.
 2.  For fasting and 2-h glucose, ensure only those participants who are fasted for at least 8-h are included.
-
-    > **Paul Franks:** We should consider if we want to include participants who have fasted for less than 8-h.  
-    Having these in will probably introduce error, but is unlikley to bias the results.  
-    However, if we do this, we should request analyses with and without the participants who have not fully fasted, for sensitivity analsyes.
-    >
-    > **Azra Kurbasic:** There is literature showing that if they fasted at least threee hours then there is no difference.  
-    Analysis are pretty time consuming, hence we should aviod sensitivity analysis if possible!
-
 3.  Exclusion of participants with data available from only one time-point.  
 Only individuals with at least 2 observations should be included in the analysis.
 4.  Exclusion of participants with diabetes at baseline.  
@@ -456,20 +448,7 @@ Diagnostic criteria for diabetes ([ADA criteria; Diabetes Care 2015 Jan; 38, Sup
     * HbA1c $\geq$ 48 mmol/mol (6.5%). 
 5.  Exclusion of participants developing diabetes during the study time:
     * Individuals developing diabetes during the follow up and with no available information on medication  should be excluded.
-
-        > **Dorte Vistisen:** I think we should at least do a sensitivity analysis including them.  
-        Some of them are probably "true" fast-progressors (i.e. they progress to a diabetic value of the trait studied). 
-        > 
-        > **Paul Franks:** We've discussed this at length in DIRECT.  
-        The problem with excluding incident diabetes, is that these are probably the people with the highest biomarker burden, so we would bias our discovery efforts by excluding them.  
-        The absence of data on medication could also be a problem for people who appear to be prediabetic, if the diagnostic label is missing for some reason. 
-        >
-        > **Azra Kurbasic:** I've looked into big file with variable list and it is not complete as information for medication availability for CoLaus and Addition is missing.  
-        We need to discuss with somebody from the clinic about medication adjustment!  
-        If possible, we should adjust for medication otherwise exclude all with diagnosed diabetes!
-
-    * Individuals with Type I Diabetes or/and INSULIN and ANALOGUES treatment? 
-
+    * Individuals with Type I Diabetes or/and INSULIN and ANALOGUES treatment.
 6.  Additional exclusion based on model diagnostics (see preliminary modelling for details)
 
 
@@ -1479,15 +1458,6 @@ opts_chunk$set(eval = params$variants_analysis)
 
 ## Summary
 To perform GWAS analysis, SNP main effect and SNP x time interaction term are included to the preliminary model above; these parameters are average linear effect of time and SNP effect on the rate change (SNP x time), respectively. 
-
-> **Azra Kurbasic:** What is more reasonable, to put MAF threshold to 1% or use MAF count?
-> 
-> **Paul Franks:** Why not use MAC (perhaps tis is what you mean by "MAF count"?
-Yes, MAF count is same as MAC.  
-When we put together numbers from all the cohorts we come up to ca 20,000 individuals, a couple of thousand have only metabochip data.  
-I never take decision on this matter hence the question, waht MAC do you suggest.  
-In GIANT study they put limit on count being $2\times MAF\times N$ (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4083217/).
-
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
 
