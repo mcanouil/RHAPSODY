@@ -114,6 +114,15 @@ invisible(sapply(list_packages, check_packages))
 ```{r define_r_functions}
 theme_set(theme_light(base_size = 14))
 
+format_pval <- function (x, thresh = 10^-2, digits = 3, eps = 1e-50) {
+  pout <- ifelse(
+    x>=thresh, 
+    Hmisc::format.pval(x, digits = digits, eps = eps, nsmall = digits), 
+    base::format.pval(x, digits = digits, eps = eps, scientific = TRUE, nsmall = digits)
+  )
+  return(pout)
+}
+
 mykable <- function(
                     data,
                     font_size = 12,
@@ -122,7 +131,7 @@ mykable <- function(
                     pval_cols = NULL,
                     ...) {
   if (!is.null(pval_cols)) {
-    data[, pval_cols] <- base::format.pval(
+    data[, pval_cols] <- format_pval(
       pv = data[, pval_cols],
       digits = format.args$digits
     )
