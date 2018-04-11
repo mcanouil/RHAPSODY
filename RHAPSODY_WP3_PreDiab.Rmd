@@ -12,7 +12,7 @@ params:
     vcftools_binary_path: './vcftools/vcftools_latest/bin'
     format_vcfs: FALSE
     variants_analysis: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.6.4)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.6.5)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
