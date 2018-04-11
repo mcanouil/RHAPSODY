@@ -12,7 +12,7 @@ params:
   vcftools_binary_path: './vcftools/vcftools_latest/bin'
   format_vcfs: FALSE
   variants_analysis: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.6.5)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.7.0)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -35,8 +35,8 @@ output:
   pdf_document:
     toc: true
     toc_depth: 4
-    fig_width: 5
-    fig_height: 4
+    fig_width: 6.3
+    fig_height: 4.7
     number_sections: true
     df_print: kable
     keep_tex: true
@@ -44,43 +44,13 @@ output:
   word_document:
     toc: true
     toc_depth: 4
-    fig_width: 5
-    fig_height: 4
+    fig_width: 6.3
+    fig_height: 4.7
     df_print: kable
     keep_md: true
 ---
 
 ```{r setup, include = FALSE, echo = FALSE}
-library(knitr)
-opts_chunk$set(
-  cache = FALSE,
-  echo = params$output_code,
-  warning = TRUE,
-  error = TRUE,
-  message = FALSE,
-  include = TRUE,
-  tidy = FALSE,
-  crop = TRUE,
-  autodep = TRUE,
-  fig.align = "center",
-  fig.pos = "H",
-  dpi = 120,
-  size = "small"
-)
-
-# Code to resize font size of R code chunks output according to 'size' option (only LATEX)
-if (knitr:::is_latex_output()) {
-  def.chunk.hook <- knitr::knit_hooks$get("chunk")
-  knitr::knit_hooks$set(chunk = function(x, options) {
-    x <- def.chunk.hook(x, options)
-    ifelse(options$size != "normalsize", paste0("\\", options$size, "\n\n", x, "\n\n \\normalsize"), x)
-  })
-} else {
-  invisible()
-}
-```
-
-```{r load_r_libraries, message = FALSE}
 check_packages <- function(package) {
   if (!package %in% installed.packages()[, "Package"]) {
     install.packages(package, repos = c("https://rhap-fdb01.vital-it.ch/repo/", "https://cran.rstudio.com/"))
@@ -109,10 +79,39 @@ list_packages <- c(
 )
 
 invisible(sapply(list_packages, check_packages))
+
+opts_chunk$set(
+  cache = FALSE,
+  echo = params$output_code,
+  warning = TRUE,
+  error = TRUE,
+  message = FALSE,
+  include = TRUE,
+  tidy = FALSE,
+  crop = TRUE,
+  autodep = TRUE,
+  fig.align = "center",
+  fig.pos = "H",
+  dpi = 120,
+  size = "small"
+)
+
+# Code to resize font size of R code chunks output according to 'size' option (only LATEX)
+if (knitr:::is_latex_output()) {
+  def.chunk.hook <- knitr::knit_hooks$get("chunk")
+  knitr::knit_hooks$set(chunk = function(x, options) {
+    x <- def.chunk.hook(x, options)
+    ifelse(
+      options$size != "normalsize", 
+      paste0("\\", options$size, "\n\n", x, "\n\n \\normalsize"), 
+      x
+    )
+  })
+}
 ```
 
 ```{r define_r_functions}
-theme_set(theme_light(base_size = 14))
+theme_set(theme_light(base_size = 12))
 
 format_pval <- function (x, thresh = 10^-2, digits = 3, eps = 1e-50) {
   pout <- ifelse(
@@ -124,12 +123,13 @@ format_pval <- function (x, thresh = 10^-2, digits = 3, eps = 1e-50) {
 }
 
 mykable <- function(
-                    data,
-                    font_size = 12,
-                    format.args = list(scientific = -1, digits = 3, big.mark = ","),
-                    col.names = NA,
-                    pval_cols = NULL,
-                    ...) {
+  data,
+  font_size = 12,
+  format.args = list(scientific = -1, digits = 3, big.mark = ","),
+  col.names = NA,
+  pval_cols = NULL,
+  ...
+) {
   if (!is.null(pval_cols)) {
     data[, pval_cols] <- format_pval(
       pv = data[, pval_cols],
