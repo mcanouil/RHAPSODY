@@ -302,7 +302,7 @@ formatTableLB <- function(data) {
       select(KeyFactor, KeyMeasures, LBORRES) %>%
       spread(key = "KeyMeasures", value = "LBORRES")),
     y = (data %>%
-      select(setdiff(colnames(.), c("LBORRES", descVariables))) %>%
+      select(c("LBDTC", "SUBJID", "VISIT", "DOMAIN", "STUDYID", "LBFAST", "KeyFactor")) %>%
       distinct()),
     by = "KeyFactor",
     all = TRUE
@@ -317,6 +317,7 @@ formatTableLB <- function(data) {
     arrange(VISIT) %>%
     select(-KeyFactor) %>%
     data.frame()
+
   return(list(data = data0, annot = CovDesc))
 }
 ```
@@ -438,6 +439,12 @@ rm(list = c("o", "itable", "whichTable"))
 cat("## Convert CDSIC to long format\n\n")
 VSformat <- formatTableVS(data = VS)
 LBformat <- formatTableLB(data = LB)
+# To check if LB/VS are correctly formatted (should return TRUE)
+# all(
+#   nrow(LBformat$data) == length(unique(LB[["SUBJID"]]))*length(unique(LB[["VISIT"]])),
+#   nrow(VSformat$data) == length(unique(VS[["SUBJID"]]))*length(unique(VS[["VISIT"]])),
+#   nrow(LBformat$data) == nrow(VSformat$data)
+# )
 
 DMVSLB <- merge(
   x = DM %>% mutate(VISIT = "BASELINE") %>% select(-DOMAIN),
