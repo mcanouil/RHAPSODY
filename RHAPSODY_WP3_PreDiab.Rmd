@@ -79,24 +79,34 @@ if (knitr:::is_latex_output()) {
 ```
 
 ```{r load_r_libraries, message = FALSE}
-library(parallel)
-library(grid)
-library(scales)
-library(broom)
-library(viridis)
-library(readxl)
-library(writexl)
-library(cowplot)
-library(knitr)
-library(kableExtra)
-library(opal)
-library(lme4)
-library(lmerTest)
-library(Hmisc)
+check_packages <- function(package) {
+    if (!package%in%installed.packages()[, "Package"]) {
+        install.packages(package, repos = c("https://rhap-fdb01.vital-it.ch/repo/", "https://cran.rstudio.com/"))
+    } else {}
+    library(package = package, character.only = TRUE)
+}
 
-library(tidyverse)
+list_packages <- c(
+    "parallel", 
+    "grid", 
+    "scales", 
+    "broom", 
+    "viridis", 
+    "readxl", 
+    "writexl", 
+    "cowplot", 
+    "knitr", 
+    "kableExtra", 
+    "opal", 
+    "lme4", 
+    "lmerTest", 
+    "Hmisc", 
+    "data.tree", 
+    "dsCDISC", 
+    "tidyverse"
+)
 
-library(data.tree)
+invisible(sapply(list_packages, check_packages))
 ```
 
 ```{r define_r_functions}
