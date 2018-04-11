@@ -1,17 +1,17 @@
 ---
 params:
-    cohort_name: 'CohortName'
-    author_name: 'Firstname LASTNAME'
-    opal_server: 'http://localhost:8080'
-    opal_login: 'administrator'
-    opal_password: 'password'
-    vcf_input_directory: './vcfs'
-    output_directory: './'
-    imputation_quality_tag: 'INFO'
-    output_code: FALSE
-    vcftools_binary_path: './vcftools/vcftools_latest/bin'
-    format_vcfs: FALSE
-    variants_analysis: FALSE
+  cohort_name: 'CohortName'
+  author_name: 'Firstname LASTNAME'
+  opal_server: 'http://localhost:8080'
+  opal_login: 'administrator'
+  opal_password: 'password'
+  vcf_input_directory: './vcfs'
+  output_directory: './'
+  imputation_quality_tag: 'INFO'
+  output_code: FALSE
+  vcftools_binary_path: './vcftools/vcftools_latest/bin'
+  format_vcfs: FALSE
+  variants_analysis: FALSE
 title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.6.5)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
@@ -19,91 +19,93 @@ date: '`r format(Sys.Date(), "%d %B %Y")`'
 monofont: "Source Code Pro"
 monofontoptions: "Scale=0.7"
 output:
-    html_document:
-        keep_md: true
-        theme: simplex
-        toc: true
-        toc_depth: 4
-        toc_float: 
-            collapsed: true
-        fig_width: 5
-        fig_height: 4
-        number_sections: true
-        self_contained: true
-        mathjax: default
-        df_print: kable
-    pdf_document:
-        toc: true
-        toc_depth: 4
-        fig_width: 5
-        fig_height: 4
-        number_sections: true
-        df_print: kable
-        keep_tex: true
-        latex_engine: pdflatex
-    word_document:
-        toc: true
-        toc_depth: 4
-        fig_width: 5
-        fig_height: 4
-        df_print: kable
-        keep_md: true
+  html_document:
+    keep_md: true
+    theme: simplex
+    toc: true
+    toc_depth: 4
+    toc_float: 
+      collapsed: true
+    fig_width: 5
+    fig_height: 4
+    number_sections: true
+    self_contained: true
+    mathjax: default
+    df_print: kable
+  pdf_document:
+    toc: true
+    toc_depth: 4
+    fig_width: 5
+    fig_height: 4
+    number_sections: true
+    df_print: kable
+    keep_tex: true
+    latex_engine: pdflatex
+  word_document:
+    toc: true
+    toc_depth: 4
+    fig_width: 5
+    fig_height: 4
+    df_print: kable
+    keep_md: true
 ---
 
 ```{r setup, include = FALSE, echo = FALSE}
 library(knitr)
 opts_chunk$set(
-    cache = FALSE,
-    echo = params$output_code,
-    warning = TRUE,
-    error = TRUE,
-    message = FALSE,
-    include = TRUE,
-    tidy = FALSE,
-    crop = TRUE,
-    autodep = TRUE,
-    fig.align = 'center',
-    fig.pos = 'H',
-    dpi = 120,
-    size = 'small'
+  cache = FALSE,
+  echo = params$output_code,
+  warning = TRUE,
+  error = TRUE,
+  message = FALSE,
+  include = TRUE,
+  tidy = FALSE,
+  crop = TRUE,
+  autodep = TRUE,
+  fig.align = "center",
+  fig.pos = "H",
+  dpi = 120,
+  size = "small"
 )
 
 # Code to resize font size of R code chunks output according to 'size' option (only LATEX)
 if (knitr:::is_latex_output()) {
-    def.chunk.hook  <- knitr::knit_hooks$get("chunk")
-    knitr::knit_hooks$set(chunk = function(x, options) {
-      x <- def.chunk.hook(x, options)
-      ifelse(options$size != "normalsize", paste0("\\", options$size,"\n\n", x, "\n\n \\normalsize"), x)
-    })
-} else {invisible()}
+  def.chunk.hook <- knitr::knit_hooks$get("chunk")
+  knitr::knit_hooks$set(chunk = function(x, options) {
+    x <- def.chunk.hook(x, options)
+    ifelse(options$size != "normalsize", paste0("\\", options$size, "\n\n", x, "\n\n \\normalsize"), x)
+  })
+} else {
+  invisible()
+}
 ```
 
 ```{r load_r_libraries, message = FALSE}
 check_packages <- function(package) {
-    if (!package%in%installed.packages()[, "Package"]) {
-        install.packages(package, repos = c("https://rhap-fdb01.vital-it.ch/repo/", "https://cran.rstudio.com/"))
-    } else {}
-    library(package = package, character.only = TRUE)
+  if (!package %in% installed.packages()[, "Package"]) {
+    install.packages(package, repos = c("https://rhap-fdb01.vital-it.ch/repo/", "https://cran.rstudio.com/"))
+  } else {}
+  library(package = package, character.only = TRUE)
 }
 
 list_packages <- c(
-    "parallel", 
-    "grid", 
-    "scales", 
-    "broom", 
-    "viridis", 
-    "readxl", 
-    "writexl", 
-    "cowplot", 
-    "knitr", 
-    "kableExtra", 
-    "opal", 
-    "lme4", 
-    "lmerTest", 
-    "Hmisc", 
-    "data.tree", 
-    "dsCDISC", 
-    "tidyverse"
+  "parallel",
+  "grid",
+  "scales",
+  "broom",
+  "viridis",
+  "readxl",
+  "writexl",
+  "cowplot",
+  "knitr",
+  "kableExtra",
+  "opal",
+  "lme4",
+  "lmerTest",
+  "Hmisc",
+  "data.tree",
+  "dsCDISC",
+  "tidyverse"
 )
 
 invisible(sapply(list_packages, check_packages))
@@ -112,192 +114,218 @@ invisible(sapply(list_packages, check_packages))
 ```{r define_r_functions}
 theme_set(theme_light(base_size = 14))
 
-mykable <- function (
-    data, 
-    font_size = 12, 
-    format.args = list(scientific = -1, digits = 3, big.mark = ","), 
-    col.names = NA,
-    pval_cols = NULL,
-    ...
-) {
-    if (!is.null(pval_cols)) {
-        data[, pval_cols] <- base::format.pval(
-            pv = data[, pval_cols], 
-            digits = format.args$digits
-        )
-    } else {}
-    colnames(data) <- capitalize(colnames(data))
-    if (knitr:::is_latex_output()) {
-        options(knitr.table.format = "latex")
-        kable(x = data, booktabs = TRUE, format.args = format.args, col.names = col.names, ...) %>%
-            kable_styling(
-                latex_options = c("hold_position"),
-                full_width = FALSE,
-                position = "center",
-                font_size = font_size
-            )
-    } else {
-        options(knitr.table.format = "html")
-        kable(x = data, format.args = format.args, col.names = col.names, ...) %>%
-            kable_styling(
-                bootstrap_options = c("striped", "hover", "condensed", "responsive"),
-                full_width = TRUE,
-                position = "center",
-                font_size = font_size
-            )
-    }
+mykable <- function(
+                    data,
+                    font_size = 12,
+                    format.args = list(scientific = -1, digits = 3, big.mark = ","),
+                    col.names = NA,
+                    pval_cols = NULL,
+                    ...) {
+  if (!is.null(pval_cols)) {
+    data[, pval_cols] <- base::format.pval(
+      pv = data[, pval_cols],
+      digits = format.args$digits
+    )
+  } else {}
+  colnames(data) <- capitalize(colnames(data))
+  if (knitr:::is_latex_output()) {
+    options(knitr.table.format = "latex")
+    kable(x = data, booktabs = TRUE, format.args = format.args, col.names = col.names, ...) %>%
+      kable_styling(
+        latex_options = c("hold_position"),
+        full_width = FALSE,
+        position = "center",
+        font_size = font_size
+      )
+  } else {
+    options(knitr.table.format = "html")
+    kable(x = data, format.args = format.args, col.names = col.names, ...) %>%
+      kable_styling(
+        bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+        full_width = TRUE,
+        position = "center",
+        font_size = font_size
+      )
+  }
 }
 
 # reference table to convert HbA1c from percentage to mmol/mol
-convertHbA1c <- function (x, unitFrom = "%") {
-    if (unitFrom== "%") {
-        HBA1Cconvert <- structure(list(
-            V1 = c(10L, 12L, 14L, 16L, 18L, 20L, 22L, 24L,
-                26L, 28L, 30L, 32L, 34L, 36L, 38L, 40L, 42L, 44L, 46L, 48L, 50L,
-                52L, 54L, 56L, 58L, 60L, 62L, 64L, 66L, 68L, 70L, 72L, 74L, 76L,
-                78L, 80L, 82L, 84L, 86L, 88L, 90L, 92L, 94L, 96L, 98L, 100L,
-                102L, 104L, 106L, 108L, 110L, 112L, 114L, 116L, 118L, 120L, 122L,
-                124L, 126L, 128L, 130L, 132L, 134L, 136L, 138L, 140L, 142L, 144L,
-                146L, 148L, 150L, 152L, 154L, 156L, 158L, 160L, 162L, 164L, 166L,
-                168L, 170L, 172L, 174L, 176L, 178L, 180L, 182L, 184L, 186L, 188L,
-                190L, 192L, 194L, 196L, 198L, 200L, 202L, 204L, 208L, 210L),
-            V2 = c(3.1, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.3, 4.5, 4.7, 4.9,
-                5.1, 5.3, 5.4, 5.6, 5.8, 6, 6.2, 6.4, 6.5, 6.7, 6.9, 7.1,
-                7.3, 7.5, 7.6, 7.8, 8, 8.2, 8.4, 8.6, 8.7, 8.9, 9.1, 9.3,
-                9.5, 9.7, 9.8, 10, 10.2, 10.4, 10.6, 10.8, 10.9, 11.1, 11.3,
-                11.5, 11.7, 11.8, 12, 12.2, 12.4, 12.6, 12.8, 12.9, 13.1,
-                13.3, 13.5, 13.7, 13.9, 14, 14.2, 14.4, 14.6, 14.8, 15, 15.1,
-                15.3, 15.5, 15.7, 15.9, 16.1, 16.2, 16.4, 16.6, 16.8, 17,
-                17.2, 17.3, 17.5, 17.7, 17.9, 18.1, 18.3, 18.4, 18.6, 18.8,
-                19, 19.2, 19.4, 19.5, 19.7, 19.9, 20.1, 20.3, 20.4, 20.6,
-                20.8, 21, 21.2)
-        ), .Names = c("V1", "V2"), class = "data.frame", row.names = c(NA, -100L))
-        return(sapply(x, function (y) {round(sum(tidy(lm(V1~V2, data =  HBA1Cconvert))[, "estimate"] *c(1, y)))}))
-    } else {
-        return(x)
-    }
+convertHbA1c <- function(x, unitFrom = "%") {
+  if (unitFrom == "%") {
+    HBA1Cconvert <- structure(list(
+      V1 = c(
+        10L, 12L, 14L, 16L, 18L, 20L, 22L, 24L,
+        26L, 28L, 30L, 32L, 34L, 36L, 38L, 40L, 42L, 44L, 46L, 48L, 50L,
+        52L, 54L, 56L, 58L, 60L, 62L, 64L, 66L, 68L, 70L, 72L, 74L, 76L,
+        78L, 80L, 82L, 84L, 86L, 88L, 90L, 92L, 94L, 96L, 98L, 100L,
+        102L, 104L, 106L, 108L, 110L, 112L, 114L, 116L, 118L, 120L, 122L,
+        124L, 126L, 128L, 130L, 132L, 134L, 136L, 138L, 140L, 142L, 144L,
+        146L, 148L, 150L, 152L, 154L, 156L, 158L, 160L, 162L, 164L, 166L,
+        168L, 170L, 172L, 174L, 176L, 178L, 180L, 182L, 184L, 186L, 188L,
+        190L, 192L, 194L, 196L, 198L, 200L, 202L, 204L, 208L, 210L
+      ),
+      V2 = c(
+        3.1, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.3, 4.5, 4.7, 4.9,
+        5.1, 5.3, 5.4, 5.6, 5.8, 6, 6.2, 6.4, 6.5, 6.7, 6.9, 7.1,
+        7.3, 7.5, 7.6, 7.8, 8, 8.2, 8.4, 8.6, 8.7, 8.9, 9.1, 9.3,
+        9.5, 9.7, 9.8, 10, 10.2, 10.4, 10.6, 10.8, 10.9, 11.1, 11.3,
+        11.5, 11.7, 11.8, 12, 12.2, 12.4, 12.6, 12.8, 12.9, 13.1,
+        13.3, 13.5, 13.7, 13.9, 14, 14.2, 14.4, 14.6, 14.8, 15, 15.1,
+        15.3, 15.5, 15.7, 15.9, 16.1, 16.2, 16.4, 16.6, 16.8, 17,
+        17.2, 17.3, 17.5, 17.7, 17.9, 18.1, 18.3, 18.4, 18.6, 18.8,
+        19, 19.2, 19.4, 19.5, 19.7, 19.9, 20.1, 20.3, 20.4, 20.6,
+        20.8, 21, 21.2
+      )
+    ), .Names = c("V1", "V2"), class = "data.frame", row.names = c(NA, -100L))
+    return(sapply(x, function(y) {
+      round(sum(tidy(lm(V1~V2, data = HBA1Cconvert))[, "estimate"] * c(1, y)))
+    }))
+  } else {
+    return(x)
+  }
 }
 
 # function to convert g/l to mmol/l
-convert2mmolL <- function (x, from = "g/l") {
-    switch(EXPR = from,
-        "g/l" = {x/0.18},
-        "g/L" = {x/0.18},
-        "mg/l" = {x/0.18/100},
-        "mg/L" = {x/0.18/100},
-        "mmol/l" = {x},
-        "mmol/L" = {x},
-        {stop("Please check Units: g/l, g/L, mg/l or mg/L !")}
-    )
+convert2mmolL <- function(x, from = "g/l") {
+  switch(EXPR = from,
+    "g/l" = {
+      x / 0.18
+    },
+    "g/L" = {
+      x / 0.18
+    },
+    "mg/l" = {
+      x / 0.18 / 100
+    },
+    "mg/L" = {
+      x / 0.18 / 100
+    },
+    "mmol/l" = {
+      x
+    },
+    "mmol/L" = {
+      x
+    }, {
+      stop("Please check Units: g/l, g/L, mg/l or mg/L !")
+    }
+  )
 }
 
 # function to convert "Vital Signs" (VS) OPAL table (CDISC) to "long format"
-formatTableVS <- function (data) {
-    data <- data %>% 
-        mutate(
-            KeyFactor = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
-        ) %>% 
-        `rownames<-`(NULL)
-    
-    CovDesc <- data %>%
-        select(c(DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD)) %>%
-        distinct()
-    
-    data0 <- merge(
-        x = merge(
-            x = data %>%
-                subset(is.na(VSTPTNUM)) %>%
-                select(KeyFactor, VSORRES, VSTESTCD) %>%
-                spread(key = "VSTESTCD", value = "VSORRES"),
-            y = data %>%
-                subset(!is.na(VSTPTNUM)) %>%
-                select(KeyFactor, VSORRES, VSTESTCD, VSTPTNUM) %>%
-                mutate(KeyMeasures = paste(VSTESTCD, VSTPTNUM, sep = "_")) %>%
-                select(KeyFactor, KeyMeasures, VSORRES) %>%
-                spread(key = "KeyMeasures", value = "VSORRES"),
-            by = "KeyFactor",
-            all = TRUE
-        ),
-        y = (data %>%
-            select(-c(VSORRES, VSTPT, VSTPTNUM, VSORRESU, VSTEST, VSTESTCD)) %>%
-            distinct()),
-        by = "KeyFactor",
-            all = TRUE
-    ) %>% 
-        mutate(
-            VISIT = factor(
-                VISIT, 
-                levels = c("BASELINE", sort(grep("VISIT", unique(VISIT), value = TRUE)), "LAST")
-            )
-        ) %>%
-        group_by(DOMAIN, STUDYID, SUBJID) %>%
-        arrange(VISIT) %>%
-        select(-KeyFactor) %>%
-        data.frame()
-    return(list(data = data0, annot = CovDesc))
+formatTableVS <- function(data) {
+  data <- data %>%
+    mutate(
+      KeyFactor = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
+    ) %>%
+    `rownames<-`(NULL)
+
+  CovDesc <- data %>%
+    select(c(DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD)) %>%
+    distinct()
+
+  data0 <- merge(
+    x = merge(
+      x = data %>%
+        subset(is.na(VSTPTNUM)) %>%
+        select(KeyFactor, VSORRES, VSTESTCD) %>%
+        spread(key = "VSTESTCD", value = "VSORRES"),
+      y = data %>%
+        subset(!is.na(VSTPTNUM)) %>%
+        select(KeyFactor, VSORRES, VSTESTCD, VSTPTNUM) %>%
+        mutate(KeyMeasures = paste(VSTESTCD, VSTPTNUM, sep = "_")) %>%
+        select(KeyFactor, KeyMeasures, VSORRES) %>%
+        spread(key = "KeyMeasures", value = "VSORRES"),
+      by = "KeyFactor",
+      all = TRUE
+    ),
+    y = (data %>%
+      select(-c(VSORRES, VSTPT, VSTPTNUM, VSORRESU, VSTEST, VSTESTCD)) %>%
+      distinct()),
+    by = "KeyFactor",
+    all = TRUE
+  ) %>%
+    mutate(
+      VISIT = factor(
+        VISIT,
+        levels = c("BASELINE", sort(grep("VISIT", unique(VISIT), value = TRUE)), "LAST")
+      )
+    ) %>%
+    group_by(DOMAIN, STUDYID, SUBJID) %>%
+    arrange(VISIT) %>%
+    select(-KeyFactor) %>%
+    data.frame()
+  return(list(data = data0, annot = CovDesc))
 }
 
 # function to convert "Laboratory Measurements" (LB) OPAL table (CDISC) to "long format"
-formatTableLB <- function (data) {
-    data <- data %>% 
-        mutate(
-            LBFAST = if ("LBFAST"%in%colnames(.)) {LBFAST} else {NA},
-            LBTPTNUM = if ("LBTPTNUM"%in%colnames(.)) {LBTPTNUM} else{NA},
-            LBTPTNUM = ifelse(LBTESTCD=="GLUC" & is.na(LBTPTNUM), 0, LBTPTNUM),
-            KeyFactor = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
-        ) %>% 
-        `rownames<-`(NULL)
-    
-    descVariables <- c("LBORRESU", "LBTEST", "LBTESTCD", "LBSPEC", "LBCAT", "LBMETHOD", "LBTPT", "LBTPTNUM", "AGCAT")
-    CovDesc <- data %>%
-        select(intersect(c("DOMAIN", "STUDYID", descVariables), colnames(.))) %>%
-        distinct() %>%
-        mutate(
-            KeyMeasures = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
-        )
-    
-    data0 <- merge(
-        x = (data %>%
-                 select(KeyFactor, LBORRES, LBTESTCD, LBSPEC, LBCAT, LBTPTNUM) %>%
-                 mutate(
-                     KeyMeasures = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
-                 ) %>%
-                 select(KeyFactor, KeyMeasures, LBORRES) %>%
-                 spread(key = "KeyMeasures", value = "LBORRES")),
-        y = (data %>%
-                 select(setdiff(colnames(.), c("LBORRES", descVariables))) %>%
-                 distinct()),
-        by = "KeyFactor",
-        all = TRUE
-    ) %>% 
-        mutate(
-            VISIT = factor(
-                VISIT, 
-                levels = c("BASELINE", sort(grep("VISIT", unique(VISIT), value = TRUE)), "LAST")
-            )
-        ) %>%
-        group_by(DOMAIN, STUDYID, SUBJID) %>%
-        arrange(VISIT) %>%
-        select(-KeyFactor) %>%
-        data.frame()
-    return(list(data = data0, annot = CovDesc))
+formatTableLB <- function(data) {
+  data <- data %>%
+    mutate(
+      LBFAST = if ("LBFAST" %in% colnames(.)) {
+        LBFAST
+      } else {
+        NA
+      },
+      LBTPTNUM = if ("LBTPTNUM" %in% colnames(.)) {
+        LBTPTNUM
+      } else {
+        NA
+      },
+      LBTPTNUM = ifelse(LBTESTCD == "GLUC" & is.na(LBTPTNUM), 0, LBTPTNUM),
+      KeyFactor = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
+    ) %>%
+    `rownames<-`(NULL)
+
+  descVariables <- c("LBORRESU", "LBTEST", "LBTESTCD", "LBSPEC", "LBCAT", "LBMETHOD", "LBTPT", "LBTPTNUM", "AGCAT")
+  CovDesc <- data %>%
+    select(intersect(c("DOMAIN", "STUDYID", descVariables), colnames(.))) %>%
+    distinct() %>%
+    mutate(
+      KeyMeasures = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
+    )
+
+  data0 <- merge(
+    x = (data %>%
+      select(KeyFactor, LBORRES, LBTESTCD, LBSPEC, LBCAT, LBTPTNUM) %>%
+      mutate(
+        KeyMeasures = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
+      ) %>%
+      select(KeyFactor, KeyMeasures, LBORRES) %>%
+      spread(key = "KeyMeasures", value = "LBORRES")),
+    y = (data %>%
+      select(setdiff(colnames(.), c("LBORRES", descVariables))) %>%
+      distinct()),
+    by = "KeyFactor",
+    all = TRUE
+  ) %>%
+    mutate(
+      VISIT = factor(
+        VISIT,
+        levels = c("BASELINE", sort(grep("VISIT", unique(VISIT), value = TRUE)), "LAST")
+      )
+    ) %>%
+    group_by(DOMAIN, STUDYID, SUBJID) %>%
+    arrange(VISIT) %>%
+    select(-KeyFactor) %>%
+    data.frame()
+  return(list(data = data0, annot = CovDesc))
 }
 ```
 
 ```{r params_debug, eval = FALSE, include = FALSE}
-params = list(
-    cohort_name = 'CohortName',
-    author_name = 'Firstname LASTNAME',
-    opal_server = 'http://localhost:8080',
-    opal_login = 'administrator', 
-    opal_password = 'password', 
-    output_directory = wd,
-    vcf_input_directory = './vcfs',
-    imputation_quality_tag = 'INFO', 
-    output_code = FALSE, 
-    vcftools_binary_path = '/vcftools/vcftools_latest/bin', 
-    format_vcfs = FALSE,
-    variants_analysis = FALSE
+params <- list(
+  cohort_name = "CohortName",
+  author_name = "Firstname LASTNAME",
+  opal_server = "http://localhost:8080",
+  opal_login = "administrator",
+  opal_password = "password",
+  output_directory = wd,
+  vcf_input_directory = "./vcfs",
+  imputation_quality_tag = "INFO",
+  output_code = FALSE,
+  vcftools_binary_path = "/vcftools/vcftools_latest/bin",
+  format_vcfs = FALSE,
+  variants_analysis = FALSE
 )
 ```
 
@@ -329,38 +357,38 @@ The latter analysis will yield a more precise estimation of longitudinal traject
 ```{r run_analysis, eval = FALSE, echo = TRUE}
 ## Setup
 install.packages(c(
-    "knitr", "parallel", "grid", "scales", "tidyverse", 
-    "broom", "viridis", "readxl", "writexl", "cowplot", 
-    "kableExtra", "opal", "lme4", "lmerTest", "Hmisc", 
-    "data.tree", "rmarkdown"
+  "knitr", "parallel", "grid", "scales", "tidyverse",
+  "broom", "viridis", "readxl", "writexl", "cowplot",
+  "kableExtra", "opal", "lme4", "lmerTest", "Hmisc",
+  "data.tree", "rmarkdown"
 ))
 
 
 ## Analysis
-wd <- './'
+wd <- "./"
 
-reportName <- 'RHAPSODY_WP3_PreDiab_v0.5.9'
+reportName <- "RHAPSODY_WP3_PreDiab_v0.5.9"
 
 rmarkdown::render(
-    input = 'RHAPSODY_WP3_PreDiab.Rmd', 
-    output_format = "html_document", 
-    output_file = paste0(reportName, ".html"), 
-    output_dir = wd,
-    params = list(
-        cohort_name = 'CohortName',
-        author_name = 'Firstname LASTNAME',
-        opal_server = 'http://localhost:8080',
-        opal_login = 'administrator',
-        opal_password = 'password',
-        vcf_input_directory = './vcfs',
-        output_directory = wd,
-        imputation_quality_tag = 'INFO', # To be set according to VCF (could also be "R2")
-        output_code = FALSE, # Should R code be printed in the report
-        vcftools_binary_path = '/vcftools/vcftools_latest/bin', # binary location of vcftools 
-        format_vcfs = FALSE,
-        variants_analysis = FALSE
-    ),
-    encoding = 'UTF-8'
+  input = "RHAPSODY_WP3_PreDiab.Rmd",
+  output_format = "html_document",
+  output_file = paste0(reportName, ".html"),
+  output_dir = wd,
+  params = list(
+    cohort_name = "CohortName",
+    author_name = "Firstname LASTNAME",
+    opal_server = "http://localhost:8080",
+    opal_login = "administrator",
+    opal_password = "password",
+    vcf_input_directory = "./vcfs",
+    output_directory = wd,
+    imputation_quality_tag = "INFO", # To be set according to VCF (could also be "R2")
+    output_code = FALSE, # Should R code be printed in the report
+    vcftools_binary_path = "/vcftools/vcftools_latest/bin", # binary location of vcftools
+    format_vcfs = FALSE,
+    variants_analysis = FALSE
+  ),
+  encoding = "UTF-8"
 )
 ```
 
@@ -378,9 +406,9 @@ sessionInfo()
 cat("# Load data from OPAL node\n\n")
 cat("## Open connection to OPAL node\n\n")
 o <- opal.login(
-    username = params$opal_login,
-    password = params$opal_password,
-    url = params$opal_server
+  username = params$opal_login,
+  password = params$opal_password,
+  url = params$opal_server
 )
 
 cat("## Import table from OPAL node to local R session\n\n")
@@ -390,8 +418,8 @@ availableTable <- opal.datasources(opal = o)[[1]]$table
 whichTable <- c("DM", "VS", "LB", "MH", "CM")
 
 for (itable in whichTable) {
-    opal.assign(opal = o, symbol = itable, value = paste0('rhapsody.', itable))
-    assign(x = itable, value = opal.execute(o, itable))
+  opal.assign(opal = o, symbol = itable, value = paste0("rhapsody.", itable))
+  assign(x = itable, value = opal.execute(o, itable))
 }
 
 cat("## Close connection to OPAL node and clean workspace\n\n")
@@ -403,40 +431,40 @@ VSformat <- formatTableVS(data = VS)
 LBformat <- formatTableLB(data = LB)
 
 DMVSLB <- merge(
-        x = DM %>% mutate(VISIT = "BASELINE") %>% select(-DOMAIN),
-        y = merge(
-            VSformat$data %>% select(-DOMAIN),
-            LBformat$data %>% select(-DOMAIN),
-            by = c("STUDYID", "SUBJID", "VISIT"),
-            all = TRUE
-        ),
-        by = c("STUDYID", "SUBJID", "VISIT"),
-        all = TRUE
-    ) %>%
-    group_by(STUDYID, SUBJID) %>%
-    mutate(
-        AGE = na.exclude(AGE),
-        AGEU = na.exclude(AGEU),
-        SEX = na.exclude(SEX)
-    ) %>%
-    data.frame()
+  x = DM %>% mutate(VISIT = "BASELINE") %>% select(-DOMAIN),
+  y = merge(
+    VSformat$data %>% select(-DOMAIN),
+    LBformat$data %>% select(-DOMAIN),
+    by = c("STUDYID", "SUBJID", "VISIT"),
+    all = TRUE
+  ),
+  by = c("STUDYID", "SUBJID", "VISIT"),
+  all = TRUE
+) %>%
+  group_by(STUDYID, SUBJID) %>%
+  mutate(
+    AGE = na.exclude(AGE),
+    AGEU = na.exclude(AGEU),
+    SEX = na.exclude(SEX)
+  ) %>%
+  data.frame()
 
 ### To check if all individuals have the same number of visits before convert
 if (
-    DMVSLB %>%
+  DMVSLB %>%
     group_by(SUBJID) %>%
     summarise(n = length(SUBJID)) %>%
     select(n) %>%
     all()
 ) {
-    DMVSLB <- DMVSLB %>%
-        mutate(
-            VISIT_YEARS = as.numeric(
-                difftime( as.Date(VSDTC),  min(as.Date(VSDTC), na.rm = TRUE), unit = "weeks") / 52.25
-            )
-        )
+  DMVSLB <- DMVSLB %>%
+    mutate(
+      VISIT_YEARS = as.numeric(
+        difftime(as.Date(VSDTC), min(as.Date(VSDTC), na.rm = TRUE), unit = "weeks") / 52.25
+      )
+    )
 } else {
-    cat("The number of visits per individuals differs!")
+  cat("The number of visits per individuals differs!")
 }
 ```
 
@@ -475,35 +503,36 @@ mykable(VSformat$annot)
 
 #### Check if unit is the International Unit
 ```{r check_units_needs_convert}
-LBformat$annot  <- LBformat$annot %>%
-    mutate(ConvertTo =
+LBformat$annot <- LBformat$annot %>%
+  mutate(
+    ConvertTo =
+      ifelse(
+        LBORRESU %in% c("g/l", "g/L", "mg/l", "mg/L"),
+        "mmol/l",
         ifelse(
-            LBORRESU %in% c("g/l", "g/L", "mg/l", "mg/L"),
-            "mmol/l",
-            ifelse(
-                LBORRESU %in% "%" & LBTESTCD=="HBA1C",
-                "mmol/l",
-                NA
-            )
+          LBORRESU %in% "%" & LBTESTCD == "HBA1C",
+          "mmol/l",
+          NA
         )
-    )
+      )
+  )
 ```
 
 ```{r display_biomarker_to_convert, results = "asis"}
 cat(
+  paste0(
+    "The following variables have been converted to mmol/l:\n\n",
     paste0(
-        "The following variables have been converted to mmol/l:\n\n",
-        paste0(
-            "  * ",
-            LBformat$annot %>%
-                filter(!is.na(ConvertTo)) %>%
-                select(LBTEST, LBTESTCD) %>%
-                (function (.data) {
-                    paste0(.data[, "LBTEST"], " (`", .data[, "LBTESTCD"], "`)")
-                }),
-            collapse = "\n"
-        )
+      "  * ",
+      LBformat$annot %>%
+        filter(!is.na(ConvertTo)) %>%
+        select(LBTEST, LBTESTCD) %>%
+        (function(.data) {
+          paste0(.data[, "LBTEST"], " (`", .data[, "LBTESTCD"], "`)")
+        }),
+      collapse = "\n"
     )
+  )
 )
 ```
 
@@ -514,88 +543,87 @@ mykable(LBformat$annot[, -c(ncol(LBformat$annot), ncol(LBformat$annot)-1)])
 
 ```{r convert_biomarker_units, include = FALSE}
 DMVSLB <- DMVSLB %>%
-    mutate_at(
-        vars(
-            LBformat$annot %>%
-                filter(!is.na(ConvertTo) & LBORRESU%in%c("g/l", "g/L")) %>%
-                select(KeyMeasures) %>%
-                unlist()
-         ),
-        funs(convert2mmolL(., from = "g/l"))
-    ) %>%
-    mutate_at(
-        vars(
-            LBformat$annot %>%
-                filter(!is.na(ConvertTo) & LBORRESU%in%c("mg/l", "mg/L")) %>%
-                select(KeyMeasures) %>%
-                unlist()
-        ),
-        funs(convert2mmolL(., from = "mg/l"))
-    ) %>%
-    mutate_at(
-        vars(
-            LBformat$annot %>%
-                filter(!is.na(ConvertTo) & LBORRESU%in%c("%")) %>%
-                select(KeyMeasures) %>%
-                unlist()
-        ),
-        funs(convertHbA1c(., unitFrom = "%"))
-    )
+  mutate_at(
+    vars(
+      LBformat$annot %>%
+        filter(!is.na(ConvertTo) & LBORRESU %in% c("g/l", "g/L")) %>%
+        select(KeyMeasures) %>%
+        unlist()
+    ),
+    funs(convert2mmolL(., from = "g/l"))
+  ) %>%
+  mutate_at(
+    vars(
+      LBformat$annot %>%
+        filter(!is.na(ConvertTo) & LBORRESU %in% c("mg/l", "mg/L")) %>%
+        select(KeyMeasures) %>%
+        unlist()
+    ),
+    funs(convert2mmolL(., from = "mg/l"))
+  ) %>%
+  mutate_at(
+    vars(
+      LBformat$annot %>%
+        filter(!is.na(ConvertTo) & LBORRESU %in% c("%")) %>%
+        select(KeyMeasures) %>%
+        unlist()
+    ),
+    funs(convertHbA1c(., unitFrom = "%"))
+  )
 
 
 varNamesGLUC <- grep("^GLUC.*_0$", colnames(DMVSLB), value = TRUE)
 varNamesGLUC2H <- grep("^GLUC.*_120$", colnames(DMVSLB), value = TRUE)
 varNamesHBA1C <- grep("^HBA1C.*$", colnames(DMVSLB), value = TRUE)
 
-if (length(varNamesGLUC)==0) {
-    DMVSLB[, "GLUC"] <- NA
+if (length(varNamesGLUC) == 0) {
+  DMVSLB[, "GLUC"] <- NA
 } else {
-    DMVSLB[, "GLUC"] <- DMVSLB[, varNamesGLUC]
+  DMVSLB[, "GLUC"] <- DMVSLB[, varNamesGLUC]
 }
 
-if (length(varNamesGLUC2H)==0) {
-    DMVSLB[, "GLUC2H"] <- NA
+if (length(varNamesGLUC2H) == 0) {
+  DMVSLB[, "GLUC2H"] <- NA
 } else {
-    DMVSLB[, "GLUC2H"] <- DMVSLB[, varNamesGLUC2H]
+  DMVSLB[, "GLUC2H"] <- DMVSLB[, varNamesGLUC2H]
 }
 
-if (length(varNamesHBA1C)==0) {
-    DMVSLB[, "HBA1C"] <- NA
+if (length(varNamesHBA1C) == 0) {
+  DMVSLB[, "HBA1C"] <- NA
 } else {
-    DMVSLB[, "HBA1C"] <- DMVSLB[, varNamesHBA1C]
+  DMVSLB[, "HBA1C"] <- DMVSLB[, varNamesHBA1C]
 }
-
 ```
 
 ### Keep only IDs that are fasted at baseline
 ```{r fasted_samples, results = "asis"}
 if (all(is.na(DMVSLB[, "LBFAST"]))) {
-    cat("Fasting information (`LBFAST`) is not available: all individuals are kept and supposed to be fasted at baseline.  \n\n")
-    DMVSLB.QC0 <- DMVSLB
+  cat("Fasting information (`LBFAST`) is not available: all individuals are kept and supposed to be fasted at baseline.  \n\n")
+  DMVSLB.QC0 <- DMVSLB
 } else {
-    nonFastedSamples <- DMVSLB %>%
-        group_by(STUDYID, SUBJID) %>%
-        filter(VISIT=="BASELINE") %>%
-        filter(!(LBFAST%in%"Y" | is.na(LBFAST))) %>%
-        select(STUDYID, SUBJID) %>%
-        mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-        ungroup() %>%
-        select(ID) %>%
-        unlist()
+  nonFastedSamples <- DMVSLB %>%
+    group_by(STUDYID, SUBJID) %>%
+    filter(VISIT == "BASELINE") %>%
+    filter(!(LBFAST %in% "Y" | is.na(LBFAST))) %>%
+    select(STUDYID, SUBJID) %>%
+    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+    ungroup() %>%
+    select(ID) %>%
+    unlist()
 
-    DMVSLB.QC0 <- DMVSLB %>%
-        mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-        filter(!ID%in%nonFastedSamples) %>%
-        select(-ID)
-    
-    naFastedSamples <- DMVSLB.QC0 %>% 
-        group_by(STUDYID, SUBJID) %>%
-        filter(VISIT=="BASELINE" & is.na(LBFAST)) %>% 
-        ungroup() %>% 
-        count() %>% 
-        `[[`("n")
-    
-    cat(paste0("Fasting information (`LBFAST`) is missing for ", format(naFastedSamples, big.mark = ","), " individuals: these individuals are kept and supposed to be fasted at baseline.  \n\n"))
+  DMVSLB.QC0 <- DMVSLB %>%
+    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+    filter(!ID %in% nonFastedSamples) %>%
+    select(-ID)
+
+  naFastedSamples <- DMVSLB.QC0 %>%
+    group_by(STUDYID, SUBJID) %>%
+    filter(VISIT == "BASELINE" & is.na(LBFAST)) %>%
+    ungroup() %>%
+    count() %>%
+    `[[`("n")
+
+  cat(paste0("Fasting information (`LBFAST`) is missing for ", format(naFastedSamples, big.mark = ","), " individuals: these individuals are kept and supposed to be fasted at baseline.  \n\n"))
 }
 ```
 
@@ -604,22 +632,22 @@ Total individuals available : `r DMVSLB.QC0 %>% select(STUDYID, SUBJID) %>% dist
 ### Exclusion of participants with data available from only one time-point
 ```{r check_samples_with_one_measure}
 OneTimePointSamples <- DMVSLB.QC0 %>%
-    group_by(STUDYID, SUBJID) %>%
-    summarise(
-        M_GLUC = sum(!is.na(GLUC)),
-        M_HBA1C = sum(!is.na(HBA1C))
-    ) %>%
-    filter(M_GLUC==1 | M_HBA1C==1) %>%
-    select(STUDYID, SUBJID) %>%
-    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-    ungroup() %>%
-    select(ID) %>%
-    unlist()
+  group_by(STUDYID, SUBJID) %>%
+  summarise(
+    M_GLUC = sum(!is.na(GLUC)),
+    M_HBA1C = sum(!is.na(HBA1C))
+  ) %>%
+  filter(M_GLUC == 1 | M_HBA1C == 1) %>%
+  select(STUDYID, SUBJID) %>%
+  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  ungroup() %>%
+  select(ID) %>%
+  unlist()
 
 DMVSLB.QC1 <- DMVSLB.QC0 %>%
-    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-    filter(!ID%in%OneTimePointSamples) %>%
-    select(-ID)
+  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  filter(!ID %in% OneTimePointSamples) %>%
+  select(-ID)
 ```
 
 Total individuals available : `r DMVSLB.QC1 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ",")`.
@@ -632,18 +660,18 @@ Total individuals available : `r DMVSLB.QC1 %>% select(STUDYID, SUBJID) %>% dist
 
 ```{r check_diabetec_baseline}
 BaselineDiabetesSamples <- DMVSLB.QC1 %>%
-    group_by(STUDYID, SUBJID) %>%
-    filter(VISIT=="BASELINE" & (GLUC>=7.0 | HBA1C>=48)) %>%
-    select(STUDYID, SUBJID) %>%
-    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-    ungroup() %>%
-    select(ID) %>%
-    unlist()
+  group_by(STUDYID, SUBJID) %>%
+  filter(VISIT=="BASELINE" & (GLUC>=7.0 | HBA1C>=48)) %>%
+  select(STUDYID, SUBJID) %>%
+  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  ungroup() %>%
+  select(ID) %>%
+  unlist()
 
 DMVSLB.QC2 <- DMVSLB.QC1 %>%
-    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-    filter(!ID%in%BaselineDiabetesSamples) %>%
-    select(-ID)
+  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  filter(!ID%in%BaselineDiabetesSamples) %>%
+  select(-ID)
 ```
 
 Total individuals available : `r DMVSLB.QC2 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ",")`.
@@ -652,70 +680,70 @@ Total individuals available : `r DMVSLB.QC2 %>% select(STUDYID, SUBJID) %>% dist
 ```{r check_incident_diabetic_medication}
 # Get samples developing diabetes according to definition
 FollowUpDiabetesSamples.def <- DMVSLB.QC2 %>%
-    group_by(STUDYID, SUBJID) %>%
-    filter((GLUC>=7.0 | HBA1C>=48)) %>%
-    select(STUDYID, SUBJID) %>%
-    distinct() %>%
-    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-    ungroup() %>%
-    select(ID) %>%
-    unlist()
+  group_by(STUDYID, SUBJID) %>%
+  filter((GLUC >= 7.0 | HBA1C >= 48)) %>%
+  select(STUDYID, SUBJID) %>%
+  distinct() %>%
+  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  ungroup() %>%
+  select(ID) %>%
+  unlist()
 
 # Get samples diagnose diabetes during the follow-up
 FollowUpDiabetesSamples.diag <- MH %>%
-    filter(
-        MHTERM%in%c("DIABETES", "TYPE 1 DIABETES", "TYPE 2 DIABETES") & MHOCCUR=="Y"
-    ) %>%
-    select(STUDYID, SUBJID) %>%
-    distinct() %>%
-    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-    ungroup() %>%
-    select(ID) %>%
-    unlist()
+  filter(
+    MHTERM %in% c("DIABETES", "TYPE 1 DIABETES", "TYPE 2 DIABETES") & MHOCCUR == "Y"
+  ) %>%
+  select(STUDYID, SUBJID) %>%
+  distinct() %>%
+  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  ungroup() %>%
+  select(ID) %>%
+  unlist()
 
 # Get medication information for all samples developing T2D based on definition and diagnostic
 CheckMedication <- CM %>%
-    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-    filter(
-        ID%in%c(FollowUpDiabetesSamples.def, FollowUpDiabetesSamples.diag)
-    ) %>%
-    filter(
-        CMCAT%in%c("INSULINS AND ANALOGUES", "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS")
-    ) %>%
-    group_by(ID, CMCAT) %>%
-    summarise(
-        CHOCCUR = any(CMOCCUR%in%"Y")
-    ) %>%
-    ungroup() %>%
-    filter(CHOCCUR)
+  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  filter(
+    ID %in% c(FollowUpDiabetesSamples.def, FollowUpDiabetesSamples.diag)
+  ) %>%
+  filter(
+    CMCAT %in% c("INSULINS AND ANALOGUES", "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS")
+  ) %>%
+  group_by(ID, CMCAT) %>%
+  summarise(
+    CHOCCUR = any(CMOCCUR %in% "Y")
+  ) %>%
+  ungroup() %>%
+  filter(CHOCCUR)
 
 # List samples with 'INSULINS AND ANALOGUES' medication for later exclusion
 samplesWithInsulin.ToExclude <- CheckMedication %>%
-    filter(CMCAT%in%"INSULINS AND ANALOGUES") %>%
-    select(ID) %>%
-    unlist()
+  filter(CMCAT %in% "INSULINS AND ANALOGUES") %>%
+  select(ID) %>%
+  unlist()
 
 # List incident diabetic samples with 'BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS'
 # and without 'INSULINS AND ANALOGUES' medication
 diabeticSamplesWithMedicationInfo.ToKeep <- setdiff(
-    (CheckMedication %>%
-         filter(CMCAT%in%"BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS") %>%
-         select(ID) %>%
-         unlist()),
-    samplesWithInsulin.ToExclude
+  (CheckMedication %>%
+    filter(CMCAT %in% "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS") %>%
+    select(ID) %>%
+    unlist()),
+  samplesWithInsulin.ToExclude
 )
 
 # List incident diabetic samples without medication information an/or 'INSULINS AND ANALOGUES'
 FollowUpDiabetesSamples.ToExclude <- setdiff(
-    unique(c(FollowUpDiabetesSamples.def, FollowUpDiabetesSamples.diag)),
-    diabeticSamplesWithMedicationInfo.ToKeep
+  unique(c(FollowUpDiabetesSamples.def, FollowUpDiabetesSamples.diag)),
+  diabeticSamplesWithMedicationInfo.ToKeep
 )
 
 # Exclude samples in 'FollowUpDiabetesSamples.ToExclude'
 DMVSLB.QC3 <- DMVSLB.QC2 %>%
-    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-    filter(!ID%in%FollowUpDiabetesSamples.ToExclude) %>%
-    select(-ID)
+  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  filter(!ID %in% FollowUpDiabetesSamples.ToExclude) %>%
+  select(-ID)
 ```
 
 Total individuals available after QC: `r DMVSLB.QC3 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ",")`
@@ -749,26 +777,26 @@ Additional covariates might be needed depending on the cohort.
 
 ```{r preliminary_model_functions}
 # function to extract results from lmer functions in a tidy way (one row)
-tidyLmer <- function (x) {
-    sfit <- coefficients(summary(x))
-    colnames(sfit) <- c("ESTIMATE", "SE", "DF", "STAT", "PVALUE")
-    rownames(sfit)[grep("Intercept", rownames(sfit))] <- "Intercept"
-    return(matrix(
-        data = as.vector(sfit),
-        nrow = 1,
-        dimnames = list(
-            NULL,
-            apply(expand.grid(rownames(sfit), colnames(sfit)), 1, paste, collapse = ".")
-        )
-    ))
+tidyLmer <- function(x) {
+  sfit <- coefficients(summary(x))
+  colnames(sfit) <- c("ESTIMATE", "SE", "DF", "STAT", "PVALUE")
+  rownames(sfit)[grep("Intercept", rownames(sfit))] <- "Intercept"
+  return(matrix(
+    data = as.vector(sfit),
+    nrow = 1,
+    dimnames = list(
+      NULL,
+      apply(expand.grid(rownames(sfit), colnames(sfit)), 1, paste, collapse = ".")
+    )
+  ))
 }
 
 # extract residuals from mixed model and list samples with median plus/minus 3*IQR
-getResidualsOutliers  <- function (x) {
-    rx <- residuals(x)
-    return(
-        x@frame[names(rx[rx>=median(rx)+3*IQR(rx) | rx<=median(rx)-3*IQR(rx)]), "SUBJID"]
-    )
+getResidualsOutliers <- function(x) {
+  rx <- residuals(x)
+  return(
+    x@frame[names(rx[rx >= median(rx) + 3 * IQR(rx) | rx <= median(rx) - 3 * IQR(rx)]), "SUBJID"]
+  )
 }
 ```
 
@@ -779,118 +807,118 @@ getResidualsOutliers  <- function (x) {
 #### Check number of time points
 ```{r preliminary_first_run_check_number_measures, results = "asis"}
 nTimePoints <- DMVSLB.QC3 %>%
-    select(VISIT) %>%
-    distinct() %>%
-    nrow()
+  select(VISIT) %>%
+  distinct() %>%
+  nrow()
 
 # Include random slope if more than two time points
-if (nTimePoints>2) {
-    formula.rightPart <- ~1+AGE+SEX+BMI+VISIT_YEARS+(1+VISIT_YEARS|SUBJID)
-    cat(paste0("Random intercept and random slope are included in the model (up to ", nTimePoints, " time points available).\n\n"))
+if (nTimePoints > 2) {
+  formula.rightPart <- ~1 + AGE + SEX + BMI + VISIT_YEARS + (1 + VISIT_YEARS | SUBJID)
+  cat(paste0("Random intercept and random slope are included in the model (up to ", nTimePoints, " time points available).\n\n"))
 } else {
-    formula.rightPart <- ~1+AGE+SEX+BMI+VISIT_YEARS+(1|SUBJID)
-    cat(paste0("Only a random intercept is included in the model (up to ", nTimePoints, " time points available).\n\n"))
+  formula.rightPart <- ~1 + AGE + SEX + BMI + VISIT_YEARS + (1 | SUBJID)
+  cat(paste0("Only a random intercept is included in the model (up to ", nTimePoints, " time points available).\n\n"))
 }
 ```
 
 #### Glucose (`GLUC`)
 ```{r preliminary_first_run_gluc, results = "asis", warning = FALSE, message = FALSE}
 fit.data <- DMVSLB.QC3 %>%
-    select(GLUC, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
+  select(GLUC, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
 
 if (!all(is.na(fit.data[, "GLUC"]))) {
-    fit <- lmer(
-        formula = update.formula(formula.rightPart, GLUC~.),
-        data = fit.data
-    )
-    
-    cat("\n##### Trajectories\n\n")
-    pTraj <- fit.data %>%
-        mutate(
-            ID = paste(STUDYID, SUBJID, sep = "_"),
-            pT2D = ifelse(
-                ID%in%diabeticSamplesWithMedicationInfo.ToKeep,
-                "PreDiab",
-                "Normo"
-            )
-        ) %>%
-        ggplot(data = ., aes(x = VISIT_YEARS, y = GLUC, colour = ID)) +
-        geom_line() +
-        guides(colour = "none") +
-        scale_colour_viridis(discrete = TRUE, begin = 0, end = 4/5) +
-        facet_grid(.~pT2D)
-    print(pTraj)
-    cat("\n")
-    
-    
-    cat("\n##### Residuals plot\n\n")
-    p0 <- plot_grid(
-        ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
-            geom_point(shape = 21, colour = viridis_pal()(1)) +
-            labs(x = "Fitted", y = "Residuals"),
-        ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
-            geom_boxplot(
-                shape = 21,
-                colour = viridis_pal(begin = 0.5, end = 0.5)(1),
-                outlier.shape = 21
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))+3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))-3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            labs(y = "Residuals", x = NULL) +
-            theme(axis.text.x = element_blank()),
-        labels = LETTERS[c(1, 2)],
-        align = "hv"
-    )
-    print(p0)
-    cat("\n")
-    
-    
-    GlucoseResidualsOutliers <- getResidualsOutliers(fit)
-    
-    
-    cat("\n##### Results for random effect as a matrix\n\n")
-    if (nTimePoints>2) {
-        # Compare model with or without random slope (anova)
-        fit.random <- anova(
-            update(fit, formula = .~. -(1+VISIT_YEARS|SUBJID)+(1|SUBJID)),
-            fit, refit = FALSE
-        ) %>%
-            mutate(Mod = c("Mod0", "Mod1")) %>%
-            column_to_rownames(var = "Mod") %>% 
-            as.data.frame()
-        mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>% 
-        print()
-    } else {
-        cat("Not enough time points to test a random slope term.")
-    }
-    
-    
-    cat("\n##### Results for fixed effect as a matrix\n\n")
-    coeff_fit <- summary(fit) %>% 
-        coefficients() %>% 
-        as.data.frame()
-    
-    mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>% 
-        print()
-    
-    
-    cat("\n##### Results for fixed effect as a row\n\n")
-    fit.fixed <- tidyLmer(fit) %>% 
-        as.data.frame()
-    
-    mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>% 
-        print()
+  fit <- lmer(
+    formula = update.formula(formula.rightPart, GLUC~.),
+    data = fit.data
+  )
+
+  cat("\n##### Trajectories\n\n")
+  pTraj <- fit.data %>%
+    mutate(
+      ID = paste(STUDYID, SUBJID, sep = "_"),
+      pT2D = ifelse(
+        ID %in% diabeticSamplesWithMedicationInfo.ToKeep,
+        "PreDiab",
+        "Normo"
+      )
+    ) %>%
+    ggplot(data = ., aes(x = VISIT_YEARS, y = GLUC, colour = ID)) +
+    geom_line() +
+    guides(colour = "none") +
+    scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+    facet_grid(.~pT2D)
+  print(pTraj)
+  cat("\n")
+
+
+  cat("\n##### Residuals plot\n\n")
+  p0 <- plot_grid(
+    ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
+      geom_point(shape = 21, colour = viridis_pal()(1)) +
+      labs(x = "Fitted", y = "Residuals"),
+    ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
+      geom_boxplot(
+        shape = 21,
+        colour = viridis_pal(begin = 0.5, end = 0.5)(1),
+        outlier.shape = 21
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      labs(y = "Residuals", x = NULL) +
+      theme(axis.text.x = element_blank()),
+    labels = LETTERS[c(1, 2)],
+    align = "hv"
+  )
+  print(p0)
+  cat("\n")
+
+
+  GlucoseResidualsOutliers <- getResidualsOutliers(fit)
+
+
+  cat("\n##### Results for random effect as a matrix\n\n")
+  if (nTimePoints > 2) {
+    # Compare model with or without random slope (anova)
+    fit.random <- anova(
+      update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+      fit, refit = FALSE
+    ) %>%
+      mutate(Mod = c("Mod0", "Mod1")) %>%
+      column_to_rownames(var = "Mod") %>%
+      as.data.frame()
+    mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>%
+      print()
+  } else {
+    cat("Not enough time points to test a random slope term.")
+  }
+
+
+  cat("\n##### Results for fixed effect as a matrix\n\n")
+  coeff_fit <- summary(fit) %>%
+    coefficients() %>%
+    as.data.frame()
+
+  mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>%
+    print()
+
+
+  cat("\n##### Results for fixed effect as a row\n\n")
+  fit.fixed <- tidyLmer(fit) %>%
+    as.data.frame()
+
+  mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>%
+    print()
 } else {
-    cat("`GLUC` is not available.")
-    GlucoseResidualsOutliers <- NULL
+  cat("`GLUC` is not available.")
+  GlucoseResidualsOutliers <- NULL
 }
 ```
 
@@ -899,101 +927,101 @@ if (!all(is.na(fit.data[, "GLUC"]))) {
 #### 2-hour Glucose (`GLUC2H`)
 ```{r preliminary_first_run_gluc2h, results = "asis", warning = FALSE, message = FALSE}
 fit.data <- DMVSLB.QC3 %>%
-    select(GLUC2H, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
+  select(GLUC2H, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
 
 if (!all(is.na(fit.data[, "GLUC2H"]))) {
-    fit <- lmer(
-        formula = update.formula(formula.rightPart, GLUC2H~.),
-        data = fit.data
-    )
-    
-    cat("\n##### Trajectories\n\n")
-    pTraj <- fit.data %>%
-        mutate(
-            ID = paste(STUDYID, SUBJID, sep = "_"),
-            pT2D = ifelse(
-                ID%in%diabeticSamplesWithMedicationInfo.ToKeep,
-                "PreDiab",
-                "Normo"
-            )
-        ) %>%
-        ggplot(data = ., aes(x = VISIT_YEARS, y = GLUC2H, colour = ID)) +
-        geom_line() +
-        guides(colour = "none") +
-        scale_colour_viridis(discrete = TRUE, begin = 0, end = 4/5) +
-        facet_grid(.~pT2D)
-    print(pTraj)
-    cat("\n")
-    
-    
-    cat("\n##### Residuals plot\n\n")
-    p0 <- plot_grid(
-        ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
-            geom_point(shape = 21, colour = viridis_pal()(1)) +
-            labs(x = "Fitted", y = "Residuals"),
-        ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
-            geom_boxplot(
-                shape = 21,
-                colour = viridis_pal(begin = 0.5, end = 0.5)(1),
-                outlier.shape = 21
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))+3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))-3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            labs(y = "Residuals", x = NULL) +
-            theme(axis.text.x = element_blank()),
-        labels = LETTERS[c(1, 2)],
-        align = "hv"
-    )
-    print(p0)
-    cat("\n")
-    
-    
-    Glucose2hResidualsOutliers <- getResidualsOutliers(fit)
-    
-    
-    cat("\n##### Results for random effect as a matrix\n\n")
-    if (nTimePoints>2) {
-        # Compare model with or without random slope (anova)
-        fit.random <- anova(
-            update(fit, formula = .~. -(1+VISIT_YEARS|SUBJID)+(1|SUBJID)),
-            fit, refit = FALSE
-        ) %>%
-            mutate(Mod = c("Mod0", "Mod1")) %>%
-            column_to_rownames(var = "Mod") %>% 
-            as.data.frame()
-        mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>% 
-            print()
-    } else {
-        cat("Not enough time points to test a random slope term.")
-    }
-    
-    
-    cat("\n##### Results for fixed effect as a matrix\n\n")
-    coeff_fit <- summary(fit) %>% 
-        coefficients() %>% 
-        as.data.frame()
-    
-    mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>% 
-        print()
-    
-    
-    cat("\n##### Results for fixed effect as a row\n\n")
-    fit.fixed <- tidyLmer(fit) %>% 
-        as.data.frame()
-    
-    mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>% 
-        print()
+  fit <- lmer(
+    formula = update.formula(formula.rightPart, GLUC2H~.),
+    data = fit.data
+  )
+
+  cat("\n##### Trajectories\n\n")
+  pTraj <- fit.data %>%
+    mutate(
+      ID = paste(STUDYID, SUBJID, sep = "_"),
+      pT2D = ifelse(
+        ID %in% diabeticSamplesWithMedicationInfo.ToKeep,
+        "PreDiab",
+        "Normo"
+      )
+    ) %>%
+    ggplot(data = ., aes(x = VISIT_YEARS, y = GLUC2H, colour = ID)) +
+    geom_line() +
+    guides(colour = "none") +
+    scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+    facet_grid(.~pT2D)
+  print(pTraj)
+  cat("\n")
+
+
+  cat("\n##### Residuals plot\n\n")
+  p0 <- plot_grid(
+    ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
+      geom_point(shape = 21, colour = viridis_pal()(1)) +
+      labs(x = "Fitted", y = "Residuals"),
+    ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
+      geom_boxplot(
+        shape = 21,
+        colour = viridis_pal(begin = 0.5, end = 0.5)(1),
+        outlier.shape = 21
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      labs(y = "Residuals", x = NULL) +
+      theme(axis.text.x = element_blank()),
+    labels = LETTERS[c(1, 2)],
+    align = "hv"
+  )
+  print(p0)
+  cat("\n")
+
+
+  Glucose2hResidualsOutliers <- getResidualsOutliers(fit)
+
+
+  cat("\n##### Results for random effect as a matrix\n\n")
+  if (nTimePoints > 2) {
+    # Compare model with or without random slope (anova)
+    fit.random <- anova(
+      update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+      fit, refit = FALSE
+    ) %>%
+      mutate(Mod = c("Mod0", "Mod1")) %>%
+      column_to_rownames(var = "Mod") %>%
+      as.data.frame()
+    mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>%
+      print()
+  } else {
+    cat("Not enough time points to test a random slope term.")
+  }
+
+
+  cat("\n##### Results for fixed effect as a matrix\n\n")
+  coeff_fit <- summary(fit) %>%
+    coefficients() %>%
+    as.data.frame()
+
+  mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>%
+    print()
+
+
+  cat("\n##### Results for fixed effect as a row\n\n")
+  fit.fixed <- tidyLmer(fit) %>%
+    as.data.frame()
+
+  mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>%
+    print()
 } else {
-    cat("`GLUC2H` is not available.")
-    Glucose2hResidualsOutliers <- NULL
+  cat("`GLUC2H` is not available.")
+  Glucose2hResidualsOutliers <- NULL
 }
 ```
 
@@ -1002,101 +1030,101 @@ if (!all(is.na(fit.data[, "GLUC2H"]))) {
 #### HbA1c (`HBA1C`)
 ```{r preliminary_first_run_hba1c, results = "asis", warning = FALSE, message = FALSE}
 fit.data <- DMVSLB.QC3 %>%
-    select(HBA1C, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
+  select(HBA1C, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
 
 if (!all(is.na(fit.data[, "HBA1C"]))) {
-    fit <- lmer(
-        formula = update.formula(formula.rightPart, HBA1C~.),
-        data = fit.data
-    )
-    
-    cat("\n##### Trajectories\n\n")
-    pTraj <- fit.data %>%
-        mutate(
-            ID = paste(STUDYID, SUBJID, sep = "_"),
-            pT2D = ifelse(
-                ID%in%diabeticSamplesWithMedicationInfo.ToKeep,
-                "PreDiab",
-                "Normo"
-            )
-        ) %>%
-        ggplot(data = ., aes(x = VISIT_YEARS, y = HBA1C, colour = ID)) +
-        geom_line() +
-        guides(colour = "none") +
-        scale_colour_viridis(discrete = TRUE, begin = 0, end = 4/5) +
-        facet_grid(.~pT2D)
-    print(pTraj)
-    cat("\n")
-    
-    
-    cat("\n##### Residuals plot\n\n")
-    p0 <- plot_grid(
-        ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
-            geom_point(shape = 21, colour = viridis_pal()(1)) +
-            labs(x = "Fitted", y = "Residuals"),
-        ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
-            geom_boxplot(
-                shape = 21,
-                colour = viridis_pal(begin = 0.5, end = 0.5)(1),
-                outlier.shape = 21
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))+3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))-3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            labs(y = "Residuals", x = NULL) +
-            theme(axis.text.x = element_blank()),
-        labels = LETTERS[c(1, 2)],
-        align = "hv"
-    )
-    print(p0)
-    cat("\n")
-    
-    
-    HbA1cResidualsOutliers <- getResidualsOutliers(fit)
-    
-    
-    cat("\n##### Results for random effect as a matrix\n\n")
-    if (nTimePoints>2) {
-        # Compare model with or without random slope (anova)
-        fit.random <- anova(
-            update(fit, formula = .~. -(1+VISIT_YEARS|SUBJID)+(1|SUBJID)),
-            fit, refit = FALSE
-        ) %>%
-            mutate(Mod = c("Mod0", "Mod1")) %>%
-            column_to_rownames(var = "Mod") %>% 
-            as.data.frame()
-        mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>% 
-            print()
-    } else {
-        cat("Not enough time points to test a random slope term.")
-    }
-    
-    
-    cat("\n##### Results for fixed effect as a matrix\n\n")
-    coeff_fit <- summary(fit) %>% 
-        coefficients() %>% 
-        as.data.frame()
-    
-    mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>% 
-        print()
-    
-    
-    cat("\n##### Results for fixed effect as a row\n\n")
-    fit.fixed <- tidyLmer(fit) %>% 
-        as.data.frame()
-    
-    mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>% 
-        print()
+  fit <- lmer(
+    formula = update.formula(formula.rightPart, HBA1C~.),
+    data = fit.data
+  )
+
+  cat("\n##### Trajectories\n\n")
+  pTraj <- fit.data %>%
+    mutate(
+      ID = paste(STUDYID, SUBJID, sep = "_"),
+      pT2D = ifelse(
+        ID %in% diabeticSamplesWithMedicationInfo.ToKeep,
+        "PreDiab",
+        "Normo"
+      )
+    ) %>%
+    ggplot(data = ., aes(x = VISIT_YEARS, y = HBA1C, colour = ID)) +
+    geom_line() +
+    guides(colour = "none") +
+    scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+    facet_grid(.~pT2D)
+  print(pTraj)
+  cat("\n")
+
+
+  cat("\n##### Residuals plot\n\n")
+  p0 <- plot_grid(
+    ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
+      geom_point(shape = 21, colour = viridis_pal()(1)) +
+      labs(x = "Fitted", y = "Residuals"),
+    ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
+      geom_boxplot(
+        shape = 21,
+        colour = viridis_pal(begin = 0.5, end = 0.5)(1),
+        outlier.shape = 21
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      labs(y = "Residuals", x = NULL) +
+      theme(axis.text.x = element_blank()),
+    labels = LETTERS[c(1, 2)],
+    align = "hv"
+  )
+  print(p0)
+  cat("\n")
+
+
+  HbA1cResidualsOutliers <- getResidualsOutliers(fit)
+
+
+  cat("\n##### Results for random effect as a matrix\n\n")
+  if (nTimePoints > 2) {
+    # Compare model with or without random slope (anova)
+    fit.random <- anova(
+      update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+      fit, refit = FALSE
+    ) %>%
+      mutate(Mod = c("Mod0", "Mod1")) %>%
+      column_to_rownames(var = "Mod") %>%
+      as.data.frame()
+    mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>%
+      print()
+  } else {
+    cat("Not enough time points to test a random slope term.")
+  }
+
+
+  cat("\n##### Results for fixed effect as a matrix\n\n")
+  coeff_fit <- summary(fit) %>%
+    coefficients() %>%
+    as.data.frame()
+
+  mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>%
+    print()
+
+
+  cat("\n##### Results for fixed effect as a row\n\n")
+  fit.fixed <- tidyLmer(fit) %>%
+    as.data.frame()
+
+  mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>%
+    print()
 } else {
-    cat("`HBA1C` is not available.")
-    HbA1cResidualsOutliers <- NULL
+  cat("`HBA1C` is not available.")
+  HbA1cResidualsOutliers <- NULL
 }
 ```
 
@@ -1105,7 +1133,7 @@ if (!all(is.na(fit.data[, "HBA1C"]))) {
 ### Second Run (after residuals check)
 ```{r preliminary_second_run_qc}
 DMVSLB.QC4 <- DMVSLB.QC3 %>%
-    filter(!SUBJID%in%c(GlucoseResidualsOutliers, Glucose2hResidualsOutliers, HbA1cResidualsOutliers))
+  filter(!SUBJID%in%c(GlucoseResidualsOutliers, Glucose2hResidualsOutliers, HbA1cResidualsOutliers))
 ```
 
 Total individuals available : `r DMVSLB.QC4 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ",")`.
@@ -1113,97 +1141,97 @@ Total individuals available : `r DMVSLB.QC4 %>% select(STUDYID, SUBJID) %>% dist
 #### Glucose (`GLUC`)
 ```{r preliminary_second_run_gluc, results = "asis", warning = FALSE, message = FALSE}
 fit.data <- DMVSLB.QC3 %>%
-    select(GLUC, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
+  select(GLUC, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
 
 if (!all(is.na(fit.data[, "GLUC"]))) {
-    fit <- lmer(
-        formula = update.formula(formula.rightPart, GLUC~.),
-        data = fit.data
-    )
-    
-    cat("\n##### Trajectories\n\n")
-    pTraj <- fit.data %>%
-        mutate(
-            ID = paste(STUDYID, SUBJID, sep = "_"),
-            pT2D = ifelse(
-                ID%in%diabeticSamplesWithMedicationInfo.ToKeep,
-                "PreDiab",
-                "Normo"
-            )
-        ) %>%
-        ggplot(data = ., aes(x = VISIT_YEARS, y = GLUC, colour = ID)) +
-        geom_line() +
-        guides(colour = "none") +
-        scale_colour_viridis(discrete = TRUE, begin = 0, end = 4/5) +
-        facet_grid(.~pT2D)
-    print(pTraj)
-    cat("\n")
-    
-    
-    cat("\n##### Residuals plot\n\n")
-    p0 <- plot_grid(
-        ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
-            geom_point(shape = 21, colour = viridis_pal()(1)) +
-            labs(x = "Fitted", y = "Residuals"),
-        ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
-            geom_boxplot(
-                shape = 21,
-                colour = viridis_pal(begin = 0.5, end = 0.5)(1),
-                outlier.shape = 21
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))+3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))-3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            labs(y = "Residuals", x = NULL) +
-            theme(axis.text.x = element_blank()),
-        labels = LETTERS[c(1, 2)],
-        align = "hv"
-    )
-    print(p0)
-    cat("\n")
-    
-    
-    cat("\n##### Results for random effect as a matrix\n\n")
-    if (nTimePoints>2) {
-        # Compare model with or without random slope (anova)
-        fit.random <- anova(
-            update(fit, formula = .~. -(1+VISIT_YEARS|SUBJID)+(1|SUBJID)),
-            fit, refit = FALSE
-        ) %>%
-            mutate(Mod = c("Mod0", "Mod1")) %>%
-            column_to_rownames(var = "Mod") %>% 
-            as.data.frame()
-        mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>% 
-            print()
-    } else {
-        cat("Not enough time points to test a random slope term.")
-    }
-    
-    
-    cat("\n##### Results for fixed effect as a matrix\n\n")
-    coeff_fit <- summary(fit) %>% 
-        coefficients() %>% 
-        as.data.frame()
-    
-    mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>% 
-        print()
-    
-    
-    cat("\n##### Results for fixed effect as a row\n\n")
-    fit.fixed <- tidyLmer(fit) %>% 
-        as.data.frame()
-    
-    mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>% 
-        print()
+  fit <- lmer(
+    formula = update.formula(formula.rightPart, GLUC~.),
+    data = fit.data
+  )
+
+  cat("\n##### Trajectories\n\n")
+  pTraj <- fit.data %>%
+    mutate(
+      ID = paste(STUDYID, SUBJID, sep = "_"),
+      pT2D = ifelse(
+        ID %in% diabeticSamplesWithMedicationInfo.ToKeep,
+        "PreDiab",
+        "Normo"
+      )
+    ) %>%
+    ggplot(data = ., aes(x = VISIT_YEARS, y = GLUC, colour = ID)) +
+    geom_line() +
+    guides(colour = "none") +
+    scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+    facet_grid(.~pT2D)
+  print(pTraj)
+  cat("\n")
+
+
+  cat("\n##### Residuals plot\n\n")
+  p0 <- plot_grid(
+    ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
+      geom_point(shape = 21, colour = viridis_pal()(1)) +
+      labs(x = "Fitted", y = "Residuals"),
+    ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
+      geom_boxplot(
+        shape = 21,
+        colour = viridis_pal(begin = 0.5, end = 0.5)(1),
+        outlier.shape = 21
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      labs(y = "Residuals", x = NULL) +
+      theme(axis.text.x = element_blank()),
+    labels = LETTERS[c(1, 2)],
+    align = "hv"
+  )
+  print(p0)
+  cat("\n")
+
+
+  cat("\n##### Results for random effect as a matrix\n\n")
+  if (nTimePoints > 2) {
+    # Compare model with or without random slope (anova)
+    fit.random <- anova(
+      update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+      fit, refit = FALSE
+    ) %>%
+      mutate(Mod = c("Mod0", "Mod1")) %>%
+      column_to_rownames(var = "Mod") %>%
+      as.data.frame()
+    mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>%
+      print()
+  } else {
+    cat("Not enough time points to test a random slope term.")
+  }
+
+
+  cat("\n##### Results for fixed effect as a matrix\n\n")
+  coeff_fit <- summary(fit) %>%
+    coefficients() %>%
+    as.data.frame()
+
+  mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>%
+    print()
+
+
+  cat("\n##### Results for fixed effect as a row\n\n")
+  fit.fixed <- tidyLmer(fit) %>%
+    as.data.frame()
+
+  mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>%
+    print()
 } else {
-    cat("`GLUC` is not available.")
+  cat("`GLUC` is not available.")
 }
 ```
 
@@ -1212,97 +1240,97 @@ if (!all(is.na(fit.data[, "GLUC"]))) {
 #### 2-hour Glucose (`GLUC2H`)
 ```{r preliminary_second_run_gluc2h, results = "asis", warning = FALSE, message = FALSE}
 fit.data <- DMVSLB.QC3 %>%
-    select(GLUC2H, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
+  select(GLUC2H, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
 
 if (!all(is.na(fit.data[, "GLUC2H"]))) {
-    fit <- lmer(
-        formula = update.formula(formula.rightPart, GLUC2H~.),
-        data = fit.data
-    )
-    
-    cat("\n##### Trajectories\n\n")
-    pTraj <- fit.data %>%
-        mutate(
-            ID = paste(STUDYID, SUBJID, sep = "_"),
-            pT2D = ifelse(
-                ID%in%diabeticSamplesWithMedicationInfo.ToKeep,
-                "PreDiab",
-                "Normo"
-            )
-        ) %>%
-        ggplot(data = ., aes(x = VISIT_YEARS, y = GLUC2H, colour = ID)) +
-        geom_line() +
-        guides(colour = "none") +
-        scale_colour_viridis(discrete = TRUE, begin = 0, end = 4/5) +
-        facet_grid(.~pT2D)
-    print(pTraj)
-    cat("\n")
-    
-    
-    cat("\n##### Residuals plot\n\n")
-    p0 <- plot_grid(
-        ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
-            geom_point(shape = 21, colour = viridis_pal()(1)) +
-            labs(x = "Fitted", y = "Residuals"),
-        ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
-            geom_boxplot(
-                shape = 21,
-                colour = viridis_pal(begin = 0.5, end = 0.5)(1),
-                outlier.shape = 21
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))+3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))-3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            labs(y = "Residuals", x = NULL) +
-            theme(axis.text.x = element_blank()),
-        labels = LETTERS[c(1, 2)],
-        align = "hv"
-    )
-    print(p0)
-    cat("\n")
-    
-    
-    cat("\n##### Results for random effect as a matrix\n\n")
-    if (nTimePoints>2) {
-        # Compare model with or without random slope (anova)
-        fit.random <- anova(
-            update(fit, formula = .~. -(1+VISIT_YEARS|SUBJID)+(1|SUBJID)),
-            fit, refit = FALSE
-        ) %>%
-            mutate(Mod = c("Mod0", "Mod1")) %>%
-            column_to_rownames(var = "Mod") %>% 
-            as.data.frame()
-        mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>% 
-            print()
-    } else {
-        cat("Not enough time points to test a random slope term.")
-    }
-    
-    
-    cat("\n##### Results for fixed effect as a matrix\n\n")
-    coeff_fit <- summary(fit) %>% 
-        coefficients() %>% 
-        as.data.frame()
-    
-    mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>% 
-        print()
-    
-    
-    cat("\n##### Results for fixed effect as a row\n\n")
-    fit.fixed <- tidyLmer(fit) %>% 
-        as.data.frame()
-    
-    mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>% 
-        print()
+  fit <- lmer(
+    formula = update.formula(formula.rightPart, GLUC2H~.),
+    data = fit.data
+  )
+
+  cat("\n##### Trajectories\n\n")
+  pTraj <- fit.data %>%
+    mutate(
+      ID = paste(STUDYID, SUBJID, sep = "_"),
+      pT2D = ifelse(
+        ID %in% diabeticSamplesWithMedicationInfo.ToKeep,
+        "PreDiab",
+        "Normo"
+      )
+    ) %>%
+    ggplot(data = ., aes(x = VISIT_YEARS, y = GLUC2H, colour = ID)) +
+    geom_line() +
+    guides(colour = "none") +
+    scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+    facet_grid(.~pT2D)
+  print(pTraj)
+  cat("\n")
+
+
+  cat("\n##### Residuals plot\n\n")
+  p0 <- plot_grid(
+    ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
+      geom_point(shape = 21, colour = viridis_pal()(1)) +
+      labs(x = "Fitted", y = "Residuals"),
+    ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
+      geom_boxplot(
+        shape = 21,
+        colour = viridis_pal(begin = 0.5, end = 0.5)(1),
+        outlier.shape = 21
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      labs(y = "Residuals", x = NULL) +
+      theme(axis.text.x = element_blank()),
+    labels = LETTERS[c(1, 2)],
+    align = "hv"
+  )
+  print(p0)
+  cat("\n")
+
+
+  cat("\n##### Results for random effect as a matrix\n\n")
+  if (nTimePoints > 2) {
+    # Compare model with or without random slope (anova)
+    fit.random <- anova(
+      update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+      fit, refit = FALSE
+    ) %>%
+      mutate(Mod = c("Mod0", "Mod1")) %>%
+      column_to_rownames(var = "Mod") %>%
+      as.data.frame()
+    mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>%
+      print()
+  } else {
+    cat("Not enough time points to test a random slope term.")
+  }
+
+
+  cat("\n##### Results for fixed effect as a matrix\n\n")
+  coeff_fit <- summary(fit) %>%
+    coefficients() %>%
+    as.data.frame()
+
+  mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>%
+    print()
+
+
+  cat("\n##### Results for fixed effect as a row\n\n")
+  fit.fixed <- tidyLmer(fit) %>%
+    as.data.frame()
+
+  mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>%
+    print()
 } else {
-    cat("`GLUC2H` is not available.")
+  cat("`GLUC2H` is not available.")
 }
 ```
 
@@ -1311,146 +1339,146 @@ if (!all(is.na(fit.data[, "GLUC2H"]))) {
 #### HbA1c (`HBA1C`)
 ```{r preliminary_second_run_hba1c, results = "asis", warning = FALSE, message = FALSE}
 fit.data <- DMVSLB.QC4 %>%
-    select(HBA1C, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
+  select(HBA1C, AGE, SEX, BMI, VISIT_YEARS, SUBJID, STUDYID)
 
 if (!all(is.na(fit.data[, "HBA1C"]))) {
-    fit <- lmer(
-        formula = update.formula(formula.rightPart, HBA1C~.),
-        data = fit.data
-    )
-    
-    cat("\n##### Trajectories\n\n")
-    pTraj <- fit.data %>%
-        mutate(
-            ID = paste(STUDYID, SUBJID, sep = "_"),
-            pT2D = ifelse(
-                ID%in%diabeticSamplesWithMedicationInfo.ToKeep,
-                "PreDiab",
-                "Normo"
-            )
-        ) %>%
-        ggplot(data = ., aes(x = VISIT_YEARS, y = HBA1C, colour = ID)) +
-        geom_line() +
-        guides(colour = "none") +
-        scale_colour_viridis(discrete = TRUE, begin = 0, end = 4/5) +
-        facet_grid(.~pT2D)
-    print(pTraj)
-    cat("\n")
-    
-    
-    cat("\n##### Residuals plot\n\n")
-    p0 <- plot_grid(
-        ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
-            geom_point(shape = 21, colour = viridis_pal()(1)) +
-            labs(x = "Fitted", y = "Residuals"),
-        ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
-            geom_boxplot(
-                shape = 21,
-                colour = viridis_pal(begin = 0.5, end = 0.5)(1),
-                outlier.shape = 21
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))+3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            geom_hline(
-                yintercept = median(residuals(fit))-3*IQR(residuals(fit)),
-                linetype = 2,
-                colour = viridis_pal(begin = 0.25, end = 0.25)(1)
-            ) +
-            labs(y = "Residuals", x = NULL) +
-            theme(axis.text.x = element_blank()),
-        labels = LETTERS[c(1, 2)],
-        align = "hv"
-    )
-    print(p0)
-    cat("\n")
+  fit <- lmer(
+    formula = update.formula(formula.rightPart, HBA1C~.),
+    data = fit.data
+  )
 
-    
-    cat("\n##### Results for random effect as a matrix\n\n")
-    if (nTimePoints>2) {
-        # Compare model with or without random slope (anova)
-        fit.random <- anova(
-            update(fit, formula = .~. -(1+VISIT_YEARS|SUBJID)+(1|SUBJID)),
-            fit, refit = FALSE
-        ) %>%
-            mutate(Mod = c("Mod0", "Mod1")) %>%
-            column_to_rownames(var = "Mod") %>% 
-            as.data.frame()
-        mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>% 
-            print()
-    } else {
-        cat("Not enough time points to test a random slope term.")
-    }
-    
-    
-    cat("\n##### Results for fixed effect as a matrix\n\n")
-    coeff_fit <- summary(fit) %>% 
-        coefficients() %>% 
-        as.data.frame()
-    
-    mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>% 
-        print()
-    
-    
-    cat("\n##### Results for fixed effect as a row\n\n")
-    fit.fixed <- tidyLmer(fit) %>% 
-        as.data.frame()
-    
-    mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>% 
-        print()
+  cat("\n##### Trajectories\n\n")
+  pTraj <- fit.data %>%
+    mutate(
+      ID = paste(STUDYID, SUBJID, sep = "_"),
+      pT2D = ifelse(
+        ID %in% diabeticSamplesWithMedicationInfo.ToKeep,
+        "PreDiab",
+        "Normo"
+      )
+    ) %>%
+    ggplot(data = ., aes(x = VISIT_YEARS, y = HBA1C, colour = ID)) +
+    geom_line() +
+    guides(colour = "none") +
+    scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+    facet_grid(.~pT2D)
+  print(pTraj)
+  cat("\n")
+
+
+  cat("\n##### Residuals plot\n\n")
+  p0 <- plot_grid(
+    ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
+      geom_point(shape = 21, colour = viridis_pal()(1)) +
+      labs(x = "Fitted", y = "Residuals"),
+    ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
+      geom_boxplot(
+        shape = 21,
+        colour = viridis_pal(begin = 0.5, end = 0.5)(1),
+        outlier.shape = 21
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      geom_hline(
+        yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
+        linetype = 2,
+        colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+      ) +
+      labs(y = "Residuals", x = NULL) +
+      theme(axis.text.x = element_blank()),
+    labels = LETTERS[c(1, 2)],
+    align = "hv"
+  )
+  print(p0)
+  cat("\n")
+
+
+  cat("\n##### Results for random effect as a matrix\n\n")
+  if (nTimePoints > 2) {
+    # Compare model with or without random slope (anova)
+    fit.random <- anova(
+      update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+      fit, refit = FALSE
+    ) %>%
+      mutate(Mod = c("Mod0", "Mod1")) %>%
+      column_to_rownames(var = "Mod") %>%
+      as.data.frame()
+    mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>%
+      print()
+  } else {
+    cat("Not enough time points to test a random slope term.")
+  }
+
+
+  cat("\n##### Results for fixed effect as a matrix\n\n")
+  coeff_fit <- summary(fit) %>%
+    coefficients() %>%
+    as.data.frame()
+
+  mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>%
+    print()
+
+
+  cat("\n##### Results for fixed effect as a row\n\n")
+  fit.fixed <- tidyLmer(fit) %>%
+    as.data.frame()
+
+  mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>%
+    print()
 } else {
-    cat("`HBA1C` is not available.")
+  cat("`HBA1C` is not available.")
 }
 ```
 
 # Descriptive statistics
 ```{r display_descriptive_statistics}
 # function to compute mean and sd, then paste results for output
-computeMeanSD <- function (x, digits = 2) {
-    return(paste0(
-        round(mean(x, na.rm = TRUE), digits = digits),
-        " (",
-        round(sd(x, na.rm = TRUE), digits = digits),
-        ")"
-    ))
+computeMeanSD <- function(x, digits = 2) {
+  return(paste0(
+    round(mean(x, na.rm = TRUE), digits = digits),
+    " (",
+    round(sd(x, na.rm = TRUE), digits = digits),
+    ")"
+  ))
 }
 
 demoDescriptTable <- DMVSLB.QC4 %>%
-    group_by(STUDYID) %>%
-    mutate(
-        NumberParticipants = format(length(unique(SUBJID)), big.mark = ","),
-        MalesPercent = round((sum(SEX=="M")/length(SEX))*100, digits = 2)
-    ) %>%
-    group_by(STUDYID, SUBJID) %>% 
-    mutate(
-        NumberMeasures = length(unique(VISIT_YEARS)),
-        FollowUpDuration = diff(range(VISIT_YEARS, na.rm = TRUE))
-    ) %>%
-    filter(VISIT=="BASELINE") %>%
-    ungroup() %>%
-    group_by(STUDYID) %>%
-    summarise(
-        NumberParticipants = unique(NumberParticipants),
-        NumberMeasures = computeMeanSD(NumberMeasures, digits = 2),
-        FollowUpDuration = computeMeanSD(FollowUpDuration, digits = 2),
-        MalesPercent = unique(MalesPercent),
-        BaselineAge = computeMeanSD(AGE, digits = 2),
-        BaselineBMI = computeMeanSD(BMI, digits = 2),
-        BaselineHBA1C = computeMeanSD(HBA1C, digits = 2),
-        Baseline2HourGluc = NA,
-        BaselineGlucose = computeMeanSD(GLUC, digits = 2)
-    ) %>%
-    ungroup() %>%
-    select(
-        STUDYID,
-        NumberParticipants, NumberMeasures, FollowUpDuration, MalesPercent,
-        BaselineAge, BaselineBMI, BaselineHBA1C, Baseline2HourGluc, BaselineGlucose
-    ) %>%
-    t() %>% 
-    `colnames<-`(.[1, ]) %>% 
-    `[`(-1, , drop = FALSE)
+  group_by(STUDYID) %>%
+  mutate(
+    NumberParticipants = format(length(unique(SUBJID)), big.mark = ","),
+    MalesPercent = round((sum(SEX == "M") / length(SEX)) * 100, digits = 2)
+  ) %>%
+  group_by(STUDYID, SUBJID) %>%
+  mutate(
+    NumberMeasures = length(unique(VISIT_YEARS)),
+    FollowUpDuration = diff(range(VISIT_YEARS, na.rm = TRUE))
+  ) %>%
+  filter(VISIT == "BASELINE") %>%
+  ungroup() %>%
+  group_by(STUDYID) %>%
+  summarise(
+    NumberParticipants = unique(NumberParticipants),
+    NumberMeasures = computeMeanSD(NumberMeasures, digits = 2),
+    FollowUpDuration = computeMeanSD(FollowUpDuration, digits = 2),
+    MalesPercent = unique(MalesPercent),
+    BaselineAge = computeMeanSD(AGE, digits = 2),
+    BaselineBMI = computeMeanSD(BMI, digits = 2),
+    BaselineHBA1C = computeMeanSD(HBA1C, digits = 2),
+    Baseline2HourGluc = NA,
+    BaselineGlucose = computeMeanSD(GLUC, digits = 2)
+  ) %>%
+  ungroup() %>%
+  select(
+    STUDYID,
+    NumberParticipants, NumberMeasures, FollowUpDuration, MalesPercent,
+    BaselineAge, BaselineBMI, BaselineHBA1C, Baseline2HourGluc, BaselineGlucose
+  ) %>%
+  t() %>%
+  `colnames<-`(.[1, ]) %>%
+  `[`(-1, , drop = FALSE)
 
 mykable(demoDescriptTable)
 ```
@@ -1480,10 +1508,10 @@ Please, provide VCF files in dosage format and check the availability of the imp
 ```{r check_available_vcf, results = "asis"}
 listVCF <- list.files(path = params$vcf_input_directory, pattern = ".vcf.gz$")
 cat(
-    paste0(
-        "The following VCF files (", length(listVCF), ") are available within the directory path provided: \n\n",
-        paste0("  * ", listVCF, collapse = "\n")
-    )
+  paste0(
+    "The following VCF files (", length(listVCF), ") are available within the directory path provided: \n\n",
+    paste0("  * ", listVCF, collapse = "\n")
+  )
 )
 ```
 
@@ -1500,17 +1528,17 @@ Sys.setenv(imputationQualityTag = params$imputation_quality_tag)
 Sys.setenv(vcftoolsPath = params$vcftools_binary_path)
 
 cat(
-    paste(
-        paste0("#!/bin/sh\n\n", "./handleVCF.sh"),
-        params$cohort_name, 
-        params$vcf_input_directory, 
-        params$output_directory, 
-        params$imputation_quality_tag, 
-        params$vcftools_binary_path,
-        "\n\n"
-    ), 
-    sep = "", 
-    file = paste0(params$output_directory, "/handleVCF_", params$cohort_name, ".sh")
+  paste(
+    paste0("#!/bin/sh\n\n", "./handleVCF.sh"),
+    params$cohort_name,
+    params$vcf_input_directory,
+    params$output_directory,
+    params$imputation_quality_tag,
+    params$vcftools_binary_path,
+    "\n\n"
+  ),
+  sep = "",
+  file = paste0(params$output_directory, "/handleVCF_", params$cohort_name, ".sh")
 )
 ```
 
@@ -1553,90 +1581,90 @@ echo "name of imputation quality tag (INFO/*): $imputationQualityTag"
 cat $vcfout/vcffilespath.txt | while read vcf
 do
 
-    base=`basename $vcf`
-    echo "name of inputFile: $base"
+  base=`basename $vcf`
+  echo "name of inputFile: $base"
 
-    ##directory for extraction from vcf (dosage, freq, etc). and for the small vcf files
-    chrDir=`basename $vcf .vcf.gz`
-    eVCF=$vcfout/$chrDir/extractVCF
-    sVCF=$vcfout/$chrDir/smallVCF
-    mkdir -p $eVCF
-    mkdir -p $sVCF
-
-
-    ##clean up before we start
-    rm -f $eVCF/*
-    rm -f $sVCF/*
+  ##directory for extraction from vcf (dosage, freq, etc). and for the small vcf files
+  chrDir=`basename $vcf .vcf.gz`
+  eVCF=$vcfout/$chrDir/extractVCF
+  sVCF=$vcfout/$chrDir/smallVCF
+  mkdir -p $eVCF
+  mkdir -p $sVCF
 
 
-    ############# step 1: Delete the obviuos problematic SNPs, indels, and rare SNPs
-    echo -e "\n"
-    echo "Reduce bad SNPs in $base ... (takes a while if many SNPs)"
-    $vcftoolsPath/vcftools --gzvcf $vcf \
-        --get-INFO $imputationQualityTag \
-        --out $eVCF/tmp
-    awk '{if($5<0.3) print $1"\t"$2}' $eVCF/tmp.INFO > $eVCF/delme
-    $vcftoolsPath/vcftools --gzvcf $vcf \
-        --exclude-positions $eVCF/delme \
-        --maf 0.01 \
-        --remove-indels \
-        --remove-filtered-all \
-        --recode-INFO-all \
-        --recode \
-        --stdout | gzip -c > $eVCF/filtered.$base
+  ##clean up before we start
+  rm -f $eVCF/*
+  rm -f $sVCF/*
 
 
-    ############ step 2: Break down the vcf file into smaller files.
-    ############ Make a header and attached the header to all Files
-    # gunzip -c  $eVCF/filtered.$base | awk '{if (NR<109) print $0}' > $sVCF/tmpHeader
-    gunzip -c $eVCF/filtered.$base | head -n 200 | awk '/^#/' > $sVCF/tmpHeader
-
-    ##unzip vcf and keep all but header. Split the files into lines of 1000 and call them pre*
-    # gunzip -c  $eVCF/filtered.$base | awk '{if (NR>12) print $0}' |  split - -l1000 $sVCF/pre
-    gunzip -c $eVCF/filtered.$base | awk '!/^#/' |  split - -l1000 $sVCF/pre
-
-    ##loop through the pre*, add the header and zip the file. Save as "small_*.vcf.gz"
-    find $sVCF/pre* | while read pathToFile;
-    do
-        file=`basename $pathToFile`
-        cat $sVCF/tmpHeader $sVCF/$file | gzip -c > $sVCF/small_${file}.vcf.gz
-    done
-
-
-    ########### step 3: is DS available?
-    ###maybe we should check if dosage is available for all cohorts before we make a script here.
+  ############# step 1: Delete the obviuos problematic SNPs, indels, and rare SNPs
+  echo -e "\n"
+  echo "Reduce bad SNPs in $base ... (takes a while if many SNPs)"
+  $vcftoolsPath/vcftools --gzvcf $vcf \
+    --get-INFO $imputationQualityTag \
+    --out $eVCF/tmp
+  awk '{if($5<0.3) print $1"\t"$2}' $eVCF/tmp.INFO > $eVCF/delme
+  $vcftoolsPath/vcftools --gzvcf $vcf \
+    --exclude-positions $eVCF/delme \
+    --maf 0.01 \
+    --remove-indels \
+    --remove-filtered-all \
+    --recode-INFO-all \
+    --recode \
+    --stdout | gzip -c > $eVCF/filtered.$base
 
 
+  ############ step 2: Break down the vcf file into smaller files.
+  ############ Make a header and attached the header to all Files
+  # gunzip -c  $eVCF/filtered.$base | awk '{if (NR<109) print $0}' > $sVCF/tmpHeader
+  gunzip -c $eVCF/filtered.$base | head -n 200 | awk '/^#/' > $sVCF/tmpHeader
 
-    ########### step 4: Extract dosage, impute, freq from each od the small VCFs
-    echo -e "\n"
-    echo extract dosage, R2, freq...
+  ##unzip vcf and keep all but header. Split the files into lines of 1000 and call them pre*
+  # gunzip -c  $eVCF/filtered.$base | awk '{if (NR>12) print $0}' |  split - -l1000 $sVCF/pre
+  gunzip -c $eVCF/filtered.$base | awk '!/^#/' |  split - -l1000 $sVCF/pre
 
-    find $sVCF/small* | while read pathToFile
-    do
-        file=`basename $pathToFile .vcf.gz`
-
-        $vcftoolsPath/vcftools --gzvcf $pathToFile \
-            --extract-FORMAT-info DS \
-            --stdout | gzip -c > $eVCF/$file.DS.gz
-        $vcftoolsPath/vcftools --gzvcf $pathToFile \
-            --get-INFO $imputationQualityTag \
-            --out $eVCF/$file
-        $vcftoolsPath/vcftools --gzvcf $pathToFile \
-            --freq \
-            --out $eVCF/$file
-        sed -i s/"{ALLELE:FREQ}"/frq1"\t"frq2/ $eVCF/$file.frq
-    done
+  ##loop through the pre*, add the header and zip the file. Save as "small_*.vcf.gz"
+  find $sVCF/pre* | while read pathToFile;
+  do
+    file=`basename $pathToFile`
+    cat $sVCF/tmpHeader $sVCF/$file | gzip -c > $sVCF/small_${file}.vcf.gz
+  done
 
 
-    ########## step 5: clean up
-    rm -f $eVCF/filtered.$base
-    rm -f $sVCF/tmpHeader
-    rm -f $sVCF/pre*
-    rm -f $eVCF/delme
-    rm -f $eVCF/tmp.INFO
-    # rm -f filtered.$base
-    # rm -f tmp.$base
+  ########### step 3: is DS available?
+  ###maybe we should check if dosage is available for all cohorts before we make a script here.
+
+
+
+  ########### step 4: Extract dosage, impute, freq from each od the small VCFs
+  echo -e "\n"
+  echo extract dosage, R2, freq...
+
+  find $sVCF/small* | while read pathToFile
+  do
+    file=`basename $pathToFile .vcf.gz`
+
+    $vcftoolsPath/vcftools --gzvcf $pathToFile \
+      --extract-FORMAT-info DS \
+      --stdout | gzip -c > $eVCF/$file.DS.gz
+    $vcftoolsPath/vcftools --gzvcf $pathToFile \
+      --get-INFO $imputationQualityTag \
+      --out $eVCF/$file
+    $vcftoolsPath/vcftools --gzvcf $pathToFile \
+      --freq \
+      --out $eVCF/$file
+    sed -i s/"{ALLELE:FREQ}"/frq1"\t"frq2/ $eVCF/$file.frq
+  done
+
+
+  ########## step 5: clean up
+  rm -f $eVCF/filtered.$base
+  rm -f $sVCF/tmpHeader
+  rm -f $sVCF/pre*
+  rm -f $eVCF/delme
+  rm -f $eVCF/tmp.INFO
+  # rm -f filtered.$base
+  # rm -f tmp.$base
 
 done
 ```
@@ -1646,218 +1674,221 @@ done
 
 ### Run Mixed Model with imputed genotypes
 ```{r lmm_genotypes}
-if (params$cohort_name=="DESIR") { # for DESIR only (local use only)
-    idtable <- read.table(
-        file = "/disks/PROJECT/RHAPSODY/Docs/Correspondance_ref_vs_NumANGERS.txt", 
-        header = TRUE
-    )
-    rownames(idtable) <- idtable[, 2]
- } else {invisible()}
+if (params$cohort_name == "DESIR") { # for DESIR only (local use only)
+  idtable <- read.table(
+    file = "/disks/PROJECT/RHAPSODY/Docs/Correspondance_ref_vs_NumANGERS.txt",
+    header = TRUE
+  )
+  rownames(idtable) <- idtable[, 2]
+} else {
+  invisible()
+}
 
 listChrDirectories <- grep(
-    pattern = "extractVCF", 
-    x = list.dirs(params$output_directory, full.names = TRUE), 
-    value = TRUE
+  pattern = "extractVCF",
+  x = list.dirs(params$output_directory, full.names = TRUE),
+  value = TRUE
 )
 
 listChrDirectories <- listChrDirectories[grep("22", listChrDirectories)]
 
 for (ichrdirectory in listChrDirectories) {
-    message(ichrdirectory)
+  message(ichrdirectory)
 
-    # dir.create(gsub("extractVCF", "outputLMM", ichrdirectory), showWarnings = FALSE)
-    ichrfilename <- gsub(".*/(.*)/extractVCF", "\\1", ichrdirectory)
-    outputLMMdirectory <- paste0(params$output_directory, "/outputLMM/", ichrfilename)
-    dir.create(outputLMMdirectory, showWarnings = FALSE, recursive = TRUE)
+  # dir.create(gsub("extractVCF", "outputLMM", ichrdirectory), showWarnings = FALSE)
+  ichrfilename <- gsub(".*/(.*)/extractVCF", "\\1", ichrdirectory)
+  outputLMMdirectory <- paste0(params$output_directory, "/outputLMM/", ichrfilename)
+  dir.create(outputLMMdirectory, showWarnings = FALSE, recursive = TRUE)
 
-    ## Read imputed genotypes (dosage file)
-    listDosageFile <- list.files(path = ichrdirectory, pattern = ".DS.gz$", full.names = TRUE)
+  ## Read imputed genotypes (dosage file)
+  listDosageFile <- list.files(path = ichrdirectory, pattern = ".DS.gz$", full.names = TRUE)
 
-    ## Parallelise on chunks
-    for (idosagefile in listDosageFile) {
-        message(idosagefile)
-        chunkDosageFile <- read.table(file = idosagefile, header = TRUE, check.names = FALSE)
-        
-        ## for DESIR only (make IDs the same as in CDISC database)
-        if (params$cohort_name=="DESIR") {
-            keepDESIR <- gsub("1_", "", colnames(chunkDosageFile)[-c(1, 2)])%in%idtable[, 2]
-            chunkDosageFile <- chunkDosageFile[, c(1, 2, which(keepDESIR)+2)]
-            colnames(chunkDosageFile)[-c(1, 2)] <- idtable[gsub("1_", "", colnames(chunkDosageFile)[-c(1, 2)]), 1]
-        } else {invisible()}
+  ## Parallelise on chunks
+  for (idosagefile in listDosageFile) {
+    message(idosagefile)
+    chunkDosageFile <- read.table(file = idosagefile, header = TRUE, check.names = FALSE)
 
-        ## Check intersect between phenotypes and genotypes data
-        samplesWithPhenoGeno <- intersect(
-            unique(DMVSLB.QC4[, "SUBJID"]),
-            colnames(chunkDosageFile)[-c(1, 2)]
-        )
-        DMVSLB.QC5 <- DMVSLB.QC4 %>%
-            filter(SUBJID%in%samplesWithPhenoGeno)
-
-        ## Format genotypes
-        chunkDosageFile.fmt <- chunkDosageFile[, c("CHROM", "POS", samplesWithPhenoGeno)] %>%
-            mutate(SNP = paste(CHROM, POS, sep = "_")) %>%
-            select(-CHROM, -POS) 
-        ### Remove multi-allele SNPs (duplicated chromosome:positition)
-        multiAlleleSnps <- chunkDosageFile.fmt[duplicated(chunkDosageFile.fmt[, "SNP"]), "SNP"]
-        chunkDosageFile.fmt <- chunkDosageFile.fmt %>%
-            filter(!SNP%in%multiAlleleSnps) %>%
-            column_to_rownames(var = "SNP") %>%
-            t()
-            
-        ## Combine phenotypes and genotypes
-        pheGeno.data <- merge(
-            DMVSLB.QC5,
-            chunkDosageFile.fmt,
-            by.x = "SUBJID",
-            by.y = "row.names"
-        )
-
-        ## Run Mixed Model by SNP
-        resLMM.snp <- mclapply(
-            colnames(chunkDosageFile.fmt),
-            mc.cores = detectCores(),
-            mc.preschedule = FALSE,
-            function (isnp) {
-                # print(isnp)
-    
-                ### gluc
-                fit.gluc <- lmer(
-                    formula = eval(parse(text = paste0(
-                        'update.formula(formula.rightPart, GLUC~.+`', isnp, '`*VISIT_YEARS)'
-                    ))),
-                    data = pheGeno.data
-                )
-                res.gluc <- cbind.data.frame(
-                    TRAIT = "GLUC",
-                    SNP = isnp,
-                    tidyLmer(fit.gluc)
-                )
-                colnames(res.gluc) <- gsub(
-                    pattern = paste0('`', isnp, '`'), 
-                    replacement = "SNP", 
-                    x = colnames(res.gluc), 
-                    fixed = TRUE
-                )
-    
-    
-                ### 2 hour Gluc
-                # fit.gluc2h <- lmer(
-                    # formula = eval(parse(text = paste0(
-                        # 'update.formula(formula.rightPart, XXXXX~.+`', isnp, '`*VISIT_YEARS)'
-                    # ))),
-                    # data = pheGeno.data
-                # )
-                # res.gluc2h <- cbind.data.frame(
-                    # TRAIT = "XXXXX",
-                    # SNP = isnp,
-                    # tidyLmer(fit.gluc2h)
-                # )
-                # colnames(res.gluc2h) <- gsub(
-                    # pattern = paste0('`', isnp, '`'), 
-                    # replacement = "SNP", 
-                    # x = colnames(res.gluc2h), 
-                    # fixed = TRUE
-                # )
-    
-    
-                ### hba1c
-                fit.hba1c <- lmer(
-                    formula = eval(parse(text = paste0(
-                        'update.formula(formula.rightPart, HBA1C~.+`', isnp, '`*VISIT_YEARS)'
-                    ))),
-                    data = pheGeno.data
-                )
-    
-                res.hba1c <- cbind.data.frame(
-                    TRAIT = "HBA1C",
-                    SNP = isnp,
-                    tidyLmer(fit.hba1c)
-                )
-                colnames(res.hba1c) <- gsub(
-                    pattern = paste0('`', isnp, '`'), 
-                    replacement = "SNP", 
-                    x = colnames(res.hba1c), 
-                    fixed = TRUE
-                )
-    
-                return(rbind(res.gluc, res.hba1c))
-                # return(rbind(res.gluc, res.gluc2h, res.hba1c))
-            }
-        )
-        listerrors <- sapply(resLMM.snp, function (el) {class(el)=="try-error"})
-        
-        cat(
-            colnames(chunkDosageFile.fmt)[listerrors],
-            sep = "\n",
-            file = paste0(outputLMMdirectory, "/", gsub(".*/([^.]*).*", "\\1", idosagefile), ".log")
-        )
-        resLMM.snp <- resLMM.snp[!listerrors]
-
-        resLMM.chunk <- merge(
-            x = read.table(gsub(".DS.gz", ".frq", idosagefile), header = TRUE) %>%
-                mutate(SNP = paste(CHROM, POS, sep = "_")),
-            y = do.call("rbind", resLMM.snp),
-            by = "SNP"
-        )
-
-        ## Write results for GLUC
-        dir.create(paste0(outputLMMdirectory, "/GLUC"), showWarnings = FALSE)
-        outputFileName.gluc <- paste0(
-            paste0(outputLMMdirectory, "/GLUC"),
-            "/GLUC_",
-            gsub(".*/([^.]*).*", "\\1", idosagefile),
-            ".csv"
-        )
-        write_csv(
-            x = subset(resLMM.chunk, TRAIT=="GLUC"), 
-            path = outputFileName.gluc
-        )
-
-        ## Write results for 2 hour gluc
-        # dir.create(paste0(outputLMMdirectory, "/XXXXXX"), showWarnings = FALSE)
-        # outputFileName.gluc2h <- paste0(
-            # paste0(outputLMMdirectory, "/XXXXXX"),
-            # "/XXXXXX",
-            # gsub(".*/([^.]*).*", "\\1", idosagefile),
-            # ".csv"
-        # )
-        # write_csv(
-            # x = subset(resLMM.chunk, TRAIT=="XXXXXX"), 
-            # path = outputFileName.hgluc
-        # )
-
-        ## Write results for HBA1C
-        dir.create(paste0(outputLMMdirectory, "/HBA1C"), showWarnings = FALSE)
-        outputFileName.hba1c <- paste0(
-            paste0(outputLMMdirectory, "/HBA1C"),
-            "/HBA1C_",
-            gsub(".*/([^.]*).*", "\\1", idosagefile),
-            ".csv"
-        )
-        write_csv(
-            x = subset(resLMM.chunk, TRAIT=="HBA1C"), 
-            path = outputFileName.hba1c
-        )
+    ## for DESIR only (make IDs the same as in CDISC database)
+    if (params$cohort_name == "DESIR") {
+      keepDESIR <- gsub("1_", "", colnames(chunkDosageFile)[-c(1, 2)]) %in% idtable[, 2]
+      chunkDosageFile <- chunkDosageFile[, c(1, 2, which(keepDESIR) + 2)]
+      colnames(chunkDosageFile)[-c(1, 2)] <- idtable[gsub("1_", "", colnames(chunkDosageFile)[-c(1, 2)]), 1]
+    } else {
+      invisible()
     }
+
+    ## Check intersect between phenotypes and genotypes data
+    samplesWithPhenoGeno <- intersect(
+      unique(DMVSLB.QC4[, "SUBJID"]),
+      colnames(chunkDosageFile)[-c(1, 2)]
+    )
+    DMVSLB.QC5 <- DMVSLB.QC4 %>%
+      filter(SUBJID %in% samplesWithPhenoGeno)
+
+    ## Format genotypes
+    chunkDosageFile.fmt <- chunkDosageFile[, c("CHROM", "POS", samplesWithPhenoGeno)] %>%
+      mutate(SNP = paste(CHROM, POS, sep = "_")) %>%
+      select(-CHROM, -POS)
+    ### Remove multi-allele SNPs (duplicated chromosome:positition)
+    multiAlleleSnps <- chunkDosageFile.fmt[duplicated(chunkDosageFile.fmt[, "SNP"]), "SNP"]
+    chunkDosageFile.fmt <- chunkDosageFile.fmt %>%
+      filter(!SNP %in% multiAlleleSnps) %>%
+      column_to_rownames(var = "SNP") %>%
+      t()
+
+    ## Combine phenotypes and genotypes
+    pheGeno.data <- merge(
+      DMVSLB.QC5,
+      chunkDosageFile.fmt,
+      by.x = "SUBJID",
+      by.y = "row.names"
+    )
+
+    ## Run Mixed Model by SNP
+    resLMM.snp <- mclapply(
+      colnames(chunkDosageFile.fmt),
+      mc.cores = detectCores(),
+      mc.preschedule = FALSE,
+      function(isnp) {
+        # print(isnp)
+
+        ### gluc
+        fit.gluc <- lmer(
+          formula = eval(parse(text = paste0(
+            "update.formula(formula.rightPart, GLUC~.+`", isnp, "`*VISIT_YEARS)"
+          ))),
+          data = pheGeno.data
+        )
+        res.gluc <- cbind.data.frame(
+          TRAIT = "GLUC",
+          SNP = isnp,
+          tidyLmer(fit.gluc)
+        )
+        colnames(res.gluc) <- gsub(
+          pattern = paste0("`", isnp, "`"),
+          replacement = "SNP",
+          x = colnames(res.gluc),
+          fixed = TRUE
+        )
+
+
+        ### 2 hour Gluc
+        # fit.gluc2h <- lmer(
+        # formula = eval(parse(text = paste0(
+        # 'update.formula(formula.rightPart, XXXXX~.+`', isnp, '`*VISIT_YEARS)'
+        # ))),
+        # data = pheGeno.data
+        # )
+        # res.gluc2h <- cbind.data.frame(
+        # TRAIT = "XXXXX",
+        # SNP = isnp,
+        # tidyLmer(fit.gluc2h)
+        # )
+        # colnames(res.gluc2h) <- gsub(
+        # pattern = paste0('`', isnp, '`'),
+        # replacement = "SNP",
+        # x = colnames(res.gluc2h),
+        # fixed = TRUE
+        # )
+
+
+        ### hba1c
+        fit.hba1c <- lmer(
+          formula = eval(parse(text = paste0(
+            "update.formula(formula.rightPart, HBA1C~.+`", isnp, "`*VISIT_YEARS)"
+          ))),
+          data = pheGeno.data
+        )
+
+        res.hba1c <- cbind.data.frame(
+          TRAIT = "HBA1C",
+          SNP = isnp,
+          tidyLmer(fit.hba1c)
+        )
+        colnames(res.hba1c) <- gsub(
+          pattern = paste0("`", isnp, "`"),
+          replacement = "SNP",
+          x = colnames(res.hba1c),
+          fixed = TRUE
+        )
+
+        return(rbind(res.gluc, res.hba1c))
+        # return(rbind(res.gluc, res.gluc2h, res.hba1c))
+      }
+    )
+    listerrors <- sapply(resLMM.snp, function(el) {
+      class(el) == "try-error"
+    })
+
+    cat(
+      colnames(chunkDosageFile.fmt)[listerrors],
+      sep = "\n",
+      file = paste0(outputLMMdirectory, "/", gsub(".*/([^.]*).*", "\\1", idosagefile), ".log")
+    )
+    resLMM.snp <- resLMM.snp[!listerrors]
+
+    resLMM.chunk <- merge(
+      x = read.table(gsub(".DS.gz", ".frq", idosagefile), header = TRUE) %>%
+        mutate(SNP = paste(CHROM, POS, sep = "_")),
+      y = do.call("rbind", resLMM.snp),
+      by = "SNP"
+    )
+
+    ## Write results for GLUC
+    dir.create(paste0(outputLMMdirectory, "/GLUC"), showWarnings = FALSE)
+    outputFileName.gluc <- paste0(
+      paste0(outputLMMdirectory, "/GLUC"),
+      "/GLUC_",
+      gsub(".*/([^.]*).*", "\\1", idosagefile),
+      ".csv"
+    )
+    write_csv(
+      x = subset(resLMM.chunk, TRAIT == "GLUC"),
+      path = outputFileName.gluc
+    )
+
+    ## Write results for 2 hour gluc
+    # dir.create(paste0(outputLMMdirectory, "/XXXXXX"), showWarnings = FALSE)
+    # outputFileName.gluc2h <- paste0(
+    # paste0(outputLMMdirectory, "/XXXXXX"),
+    # "/XXXXXX",
+    # gsub(".*/([^.]*).*", "\\1", idosagefile),
+    # ".csv"
+    # )
+    # write_csv(
+    # x = subset(resLMM.chunk, TRAIT=="XXXXXX"),
+    # path = outputFileName.hgluc
+    # )
+
+    ## Write results for HBA1C
+    dir.create(paste0(outputLMMdirectory, "/HBA1C"), showWarnings = FALSE)
+    outputFileName.hba1c <- paste0(
+      paste0(outputLMMdirectory, "/HBA1C"),
+      "/HBA1C_",
+      gsub(".*/([^.]*).*", "\\1", idosagefile),
+      ".csv"
+    )
+    write_csv(
+      x = subset(resLMM.chunk, TRAIT == "HBA1C"),
+      path = outputFileName.hba1c
+    )
+  }
 }
 ```
 
 ```{r lmm_genotypes_ouput, eval = FALSE, include = FALSE}
-# subset(resLMM.chunk, TRAIT=="GLUC") %>% 
-#     head(., 20) %>% 
-#     mykable()
 listChrDirectories <- grep(
-    pattern = "extractVCF", 
-    x = list.dirs(params$output_directory, full.names = TRUE), 
-    value = TRUE
+  pattern = "extractVCF", 
+  x = list.dirs(params$output_directory, full.names = TRUE), 
+  value = TRUE
 )
 listChrDirectories[grep("22", listChrDirectories)] %>% 
-    gsub(".*/(.*)/extractVCF", "\\1", .) %>% 
-    paste0(params$output_directory, "/Metabochip/outputLMM/", ., "/HBA1C/") %>% 
-    list.files(full.names = TRUE) %>% 
-    `[`(1) %>% 
-    read.csv(file = ., header = TRUE, nrows = 20) %>% 
-    mykable(pval_cols = grep("PVALUE", colnames(.)))
+  gsub(".*/(.*)/extractVCF", "\\1", .) %>% 
+  paste0(params$output_directory, "/Metabochip/outputLMM/", ., "/HBA1C/") %>% 
+  list.files(full.names = TRUE) %>% 
+  `[`(1) %>% 
+  read.csv(file = ., header = TRUE, nrows = 20) %>% 
+  mykable(pval_cols = grep("PVALUE", colnames(.)))
 ``` 
 
 
@@ -1870,31 +1901,31 @@ opts_chunk$set(eval = TRUE)
 ```
 ```{r directory_structure}
 dir_tree <- c(
-    list.files(path = params$output_directory, pattern = "^22.*", full.names = TRUE) %>% 
-        list.files(full.names = TRUE) %>% 
-        sapply(., list.files, pattern = "preaa", full.names = TRUE),
-    list.files(path = params$output_directory, pattern = "outputLMM", full.names = TRUE) %>% 
-        list.files(full.names = TRUE) %>% 
-        list.files(full.names = TRUE) %>% 
-        sapply(., function (i) {
-            tmp <- list.files(i, pattern = "preaa", full.names = TRUE)
-            return(ifelse(length(tmp)!=0, tmp, i))
-        }),
-    list.files(path = params$output_directory, pattern = "vcffilespath.txt", full.names = TRUE),
-    list.files(path = params$output_directory, pattern = paste0("handleVCF_", params$cohort_name, ".sh"), full.names = TRUE)
-) %>% 
-    unlist() %>% 
-    gsub("/disks/PROJECT/RHAPSODY/Data", paste0("/", params$cohort_name), .) %>% 
-    gsub("22", "Chr*", ., fixed = TRUE) %>% 
-    data.frame(pathString = .) %>% 
-    as.Node()
+  list.files(path = params$output_directory, pattern = "^22.*", full.names = TRUE) %>%
+    list.files(full.names = TRUE) %>%
+    sapply(., list.files, pattern = "preaa", full.names = TRUE),
+  list.files(path = params$output_directory, pattern = "outputLMM", full.names = TRUE) %>%
+    list.files(full.names = TRUE) %>%
+    list.files(full.names = TRUE) %>%
+    sapply(., function(i) {
+      tmp <- list.files(i, pattern = "preaa", full.names = TRUE)
+      return(ifelse(length(tmp) != 0, tmp, i))
+    }),
+  list.files(path = params$output_directory, pattern = "vcffilespath.txt", full.names = TRUE),
+  list.files(path = params$output_directory, pattern = paste0("handleVCF_", params$cohort_name, ".sh"), full.names = TRUE)
+) %>%
+  unlist() %>%
+  gsub("/disks/PROJECT/RHAPSODY/Data", paste0("/", params$cohort_name), .) %>%
+  gsub("22", "Chr*", ., fixed = TRUE) %>%
+  data.frame(pathString = .) %>%
+  as.Node()
 
-dir_tree %>% 
-    capture.output() %>% 
-    `[`(-1) %>% 
-    sapply(., paste0, "\n") %>% 
-    paste(collapse = "") %>% 
-    cat()
+dir_tree %>%
+  capture.output() %>%
+  `[`(-1) %>%
+  sapply(., paste0, "\n") %>%
+  paste(collapse = "") %>%
+  cat()
 ```
 
 
