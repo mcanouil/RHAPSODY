@@ -12,7 +12,7 @@ params:
   vcftools_binary_path: './vcftools/vcftools_latest/bin'
   format_vcfs: FALSE
   variants_analysis: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.7.0)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.7.1)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -458,12 +458,8 @@ DMVSLB <- merge(
   all = TRUE
 ) %>%
   group_by(STUDYID, SUBJID) %>%
-  mutate(
-    AGE = na.exclude(AGE),
-    AGEU = na.exclude(AGEU),
-    SEX = na.exclude(SEX)
-  ) %>%
-  data.frame()
+  filter(!is.na(AGE) & !is.na(SEX)) %>%
+  as.data.frame()
 
 ### To check if all individuals have the same number of visits before convert
 if (

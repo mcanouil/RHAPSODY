@@ -2,7 +2,7 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from 'RHAPSODY_WP3_PreDiab.Rmd'
 # Author - Mickaël Canouil
-# Version - 0.7.0
+# Version - 0.7.1
 #---------------------------------------------------------------------------------------------------
 ###############
 # Node settings
@@ -292,12 +292,8 @@ DMVSLB <- merge(
   all = TRUE
 ) %>%
   group_by(STUDYID, SUBJID) %>%
-  mutate(
-    AGE = na.exclude(AGE),
-    AGEU = na.exclude(AGEU),
-    SEX = na.exclude(SEX)
-  ) %>%
-  data.frame()
+  filter(!is.na(AGE) & !is.na(SEX)) %>%
+  as.data.frame()
 
 if (
   all(
