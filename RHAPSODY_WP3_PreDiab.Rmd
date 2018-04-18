@@ -1501,7 +1501,7 @@ mykable(demoDescriptTable)
 
 # Association and interaction analyses
 
-```{r debug_setup, echo = FALSE}
+```{r debug_setup, echo = FALSE, eval = FALSE}
 opts_chunk$set(eval = params$variants_analysis)
 ```
 
@@ -1685,7 +1685,7 @@ done
 `r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
 
 ### Run Mixed Model with imputed genotypes
-```{r lmm_genotypes}
+```{r lmm_genotypes, eval = params$variants_analysis}
 if (params$cohort_name == "DESIR") { # for DESIR only (local use only)
   idtable <- read.table(
     file = "/disks/PROJECT/RHAPSODY/Docs/Correspondance_ref_vs_NumANGERS.txt",
