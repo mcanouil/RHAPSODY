@@ -23,10 +23,10 @@ Please use `r R.version.string` (if not possible, newer version "3.4.*" can be u
 Be sure the needed packages are installed or copy/paste the following command.
 ```{r}
 install.packages(c(
-    "knitr", "parallel", "grid", "scales", "tidyverse", 
-    "broom", "viridis", "readxl", "writexl", "cowplot", 
-    "kableExtra", "opal", "lme4", "lmerTest", "Hmisc", 
-    "data.tree", "rmarkdown"
+	"knitr", "parallel", "grid", "scales", "tidyverse", 
+	"broom", "viridis", "readxl", "writexl", "cowplot", 
+	"kableExtra", "opal", "lme4", "lmerTest", "Hmisc", 
+	"data.tree", "rmarkdown"
 ))
 ```
 
@@ -78,19 +78,19 @@ In both cases you will have to copy/paste all parameters before running R code c
 ````markdown
 `r ''````{r params_debug, eval = TRUE, include = TRUE}
 params <- list(
-    cohort_name = 'CohortName',
-    author_name = 'Firstname LASTNAME',
-    opal_server = 'http://localhost:8080',
-    opal_login = 'administrator',
-    opal_password = 'password',
-    output_directory = wd,
-    # Don't change the following at this stage
-    vcf_input_directory = './vcfs',
-    imputation_quality_tag = 'INFO',
-    output_code = FALSE,
-    vcftools_binary_path = '/vcftools/vcftools_latest/bin', 
-    format_vcfs = FALSE,
-    variants_analysis = FALSE
+	cohort_name = 'CohortName',
+	author_name = 'Firstname LASTNAME',
+	opal_server = 'http://localhost:8080',
+	opal_login = 'administrator',
+	opal_password = 'password',
+	output_directory = wd,
+	# Don't change the following at this stage
+	vcf_input_directory = './vcfs',
+	imputation_quality_tag = 'INFO',
+	output_code = FALSE,
+	vcftools_binary_path = '/vcftools/vcftools_latest/bin', 
+	format_vcfs = FALSE,
+	variants_analysis = FALSE
 )
 ```
 ````
