@@ -12,7 +12,7 @@ params:
   vcftools_binary_path: './vcftools/vcftools_latest/bin'
   format_vcfs: FALSE
   variants_analysis: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.7.2)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.7.3)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -53,7 +53,11 @@ output:
 ```{r setup, include = FALSE, echo = FALSE}
 check_packages <- function(package) {
   if (!package %in% installed.packages()[, "Package"]) {
-    install.packages(package, repos = c("https://rhap-fdb01.vital-it.ch/repo/", "https://cran.rstudio.com/", "http://cran.obiba.org"))
+    install.packages(
+			package, 
+			repos = c("https://rhap-fdb01.vital-it.ch/repo/", "https://cran.rstudio.com/", "http://cran.obiba.org"),
+			dependencies = TRUE
+		)
   } else {}
   library(package = package, character.only = TRUE)
 }
@@ -69,11 +73,14 @@ list_packages <- c(
   "cowplot",
   "knitr",
   "kableExtra",
-  "opal",
   "lme4",
   "lmerTest",
   "Hmisc",
   "data.tree",
+	"RCurl", 
+	"rjson",
+	"opal",
+	"datashieldclient",
   "dsCDISC",
   "tidyverse"
 )

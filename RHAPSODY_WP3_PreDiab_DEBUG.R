@@ -2,7 +2,7 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from 'RHAPSODY_WP3_PreDiab.Rmd'
 # Author - Mickaël Canouil
-# Version - 0.7.2
+# Version - 0.7.3
 #---------------------------------------------------------------------------------------------------
 ###############
 # Node settings
@@ -18,7 +18,11 @@ params <- list(
 ###############
 check_packages <- function(package) {
   if (!package %in% installed.packages()[, "Package"]) {
-    install.packages(package, repos = c("https://rhap-fdb01.vital-it.ch/repo/", "https://cran.rstudio.com/", "http://cran.obiba.org"))
+    install.packages(
+			package, 
+			repos = c("https://rhap-fdb01.vital-it.ch/repo/", "https://cran.rstudio.com/", "http://cran.obiba.org"),
+			dependencies = TRUE
+		)
   } else {}
   library(package = package, character.only = TRUE)
 }
@@ -245,11 +249,14 @@ list_packages <- c(
   "cowplot",
   "knitr",
   "kableExtra",
-  "opal",
   "lme4",
   "lmerTest",
   "Hmisc",
   "data.tree",
+	"RCurl", 
+	"rjson",
+	"opal",
+	"datashieldclient",
   "dsCDISC",
   "tidyverse"
 )
