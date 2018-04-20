@@ -1,6 +1,6 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan"
-subtitle: "(Version 0.7.3)"
+subtitle: "(Version 0.7.4)"
 author: "Mickaël Canouil"
 date: '`r format(Sys.Date(), "%d %B %Y")`'
 output:  pdf_document
@@ -48,11 +48,11 @@ list_packages <- c(
   "lmerTest",
   "Hmisc",
   "data.tree",
-	"RCurl", 
-	"rjson",
-	"opal",
-	"datashieldclient",
-  "dsCDISC",
+  # "RCurl", 
+  # "rjson",
+  "opal",
+  # "datashieldclient",
+  # "dsCDISC",
   "tidyverse"
 )
 

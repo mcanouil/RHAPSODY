@@ -2,7 +2,7 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from 'RHAPSODY_WP3_PreDiab.Rmd'
 # Author - Mickaël Canouil
-# Version - 0.7.3
+# Version - 0.7.4
 #---------------------------------------------------------------------------------------------------
 ###############
 # Node settings
@@ -253,11 +253,11 @@ list_packages <- c(
   "lmerTest",
   "Hmisc",
   "data.tree",
-	"RCurl", 
-	"rjson",
-	"opal",
-	"datashieldclient",
-  "dsCDISC",
+  # "RCurl", 
+  # "rjson",
+  "opal",
+  # "datashieldclient",
+  # "dsCDISC",
   "tidyverse"
 )
 
@@ -299,7 +299,10 @@ DMVSLB <- merge(
   all = TRUE
 ) %>%
   group_by(STUDYID, SUBJID) %>%
-  filter(!is.na(AGE) & !is.na(SEX)) %>%
+  filter(
+    (VISIT=="BASELINE" & !is.na(AGE) & !is.na(SEX)) |
+      VISIT!="BASELINE"
+  ) %>%
   as.data.frame()
 
 if (
@@ -312,7 +315,7 @@ if (
 ) {
   message("Good to go! Try to run the whole script.")
 } else {
-  error("Something went wrong, test each of the condition above to locate where is the issue!")
+  stop("Something went wrong, test each of the condition above to locate where is the issue!")
 }
 
 ### To check if all individuals have the same number of visits before convert

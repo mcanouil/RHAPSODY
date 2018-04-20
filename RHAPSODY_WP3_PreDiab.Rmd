@@ -12,7 +12,7 @@ params:
   vcftools_binary_path: './vcftools/vcftools_latest/bin'
   format_vcfs: FALSE
   variants_analysis: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.7.3)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.7.4)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -77,11 +77,11 @@ list_packages <- c(
   "lmerTest",
   "Hmisc",
   "data.tree",
-	"RCurl", 
-	"rjson",
-	"opal",
-	"datashieldclient",
-  "dsCDISC",
+  # "RCurl", 
+  # "rjson",
+  "opal",
+  # "datashieldclient",
+  # "dsCDISC",
   "tidyverse"
 )
 
@@ -465,7 +465,10 @@ DMVSLB <- merge(
   all = TRUE
 ) %>%
   group_by(STUDYID, SUBJID) %>%
-  filter(!is.na(AGE) & !is.na(SEX)) %>%
+  filter(
+    (VISIT=="BASELINE" & !is.na(AGE) & !is.na(SEX)) |
+      VISIT!="BASELINE"
+  ) %>% 
   as.data.frame()
 
 ### To check if all individuals have the same number of visits before convert
