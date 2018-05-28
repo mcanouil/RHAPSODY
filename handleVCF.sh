@@ -1,5 +1,3 @@
-#!/bin/sh
-
 ## Description:
 ## When analysing the SNPs in R (lme4) the scripts crashes due to the amount of SNPs.
 ## We need to break down the data into smaller pieces.
@@ -10,17 +8,14 @@
 
 ## the input arguments are a vcf file (must be gzipped, only one chr)
 projectName=$1
-vcfin=$2
-vcfout=$3
-imputationQualityTag=$4
-vcftoolsPath=$5
+vcfout=$2
+imputationQualityTag=$3
+vcftoolsPath=$4
 
 
 echo -e "\n"
-echo "name of Project: $projectName"
-# echo "path of input directory: $vcfin"
-# echo "path of output directory: $vcfout"
-echo "name of imputation quality tag (INFO/*): $imputationQualityTag"
+echo "Name of Project: $projectName"
+echo "Name of imputation quality tag (INFO/*): $imputationQualityTag"
 
 
 
@@ -32,7 +27,7 @@ do
   base=`basename $vcf`
   echo "name of inputFile: $base"
 
-  ##directory for extraction from vcf (dosage, freq, etc). and for the small vcf files
+  ## directory for extraction from vcf (dosage, freq, etc). and for the small vcf files
   chrDir=`basename $vcf .vcf.gz`
   eVCF=$vcfout/$chrDir/extractVCF
   sVCF=$vcfout/$chrDir/smallVCF
@@ -40,7 +35,7 @@ do
   mkdir -p $sVCF
 
 
-  ##clean up before we start
+  ## clean up before we start
   rm -f $eVCF/*
   rm -f $sVCF/*
 
@@ -64,14 +59,12 @@ do
 
   ############ step 2: Break down the vcf file into smaller files.
   ############ Make a header and attached the header to all Files
-  # gunzip -c  $eVCF/filtered.$base | awk '{if (NR<109) print $0}' > $sVCF/tmpHeader
   gunzip -c $eVCF/filtered.$base | head -n 200 | awk '/^#/' > $sVCF/tmpHeader
 
-  ##unzip vcf and keep all but header. Split the files into lines of 1000 and call them pre*
-  # gunzip -c  $eVCF/filtered.$base | awk '{if (NR>12) print $0}' |  split - -l1000 $sVCF/pre
+  ## unzip vcf and keep all but header. Split the files into lines of 1000 and call them pre*
   gunzip -c $eVCF/filtered.$base | awk '!/^#/' |  split - -l1000 $sVCF/pre
 
-  ##loop through the pre*, add the header and zip the file. Save as "small_*.vcf.gz"
+  ## loop through the pre*, add the header and zip the file. Save as "small_*.vcf.gz"
   find $sVCF/pre* | while read pathToFile;
   do
     file=`basename $pathToFile`
@@ -95,9 +88,19 @@ do
     $vcftoolsPath/vcftools --gzvcf $pathToFile \
       --extract-FORMAT-info DS \
       --stdout | gzip -c > $eVCF/$file.DS.gz
+      
     $vcftoolsPath/vcftools --gzvcf $pathToFile \
       --get-INFO $imputationQualityTag \
       --out $eVCF/$file
+      
+    $vcftoolsPath/vcftools --gzvcf $pathToFile \
+      --hardy \
+      --out $eVCF/$file
+      
+    # $vcftoolsPath/vcftools --gzvcf $pathToFile \
+    #   --missing-site \
+    #   --out $eVCF/$file
+      
     $vcftoolsPath/vcftools --gzvcf $pathToFile \
       --freq \
       --out $eVCF/$file
@@ -111,7 +114,5 @@ do
   rm -f $sVCF/pre*
   rm -f $eVCF/delme
   rm -f $eVCF/tmp.INFO
-  # rm -f filtered.$base
-  # rm -f tmp.$base
 
 done

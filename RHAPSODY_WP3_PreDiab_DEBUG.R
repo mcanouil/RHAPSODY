@@ -2,16 +2,16 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from 'RHAPSODY_WP3_PreDiab.Rmd'
 # Author - Mickaël Canouil
-# Version - 0.7.4
+# Version - 0.8.0
 #---------------------------------------------------------------------------------------------------
 ###############
 # Node settings
 ###############
-params <- list(
-  opal_login = "administrator",
-  opal_password = "password",
-  opal_server = "http://localhost:8080"
-)
+opal_credentials <- as.data.frame(t(read.table(
+  file = "opal_credentials.txt", 
+  stringsAsFactors = FALSE, 
+  row.names = c("opal_server", "opal_login", "opal_password")
+)), stringsAsFactors = FALSE)
 
 ###############
 # Functions
@@ -268,9 +268,9 @@ invisible(sapply(list_packages, check_packages))
 # Do the funny stuff
 ###############
 o <- opal.login(
-  username = params$opal_login,
-  password = params$opal_password,
-  url = params$opal_server
+  username = opal_credentials$opal_login,
+  password = opal_credentials$opal_password,
+  url = opal_credentials$opal_server
 )
 
 
@@ -302,7 +302,12 @@ DMVSLB <- merge(
   filter(
     (VISIT=="BASELINE" & !is.na(AGE) & !is.na(SEX)) |
       VISIT!="BASELINE"
-  ) %>%
+  ) %>% 
+  mutate(
+    AGE0 = AGE[1],
+    BMI0 = BMI[1],
+    SEX0 = as.numeric(SEX=="M")[1]
+  ) %>% 
   as.data.frame()
 
 if (
