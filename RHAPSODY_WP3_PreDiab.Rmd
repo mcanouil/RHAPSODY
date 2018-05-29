@@ -185,7 +185,7 @@ mykable <- function(
       x = data[, pval_cols],
       digits = format.args$digits
     )
-  } else {}
+  }
   colnames(data) <- capitalize(colnames(data))
   if (knitr:::is_latex_output()) {
     options(knitr.table.format = "latex")
@@ -372,7 +372,7 @@ formatTableLB <- function(data) {
 }
 ```
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 # Goal
 
@@ -394,7 +394,7 @@ Results from analyses from different cohorts will be combined in two meta-analys
 
 The latter analysis will yield a more precise estimation of longitudinal trajectories than when data from only two time-points are available. 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 # R commands to run the Rmarkdown script
 ```{r run_analysis, eval = FALSE, echo = TRUE}
@@ -426,7 +426,7 @@ rmarkdown::render(
 )
 ```
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 # R session information
 Please use `r R.version.string` (if not possible, newer version "3.4.*" can be used).
@@ -434,7 +434,7 @@ Please use `r R.version.string` (if not possible, newer version "3.4.*" can be u
 sessionInfo()
 ```
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ```{r open_opal_connection, eval = params_steps$step_1, results = ifelse(params$echo, "asis", "hide")}
 cat("\n# Load data from OPAL node\n\n")
@@ -520,7 +520,7 @@ if (
 }
 ```
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 # Quality control of phenotype data
 
@@ -542,7 +542,7 @@ Diagnostic criteria for diabetes ([ADA criteria; Diabetes Care 2015 Jan; 38, Sup
 6.  Additional exclusion based on model diagnostics (see preliminary modelling for details)
 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ## Code results
 
@@ -826,7 +826,7 @@ DMVSLB.QC3 <- DMVSLB.QC2 %>%
 Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB.QC3 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`
 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 # Preliminary modelling
 
@@ -877,7 +877,7 @@ getResidualsOutliers <- function(x) {
 }
 ```
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ### First Run
 
@@ -1227,14 +1227,14 @@ mykable(demoDescriptTable)
 
 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 # Association and interaction analyses
 
 ## Summary
 To perform GWAS analysis, SNP main effect and SNP x time interaction term are included to the preliminary model above; these parameters are average linear effect of time and SNP effect on the rate change (SNP x time), respectively. 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ## Code results
 
@@ -1253,7 +1253,7 @@ cat(
 cat("\n")
 ```
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ### Prepare and format VCF files
 
@@ -1412,7 +1412,7 @@ done
 ```
 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ### Run Mixed Model with imputed genotypes
 ```{r lmm_genotypes, eval = params_steps$step_6 & params$variants_analysis}
@@ -1586,7 +1586,7 @@ grep("22", listChrDirectories, value = TRUE) %>%
 
 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ## Output tree structure
 ```{r directory_structure, eval = params_steps$step_7, results = "markup"}
@@ -1622,6 +1622,6 @@ dir_tree %>%
 ```
 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 
