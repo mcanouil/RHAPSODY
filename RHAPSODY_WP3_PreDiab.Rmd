@@ -64,7 +64,7 @@ check_packages <- function(package) {
 		  ),
 			dependencies = TRUE
 		)
-  } else {}
+  }
   library(package = package, character.only = TRUE)
 }
 
