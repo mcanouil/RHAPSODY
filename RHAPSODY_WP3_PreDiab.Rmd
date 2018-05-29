@@ -86,8 +86,6 @@ list_packages <- c(
   # "RCurl", 
   # "rjson",
   "opal",
-  # "datashieldclient",
-  # "dsCDISC",
   "tidyverse"
 )
 
