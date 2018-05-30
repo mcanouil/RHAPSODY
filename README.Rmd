@@ -26,7 +26,7 @@ At this stage, you were provided with the following files from [the (hidden) Gis
   * `opal_credentials.txt`, the server, login and password informations to access phenotype data on your local node;
   * `Install_Rpackages.R`, a R script which install a predefined version of all R packages loaded in the Rmarkdown script, only if needed.
   
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 # Run the analysis
 ## R Setup
@@ -44,7 +44,7 @@ check_packages <- function(package) {
 			  "http://cran.obiba.org"),
 			dependencies = TRUE
 		)
-  } else {}
+  }
   library(package = package, character.only = TRUE)
 }
 
@@ -74,7 +74,7 @@ list_packages <- c(
 invisible(sapply(list_packages, check_packages))
 ```
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ## Run the Rmarkdown script
 1. First, create (or change) the `opal_credentials.txt` with your informations.
@@ -102,7 +102,7 @@ invisible(sapply(list_packages, check_packages))
     ```
     Either try to solve the issue yourself and/or send the informations to [mickael.canouil@cnrs.fr](mailto:mickael.canouil@cnrs.fr)
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'} else {}`
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ```{r}
 # set the output directory or leave as is; 
