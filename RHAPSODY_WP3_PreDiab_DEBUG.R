@@ -2,13 +2,13 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from 'RHAPSODY_WP3_PreDiab.Rmd'
 # Author - Mickaël Canouil
-# Version - 0.8.0
+# Version - 0.8.1
 #---------------------------------------------------------------------------------------------------
 ###############
 # Node settings
 ###############
 opal_credentials <- as.data.frame(t(read.table(
-  file = "opal_credentials.txt", 
+  file = "./Scripts/BuildScripts/opal_DESIR.txt", #"opal_credentials.txt", 
   stringsAsFactors = FALSE, 
   row.names = c("opal_server", "opal_login", "opal_password")
 )), stringsAsFactors = FALSE)
@@ -145,8 +145,13 @@ formatTableVS <- function(data) {
     select(c(DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD)) %>%
     distinct()
   
-  data0 <- merge(
-    x = merge(
+  if (!"VSTPTNUM"%in%colnames(data)) {
+    data <- data %>% 
+      mutate(VSTPTNUM = NA)
+  }
+  
+  data0 <- full_join(
+    x = full_join(
       x = data %>%
         subset(is.na(VSTPTNUM)) %>%
         select(KeyFactor, VSORRES, VSTESTCD) %>%
@@ -157,14 +162,12 @@ formatTableVS <- function(data) {
         mutate(KeyMeasures = paste(VSTESTCD, VSTPTNUM, sep = "_")) %>%
         select(KeyFactor, KeyMeasures, VSORRES) %>%
         spread(key = "KeyMeasures", value = "VSORRES"),
-      by = "KeyFactor",
-      all = TRUE
+      by = c("KeyFactor" = "KeyFactor")
     ),
     y = (data %>%
            select(-c(VSORRES, VSTPT, VSTPTNUM, VSORRESU, VSTEST, VSTESTCD)) %>%
            distinct()),
-    by = "KeyFactor",
-    all = TRUE
+    by = c("KeyFactor" = "KeyFactor")
   ) %>%
     mutate(
       VISIT = factor(
@@ -206,7 +209,7 @@ formatTableLB <- function(data) {
       KeyMeasures = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
     )
   
-  data0 <- merge(
+  data0 <- full_join(
     x = (data %>%
            select(KeyFactor, LBORRES, LBTESTCD, LBSPEC, LBCAT, LBTPTNUM) %>%
            mutate(
@@ -217,8 +220,7 @@ formatTableLB <- function(data) {
     y = (data %>%
            select(c("LBDTC", "SUBJID", "VISIT", "DOMAIN", "STUDYID", "LBFAST", "KeyFactor")) %>%
            distinct()),
-    by = "KeyFactor",
-    all = TRUE
+    by = c("KeyFactor" = "KeyFactor")
   ) %>%
     mutate(
       VISIT = factor(
@@ -232,6 +234,50 @@ formatTableLB <- function(data) {
     data.frame()
   
   return(list(data = data0, annot = CovDesc))
+}
+
+compute_BMI <- function(data) {
+  if (!"BMI"%in%data$annot[["VSTESTCD"]]) {
+    weight_unit <- data$annot %>% 
+      filter(VSTESTCD=="WEIGHT") %>% 
+      select(VSORRESU) %>% 
+      unlist()
+    convert_weight_unit <- switch(
+      EXPR = weight_unit,
+      "kg" = {function(x) {x}},
+      "lb" = {function(x) {x*0.45359237}}
+    )
+    
+    height_unit <- data$annot %>% 
+      filter(VSTESTCD=="HEIGHT") %>% 
+      select(VSORRESU) %>% 
+      unlist()
+    convert_height_unit <- switch(
+      EXPR = height_unit,
+      "cm" = {function(x) {x/100}},
+      "m" = {function(x) {x}},
+      "in" = {function(x) {(x*2.54)/100}}
+    )
+    
+    data$data <- data$data %>% 
+      mutate(
+        BMI = convert_weight_unit(WEIGHT) / convert_height_unit(HEIGHT)
+      )
+    default_CDISC_BMI <- structure(
+      list(
+        DOMAIN = "VS", 
+        STUDYID = unique(data$annot[["STUDYID"]]), 
+        VSORRESU = "kg/m2", 
+        VSTEST = "Body Mass Index", 
+        VSTESTCD = "BMI"
+      ), 
+      .Names = c("DOMAIN",  "STUDYID", "VSORRESU", "VSTEST", "VSTESTCD"), 
+      row.names = 1L, 
+      class = "data.frame"
+    )
+    data$annot <- bind_rows(data$annot, default_CDISC_BMI)
+  }
+  return(data)
 }
 
 
@@ -285,6 +331,7 @@ rm(list = c("o", "itable", "whichTable"))
 
 
 VSformat <- formatTableVS(data = VS)
+VSformat <- compute_BMI(VSformat)
 LBformat <- formatTableLB(data = LB)
 
 DMVSLB <- merge(
