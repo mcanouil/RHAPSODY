@@ -282,7 +282,10 @@ formatTableVS <- function(data) {
   
   if (!"VSTPTNUM"%in%colnames(data)) {
     data <- data %>% 
-      mutate(VSTPTNUM = NA)
+      mutate(
+        VSTPTNUM = NA,
+        VSTPT = NA
+      )
   }
   
   data0 <- full_join(

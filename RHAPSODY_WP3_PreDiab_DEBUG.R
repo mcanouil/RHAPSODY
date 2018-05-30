@@ -8,7 +8,7 @@
 # Node settings
 ###############
 opal_credentials <- as.data.frame(t(read.table(
-  file = "./Scripts/BuildScripts/opal_DESIR.txt", #"opal_credentials.txt", 
+  file = #"opal_credentials.txt",
   stringsAsFactors = FALSE, 
   row.names = c("opal_server", "opal_login", "opal_password")
 )), stringsAsFactors = FALSE)
@@ -23,7 +23,7 @@ check_packages <- function(package) {
 			repos = c("https://rhap-fdb01.vital-it.ch/repo/", "https://cran.rstudio.com/", "http://cran.obiba.org"),
 			dependencies = TRUE
 		)
-  } else {}
+  }
   library(package = package, character.only = TRUE)
 }
 format_pval <- function (x, thresh = 10^-2, digits = 3, eps = 1e-50) {
@@ -48,7 +48,7 @@ mykable <- function(
       x = data[, pval_cols],
       digits = format.args$digits
     )
-  } else {}
+  }
   colnames(data) <- capitalize(colnames(data))
   if (knitr:::is_latex_output()) {
     options(knitr.table.format = "latex")
@@ -147,7 +147,10 @@ formatTableVS <- function(data) {
   
   if (!"VSTPTNUM"%in%colnames(data)) {
     data <- data %>% 
-      mutate(VSTPTNUM = NA)
+      mutate(
+        VSTPTNUM = NA,
+        VSTPT = NA
+      )
   }
   
   data0 <- full_join(
