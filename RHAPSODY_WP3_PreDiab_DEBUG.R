@@ -8,7 +8,7 @@
 # Node settings
 ###############
 opal_credentials <- as.data.frame(t(read.table(
-  file = #"opal_credentials.txt",
+  file = "opal_credentials.txt",
   stringsAsFactors = FALSE, 
   row.names = c("opal_server", "opal_login", "opal_password")
 )), stringsAsFactors = FALSE)
