@@ -9,7 +9,7 @@
 ###############
 opal_credentials <- as.data.frame(t(read.table(
   file = "opal_credentials.txt",
-  stringsAsFactors = FALSE, 
+  stringsAsFactors = FALSE,
   row.names = c("opal_server", "opal_login", "opal_password")
 )), stringsAsFactors = FALSE)
 
@@ -334,9 +334,30 @@ opal.logout(o)
 rm(list = c("o", "itable", "whichTable"))
 
 
-VSformat <- formatTableVS(data = VS)
-VSformat <- compute_BMI(VSformat)
-LBformat <- formatTableLB(data = LB)
+VS_format <- try(VSformat <- formatTableVS(data = VS))
+VS_BMIcompute <- try(VSformat <- compute_BMI(VSformat))
+LB_format <- try(LBformat <- formatTableLB(data = LB))
+
+if (is(VS_format, "try-error")) {
+  warning(VS_format)
+} else {
+  message("VS table was successfully formated !")
+}
+if (is(VS_BMIcompute, "try-error")) {
+  warning(VS_BMIcompute)
+} else {
+  message("BMI computation was successfull !")
+}
+if (is(LB_format, "try-error")) {
+  warning(LB_format)
+} else {
+  message("LB table was successfully formated !")
+}
+
+if (any(c(is(VS_format, "try-error"), is(VS_BMIcompute, "try-error"), is(LB_format, "try-error")))) {
+  stop("LB or VS formatting failed ! Check previous warnings !)")
+}
+  
 
 DMVSLB <- merge(
   x = DM %>% mutate(VISIT = "BASELINE") %>% select(-DOMAIN),
