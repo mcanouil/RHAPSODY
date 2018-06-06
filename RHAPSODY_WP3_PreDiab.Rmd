@@ -742,14 +742,15 @@ Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB.QC0 %>% 
 
 ### Exclusion of participants with data available from only one time-point
 ```{r check_samples_with_one_measure, eval = params_steps$step_2}
+variables_names_available <- variables_names[!grepl("_NA", variables_names)]
 OneTimePointSamples <- DMVSLB.QC0 %>%
   group_by(STUDYID, SUBJID) %>%
   summarise_at(
-    .vars = vars(variables_names),
+    .vars = vars(variables_names_available),
     .funs = (function(.x) {sum(!is.na(.x))})
   ) %>%
   filter_at(
-    .vars = vars(variables_names[-grep("_NA", variables_names)]),
+    .vars = vars(variables_names_available),
     .vars_predicate = any_vars(. == 1)
   ) %>%
   select(STUDYID, SUBJID) %>%
