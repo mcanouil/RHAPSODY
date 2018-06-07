@@ -1465,13 +1465,13 @@ done
 
 ### Run Mixed Model with imputed genotypes
 ```{r lmm_genotypes, eval = params_steps$step_6 & params$variants_analysis}
-if (params$cohort_name == "DESIR") { # for DESIR only (local use only)
-  idtable <- read.table(
-    file = "/disks/PROJECT/RHAPSODY/Docs/Correspondance_ref_vs_NumANGERS.txt",
-    header = TRUE
-  )
-  rownames(idtable) <- idtable[, 2]
-}
+# if (params$cohort_name == "DESIR") { # for DESIR only (local use only)
+#   idtable <- read.table(
+#     file = "/disks/PROJECT/RHAPSODY/Docs/Correspondance_ref_vs_NumANGERS.txt",
+#     header = TRUE
+#   )
+#   rownames(idtable) <- idtable[, 2]
+# }
 
 listChrDirectories <- grep(
   pattern = "extractVCF",
@@ -1498,11 +1498,11 @@ for (ichrdirectory in listChrDirectories) {
     chunkDosageFile <- read.table(file = idosagefile, header = TRUE, check.names = FALSE)
 
     ## for DESIR only (make IDs the same as in CDISC database)
-    if (params$cohort_name == "DESIR") {
-      keepDESIR <- gsub("1_", "", colnames(chunkDosageFile)[-c(1, 2)]) %in% idtable[, 2]
-      chunkDosageFile <- chunkDosageFile[, c(1, 2, which(keepDESIR) + 2)]
-      colnames(chunkDosageFile)[-c(1, 2)] <- idtable[gsub("1_", "", colnames(chunkDosageFile)[-c(1, 2)]), 1]
-    }
+    # if (params$cohort_name == "DESIR") {
+    #   keepDESIR <- gsub("1_", "", colnames(chunkDosageFile)[-c(1, 2)]) %in% idtable[, 2]
+    #   chunkDosageFile <- chunkDosageFile[, c(1, 2, which(keepDESIR) + 2)]
+    #   colnames(chunkDosageFile)[-c(1, 2)] <- idtable[gsub("1_", "", colnames(chunkDosageFile)[-c(1, 2)]), 1]
+    # }
 
     ## Check intersect between phenotypes and genotypes data
     samplesWithPhenoGeno <- intersect(
