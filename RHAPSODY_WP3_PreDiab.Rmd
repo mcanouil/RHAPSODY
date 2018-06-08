@@ -130,25 +130,6 @@ if (knitr:::is_latex_output()) {
 }
 ```
 
-```{r params_debug, eval = FALSE, include = FALSE}
-params <- list(
-  cohort_name = 'CohortName',
-  author_name = 'Firstname LASTNAME',
-  opal_credentials = './Scripts/BuildScripts/opal_DESIR.txt',
-  vcf_input_directory = './vcfs',
-  imputation_quality_tag = 'INFO',
-  vcftools_binary_path = '/disks/RAW/Softwares/vcftools/vcftools_latest/bin',
-  output_directory = './',
-  analysis_step = 2,
-  format_vcfs = TRUE,
-  variants_analysis = TRUE,
-  n_cpu = 2,
-  echo = FALSE,
-  warning = TRUE,
-  message = FALSE
-)
-```
-
 ```{r check_parameters, echo = FALSE}
 if (!file.exists(params$opal_credentials)) {
   stop(paste0('File "', params$opal_credentials, '" doesn\'t exist!\nPlease check the settings.'))
@@ -939,11 +920,11 @@ nTimePoints <- DMVSLB.QC3 %>%
 
 # Include random slope if more than two time points
 if (nTimePoints > 2) {
-  formula.rightPart <- ~1 + AGE0 + SEX0 + BMI0 + VISIT_YEARS + (1 + VISIT_YEARS | SUBJID)
+  formula.rightPart <- ~ 1 + AGE0 + SEX0 + BMI0 + VISIT_YEARS + (1 + VISIT_YEARS | SUBJID)
   cat(paste0("Random intercept and random slope are included in the model (up to ", nTimePoints, " time points available).\n\n"))
   cat("\n")
 } else {
-  formula.rightPart <- ~1 + AGE0 + SEX0 + BMI0 + VISIT_YEARS + (1 | SUBJID)
+  formula.rightPart <- ~ 1 + AGE0 + SEX0 + BMI0 + VISIT_YEARS + (1 | SUBJID)
   cat(paste0("Only a random intercept is included in the model (up to ", nTimePoints, " time points available).\n\n"))
   cat("\n")
 }
@@ -1465,14 +1446,6 @@ done
 
 ### Run Mixed Model with imputed genotypes
 ```{r lmm_genotypes, eval = params_steps$step_6 & params$variants_analysis}
-# if (params$cohort_name == "DESIR") { # for DESIR only (local use only)
-#   idtable <- read.table(
-#     file = "/disks/PROJECT/RHAPSODY/Docs/Correspondance_ref_vs_NumANGERS.txt",
-#     header = TRUE
-#   )
-#   rownames(idtable) <- idtable[, 2]
-# }
-
 listChrDirectories <- grep(
   pattern = "extractVCF",
   x = list.dirs(params$output_directory, full.names = TRUE),
@@ -1496,13 +1469,6 @@ for (ichrdirectory in listChrDirectories) {
   for (idosagefile in listDosageFile) {
     message(idosagefile)
     chunkDosageFile <- read.table(file = idosagefile, header = TRUE, check.names = FALSE)
-
-    ## for DESIR only (make IDs the same as in CDISC database)
-    # if (params$cohort_name == "DESIR") {
-    #   keepDESIR <- gsub("1_", "", colnames(chunkDosageFile)[-c(1, 2)]) %in% idtable[, 2]
-    #   chunkDosageFile <- chunkDosageFile[, c(1, 2, which(keepDESIR) + 2)]
-    #   colnames(chunkDosageFile)[-c(1, 2)] <- idtable[gsub("1_", "", colnames(chunkDosageFile)[-c(1, 2)]), 1]
-    # }
 
     ## Check intersect between phenotypes and genotypes data
     samplesWithPhenoGeno <- intersect(
