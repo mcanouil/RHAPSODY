@@ -52,6 +52,8 @@ output:
     keep_md: false
 ---
 
+<!-- Author - Mickaël Canouil, Ph.D. -->
+
 ```{r setup, include = FALSE, echo = FALSE}
 check_packages <- function(package) {
   if (!package %in% installed.packages()[, "Package"]) {
