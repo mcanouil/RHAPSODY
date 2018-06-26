@@ -2,7 +2,7 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from 'RHAPSODY_WP3_PreDiab.Rmd'
 # Author - Mickaël Canouil
-# Version - 0.8.1
+# Version - 0.8.2
 #---------------------------------------------------------------------------------------------------
 ###############
 # Node settings

@@ -14,7 +14,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.8.1)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.8.2)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -529,6 +529,7 @@ DMVSLB <- merge(
   ) %>% 
   as.data.frame()
 
+
 ### To check if all individuals have the same number of visits before convert
 if (
   DMVSLB %>%
@@ -653,7 +654,6 @@ DMVSLB <- DMVSLB %>%
     funs(convertHbA1c(., unitFrom = "%"))
   )
 
-
 varNamesGLUC <- grep("^GLUC.*_0$", colnames(DMVSLB), value = TRUE)
 varNamesGLUC2H <- grep("^GLUC.*_120$", colnames(DMVSLB), value = TRUE)
 varNamesHBA1C <- grep("^HBA1C.*$", colnames(DMVSLB), value = TRUE)
@@ -683,6 +683,23 @@ if (length(varNamesHBA1C) == 0) {
 }
 
 variables_names <- c(varNamesGLUC_new, varNamesGLUC2H_new, varNamesHBA1C_new)
+
+### Blood to Plasma measure conversion for ADDITION cohort
+if (params$cohort_name == "ADDITION") {
+  convert_blood_to_plasma <- function(data) {
+    data %>% 
+      mutate(
+        GLUC_P = ifelse(VISIT=="BASELINE", 0.64 + 1.05 * GLUC_B, GLUC_P),
+        GLUC2H_P = ifelse(VISIT=="BASELINE", -0.30 + 0.97 * GLUC2H_B, GLUC2H_P)
+      ) %>% 
+      return()
+  }
+ 
+  DMVSLB <- DMVSLB %>% 
+    convert_blood_to_plasma()
+  
+  variables_names <- setdiff(variables_names, c("GLUC_B", "GLUC2H_B"))
+}
 ```
 
 ### Keep only IDs that are fasted at baseline
