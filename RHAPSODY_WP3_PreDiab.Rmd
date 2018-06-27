@@ -560,7 +560,7 @@ if (
 1.  Make sure measured biomarker data are in the same units across all the cohorts.  
 Fasting and 2-h plasma glucose in mmol/l and HbA1c in mmol/mol.
 2.  For fasting and 2-h glucose, ensure only those participants who are fasted for at least 8-h are included.
-3.  Exclusion of participants with data available from only one time-point.  
+3.  Exclusion of participants with data available for only one time-point.  
 Only individuals with at least 2 observations should be included in the analysis.
 4.  Exclusion of participants with diabetes at baseline.  
 As we will focus on prediabetes (and also include participants with normoglycemia), prevalent cases of diabetes at baseline using ADA diagnostic criteria must be excluded; this applies to participants with known diabetes as well as those with screen-detected diabetes at baseline.  
@@ -740,7 +740,7 @@ if (all(is.na(DMVSLB[, "LBFAST"]))) {
 
 Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB.QC0 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
-### Exclusion of participants with data available from only one time-point
+### Exclusion of participants with data available for only one time-point
 ```{r check_samples_with_one_measure, eval = params_steps$step_2}
 variables_names_available <- variables_names[!grepl("_NA", variables_names)]
 OneTimePointSamples <- DMVSLB.QC0 %>%
