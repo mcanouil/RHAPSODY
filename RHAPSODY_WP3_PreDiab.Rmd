@@ -751,7 +751,7 @@ OneTimePointSamples <- DMVSLB.QC0 %>%
   ) %>%
   filter_at(
     .vars = vars(variables_names_available),
-    .vars_predicate = any_vars(. == 1)
+    .vars_predicate = any_vars(. <= 1)
   ) %>%
   select(STUDYID, SUBJID) %>%
   mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
