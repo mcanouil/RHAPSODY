@@ -1509,7 +1509,7 @@ DMVSLB.QC4 %>%
 cat("\n")
 ```
 
-#### Mixed Models
+#### Mixed Model results
 ```{r lmm_genotypes, eval = params_steps$step_6 & params$variants_analysis}
 listChrDirectories <- grep(
   pattern = "extractVCF",
