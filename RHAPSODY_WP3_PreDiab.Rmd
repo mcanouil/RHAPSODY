@@ -14,7 +14,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.8.2)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.8.3)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -1331,8 +1331,14 @@ cat(
 #### Format and split VCF using bash and vcftools (needs to be installed)
 
 #### List all VCFs path in a file
-```{sh list_vcf, eval = params_steps$step_4}
-find $vcfin/*[2][12]*.vcf.gz > $vcfout/vcffilespath.txt
+```{r list_vcf, eval = params_steps$step_4}
+# find $vcfin/*[2][12]*.vcf.gz > $vcfout/vcffilespath.txt
+list.files(
+  path = params$vcf_input_directory, 
+  pattern = "*[2][12]*.vcf.gz$", # '*[2][12]*' part to be removed later
+  full.names = TRUE
+) %>% 
+  cat(sep = "\n", file = paste0(params$output_directory,"/vcffilespath.txt"))
 ```
 
 ##### Manually format VCFs
@@ -1464,6 +1470,46 @@ done
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ### Run Mixed Model with imputed genotypes
+
+#### Trajectories
+```{r lmm_genotypes_plot, eval = params_steps$step_6 & params$variants_analysis}
+DMVSLB.QC4 %>%
+  filter(
+    SUBJID %in% (
+      grep(
+        pattern = "extractVCF",
+        x = list.dirs(params$output_directory, full.names = TRUE),
+        value = TRUE
+      ) %>% 
+        .[1] %>% 
+        list.files(pattern = ".DS.gz$", full.names = TRUE) %>% 
+        .[1] %>% 
+        read.table(header = TRUE, check.names = FALSE) %>% 
+        colnames() %>% 
+        .[-c(1, 2)]
+    )
+  ) %>%
+  select(!!unname(variables_names), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID) %>% 
+  gather(key = "Trait", value = "Measure", -c(AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID)) %>% 
+  mutate(
+    ID = paste(STUDYID, SUBJID, sep = "_"),
+    pT2D = ifelse(
+      ID %in% diabeticSamplesWithMedicationInfo.ToKeep,
+      "PreDiab",
+      "Normo"
+    )
+  ) %>%
+  ggplot(data = ., aes_string(x = "VISIT_YEARS", y = "Measure", colour = "ID")) +
+  geom_line() +
+  guides(colour = "none") +
+  scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+  facet_grid(Trait~pT2D, scales = "free_y") +
+  labs(y = "Measure (SI)")
+
+cat("\n")
+```
+
+#### Mixed Models
 ```{r lmm_genotypes, eval = params_steps$step_6 & params$variants_analysis}
 listChrDirectories <- grep(
   pattern = "extractVCF",
