@@ -14,7 +14,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.8.3)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.8.4)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -704,7 +704,7 @@ if (params$cohort_name == "ADDITION") {
 }
 ```
 
-### Keep only IDs that are fasted at baseline
+### Keep only participants that are fasted at baseline
 ```{r fasted_samples, eval = params_steps$step_2}
 if (all(is.na(DMVSLB[, "LBFAST"]))) {
   cat("Fasting information (`LBFAST`) is not available: all individuals are kept and supposed to be fasted at baseline.  \n\n")
@@ -873,7 +873,6 @@ DMVSLB.QC3 <- DMVSLB.QC2 %>%
 ```
 
 Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB.QC3 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`
-
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
@@ -1473,7 +1472,7 @@ done
 
 #### Trajectories
 ```{r lmm_genotypes_plot, eval = params_steps$step_6 & params$variants_analysis}
-DMVSLB.QC4 %>%
+DMVSLB.QC5 <- DMVSLB.QC4 %>%
   filter(
     SUBJID %in% (
       grep(
@@ -1488,7 +1487,9 @@ DMVSLB.QC4 %>%
         colnames() %>% 
         .[-c(1, 2)]
     )
-  ) %>%
+  ) 
+
+DMVSLB.QC5 %>%
   select(!!unname(variables_names), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID) %>% 
   gather(key = "Trait", value = "Measure", -c(AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID)) %>% 
   mutate(
@@ -1664,6 +1665,66 @@ grep("22", listChrDirectories, value = TRUE) %>%
   rmarkdown:::print.paged_df()
 ``` 
 
+
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
+
+## Samples exclusion summary
+```{r qc_summary, eval = params_steps$step_2}
+count_samples <- function(data) { 
+  data %>% 
+    select(STUDYID, SUBJID) %>% 
+    distinct() %>% 
+    nrow()
+}
+
+qc_steps <- bind_rows(
+  tibble(
+    `QC Step` = 1, 
+    `QC Step Description` = "Exclude participants that are not fasted at baseline", 
+    `Samples Before QC` = count_samples(DMVSLB),
+    `Samples After QC` = count_samples(DMVSLB.QC0),
+    `Samples Excluded` = `Samples Before QC`-`Samples After QC`
+  ),
+  tibble(
+    `QC Step` = 2, 
+    `QC Step Description` = "Exclude participants with data available for one (or zero) time-point", 
+    `Samples Before QC` = count_samples(DMVSLB.QC0),
+    `Samples After QC` = count_samples(DMVSLB.QC1),
+    `Samples Excluded` = `Samples Before QC`-`Samples After QC`
+  ),
+  tibble(
+    `QC Step` = 3, 
+    `QC Step Description` = "Exclude participants with diabetes at baseline", 
+    `Samples Before QC` = count_samples(DMVSLB.QC1),
+    `Samples After QC` = count_samples(DMVSLB.QC2),
+    `Samples Excluded` = `Samples Before QC`-`Samples After QC`
+  ),
+  tibble(
+    `QC Step` = 4, 
+    `QC Step Description` = "Exclude participants developing diabetes during the study time without informations about medication", 
+    `Samples Before QC` = count_samples(DMVSLB.QC2),
+    `Samples After QC` = count_samples(DMVSLB.QC3),
+    `Samples Excluded` = `Samples Before QC`-`Samples After QC`
+  ),
+  tibble(
+    `QC Step` = 5, 
+    `QC Step Description` = "Exclude participants defined as outliers based on residuals from the mixed model, with median plus/minus 3*IQR", 
+    `Samples Before QC` = count_samples(DMVSLB.QC3),
+    `Samples After QC` = count_samples(DMVSLB.QC4),
+    `Samples Excluded` = `Samples Before QC`-`Samples After QC`
+  ),
+  tibble(
+    `QC Step` = 6, 
+    `QC Step Description` = "Exclude participants with no genotypes data available", 
+    `Samples Before QC` = count_samples(DMVSLB.QC4),
+    `Samples After QC` = count_samples(DMVSLB.QC5),
+    `Samples Excluded` = `Samples Before QC`-`Samples After QC`
+  )
+) %>% 
+  mutate_if(.predicate = is.numeric, .f = ~format(x = .x, big.mark = ","))
+
+mykable(data = qc_steps)
+```
 
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
