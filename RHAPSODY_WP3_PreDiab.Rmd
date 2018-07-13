@@ -404,7 +404,7 @@ tidy_lmer <- function(x) {
 }
 
 # extract residuals from mixed model and list samples with median plus/minus 3*IQR
-getResidualsOutliers <- function(x) {
+get_residuals_outliers <- function(x) {
   x@frame %>% 
     mutate(
       residuals = residuals(x),
@@ -412,8 +412,7 @@ getResidualsOutliers <- function(x) {
       r_median = median(residuals)
     ) %>% 
     filter(between(residuals, r_median-r_iqr, r_median+r_iqr)) %>% 
-    select(SUBJID) %>% 
-    unlist() %>% 
+    .[["SUBJID"]]
     return()
 }
 
@@ -657,8 +656,7 @@ DMVSLB <- DMVSLB %>%
     vars(
       lb_tidy$annotation %>%
         filter(!is.na(CONVERT_TO) & tolower(LBORRESU)%in%"g/l") %>%
-        select(KEY_MEASURES) %>%
-        unlist()
+        .[["KEY_MEASURES"]]
     ),
     funs(convert_2mmoll(., from = "g/l"))
   ) %>%
@@ -666,8 +664,7 @@ DMVSLB <- DMVSLB %>%
     vars(
       lb_tidy$annotation %>%
         filter(!is.na(CONVERT_TO) & tolower(LBORRESU)%in%"mg/l") %>%
-        select(KEY_MEASURES) %>%
-        unlist()
+        .[["KEY_MEASURES"]]
     ),
     funs(convert_2mmoll(., from = "mg/l"))
   ) %>%
@@ -675,8 +672,7 @@ DMVSLB <- DMVSLB %>%
     vars(
       lb_tidy$annotation %>%
         filter(!is.na(CONVERT_TO) & LBORRESU%in%"%") %>%
-        select(KEY_MEASURES) %>%
-        unlist()
+        .[["KEY_MEASURES"]]
     ),
     funs(convert_hba1c(., unitFrom = "%"))
   )
@@ -765,7 +761,7 @@ if (all(is.na(DMVSLB[, "LBFAST"]))) {
     filter(VISIT == "BASELINE" & is.na(LBFAST)) %>%
     ungroup() %>%
     count() %>%
-    `[[`("n")
+    .[["n"]]
 
   cat(
     paste(
@@ -906,9 +902,10 @@ samples_with_insulin <- check_medication %>%
 # List incident diabetic samples with 'BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS'
 # and without 'INSULINS AND ANALOGUES' medication
 diabetic_samples_with_medication_info <- setdiff(
-  check_medication %>%
-    filter(CMCAT%in%"BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS") %>%
-    .[["ID"]],
+    filter(
+      .data = check_medication, 
+      CMCAT%in%"BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS"
+    )[["ID"]],
   samples_with_insulin
 )
 
@@ -1070,7 +1067,7 @@ for (ivariable in variables_names) {
     cat("\n")
     
     
-    residuals_outliers[[ivariable]] <- getResidualsOutliers(fit)
+    residuals_outliers[[ivariable]] <- get_residuals_outliers(fit)
     
     
     cat("\n##### Results for random effect as a matrix\n\n")
@@ -1134,7 +1131,10 @@ DMVSLB_QC4 <- DMVSLB_QC3 %>%
 Total individuals available : `r ifelse(params$analysis_step>=3, DMVSLB_QC4 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ```{r preliminary_second_run, eval = params_steps$step_3}
-residuals_outliers <- as.list(rep(NA, length(variables_names))) %>% 
+residuals_outliers <- variables_names %>% 
+  length() %>% 
+  rep_len(NA, .) %>% 
+  as.list() %>% 
   `names<-`(variables_names)
 
 for (ivariable in variables_names) {
@@ -1304,7 +1304,7 @@ descriptive_table <- DMVSLB_QC4 %>%
         ),
       y = .data %>% 
         summarise_at(.vars = vars(variables_names), .funs = compute_mean_sd) %>% 
-        `colnames<-`(c(colnames(.)[1], paste0("Baseline", colnames(.)[-1]))),
+        `colnames<-`(c(colnames(.)[1], paste0(colnames(.)[-1], " (Baseline)"))),
       by = "STUDYID"
     )
   }) %>%
@@ -1312,11 +1312,13 @@ descriptive_table <- DMVSLB_QC4 %>%
   select(
     STUDYID,
     `Number of Participants`, `Number of Measures`, `Follow-Up Duration`, `Males Percentage`,
-    `Age (Baseline)`, `BMI (Baseline)`, everything()
+    `Age (Baseline)`, `BMI (Baseline)`, 
+    everything()
   ) %>%
   t() %>%
   `colnames<-`(.[1, ]) %>%
-  `[`(-1, , drop = FALSE)
+  as.data.frame() %>% 
+  slice(-1)
 
 pretty_kable(descriptive_table)
 ```
