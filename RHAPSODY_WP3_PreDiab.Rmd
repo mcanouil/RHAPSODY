@@ -1,6 +1,6 @@
 ---
 params:
-  cohort_name: 'CohortName'
+  cohort_name: 'Cohort Name'
   author_name: 'Firstname LASTNAME'
   opal_credentials: 'opal_credentials.txt'
   vcf_input_directory: './vcfs'
@@ -56,7 +56,7 @@ output:
 
 ```{r setup, include = FALSE, echo = FALSE}
 check_packages <- function(package) {
-  if (!package %in% installed.packages()[, "Package"]) {
+  if (!package%in%installed.packages()[, "Package"]) {
     install.packages(
 			package, 
 			repos = c(
@@ -85,8 +85,6 @@ list_packages <- c(
   "lmerTest",
   "Hmisc",
   "data.tree",
-  # "RCurl", 
-  # "rjson",
   "opal",
   "tidyverse"
 )
@@ -130,6 +128,8 @@ if (knitr:::is_latex_output()) {
     )
   })
 }
+
+theme_set(theme_light(base_size = 12))
 ```
 
 ```{r check_parameters, echo = FALSE}
@@ -142,8 +142,6 @@ if (!file.exists(paste0(params$vcftools_binary_path, "/vcftools"))) {
 ```
 
 ```{r define_r_functions, include = FALSE, echo = FALSE}
-theme_set(theme_light(base_size = 12))
-
 format_pval <- function (x, thresh = 10^-2, digits = 3, eps = 1e-50) {
   pout <- ifelse(
     x>=thresh, 
@@ -153,7 +151,7 @@ format_pval <- function (x, thresh = 10^-2, digits = 3, eps = 1e-50) {
   return(pout)
 }
 
-mykable <- function(
+pretty_kable <- function(
   data,
   font_size = 12,
   format.args = list(scientific = -1, digits = 3, big.mark = ","),
@@ -190,9 +188,9 @@ mykable <- function(
 }
 
 # reference table to convert HbA1c from percentage to mmol/mol
-convertHbA1c <- function(x, unitFrom = "%") {
+convert_hba1c <- function(x, unitFrom = "%") {
   if (unitFrom == "%") {
-    HBA1Cconvert <- structure(list(
+    hba1c_unit_table <- structure(list(
       V1 = c(
         10L, 12L, 14L, 16L, 18L, 20L, 22L, 24L,
         26L, 28L, 30L, 32L, 34L, 36L, 38L, 40L, 42L, 44L, 46L, 48L, 50L,
@@ -218,7 +216,7 @@ convertHbA1c <- function(x, unitFrom = "%") {
       )
     ), .Names = c("V1", "V2"), class = "data.frame", row.names = c(NA, -100L))
     return(sapply(x, function(y) {
-      round(sum(tidy(lm(V1~V2, data = HBA1Cconvert))[, "estimate"] * c(1, y)))
+      round(sum(tidy(lm(V1~V2, data = hba1c_unit_table))[, "estimate"] * c(1, y)))
     }))
   } else {
     return(x)
@@ -226,41 +224,25 @@ convertHbA1c <- function(x, unitFrom = "%") {
 }
 
 # function to convert g/l to mmol/l
-convert2mmolL <- function(x, from = "g/l") {
-  switch(EXPR = from,
-    "g/l" = {
-      x / 0.18
-    },
-    "g/L" = {
-      x / 0.18
-    },
-    "mg/l" = {
-      x / 0.18 / 100
-    },
-    "mg/L" = {
-      x / 0.18 / 100
-    },
-    "mmol/l" = {
-      x
-    },
-    "mmol/L" = {
-      x
-    }, {
-      stop("Please check Units: g/l, g/L, mg/l or mg/L !")
-    }
+convert_2mmoll <- function(x, from = "g/l") {
+  switch(EXPR = tolower(from),
+    "g/l" = {x / 0.18},
+    "mg/l" = {x / 0.18 / 100},
+    "mmol/l" = {x},
+    stop("Please check Units: g/l, g/L, mg/l, mg/Ln, mmol/l or mmol/L!")
   )
 }
 
 # function to convert "Vital Signs" (VS) OPAL table (CDISC) to "long format"
-formatTableVS <- function(data) {
+format_vs <- function(data) {
   data <- data %>%
     mutate(
-      KeyFactor = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
+      KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
     ) %>%
     `rownames<-`(NULL)
   
-  CovDesc <- data %>%
-    select(c(DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD)) %>%
+  descriptive_data <- data %>%
+    select(DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD) %>%
     distinct()
   
   if (!"VSTPTNUM"%in%colnames(data)) {
@@ -272,77 +254,78 @@ formatTableVS <- function(data) {
       mutate(VSTPT = NA)
   }
   
-  data0 <- full_join(
+  data_values <- full_join(
     x = full_join(
       x = data %>%
         subset(is.na(VSTPTNUM)) %>%
-        select(KeyFactor, VSORRES, VSTESTCD) %>%
+        select(KEY_FACTOR, VSORRES, VSTESTCD) %>%
         spread(key = "VSTESTCD", value = "VSORRES"),
       y = data %>%
         subset(!is.na(VSTPTNUM)) %>%
-        select(KeyFactor, VSORRES, VSTESTCD, VSTPTNUM) %>%
-        mutate(KeyMeasures = paste(VSTESTCD, VSTPTNUM, sep = "_")) %>%
-        select(KeyFactor, KeyMeasures, VSORRES) %>%
-        spread(key = "KeyMeasures", value = "VSORRES"),
-      by = c("KeyFactor" = "KeyFactor")
+        select(KEY_FACTOR, VSORRES, VSTESTCD, VSTPTNUM) %>%
+        mutate(KEY_MEASURES = paste(VSTESTCD, VSTPTNUM, sep = "_")) %>%
+        select(KEY_FACTOR, KEY_MEASURES, VSORRES) %>%
+        spread(key = "KEY_MEASURES", value = "VSORRES"),
+      by = c("KEY_FACTOR" = "KEY_FACTOR")
     ),
-    y = (data %>%
-           select(-c(VSORRES, VSTPT, VSTPTNUM, VSORRESU, VSTEST, VSTESTCD)) %>%
-           distinct()),
-    by = c("KeyFactor" = "KeyFactor")
+    y = data %>%
+      select(-c(VSORRES, VSTPT, VSTPTNUM, VSORRESU, VSTEST, VSTESTCD)) %>%
+      distinct(),
+    by = c("KEY_FACTOR" = "KEY_FACTOR")
   ) %>%
     mutate(
       VISIT = factor(
-        VISIT,
-        levels = c("BASELINE", sort(grep("VISIT", unique(VISIT), value = TRUE)), "LAST")
+        x = VISIT,
+        levels = c(
+          "BASELINE", 
+          sort(grep("VISIT", unique(VISIT), value = TRUE)), 
+          "LAST"
+        )
       )
     ) %>%
     group_by(DOMAIN, STUDYID, SUBJID) %>%
     arrange(VISIT) %>%
-    select(-KeyFactor) %>%
+    select(-KEY_FACTOR) %>%
     data.frame()
-  return(list(data = data0, annot = CovDesc))
+  
+  return(list(data = data_values, annotation = descriptive_data))
 }
 
 # function to convert "Laboratory Measurements" (LB) OPAL table (CDISC) to "long format"
-formatTableLB <- function(data) {
+format_lb <- function(data) {
   data <- data %>%
     mutate(
-      LBFAST = if ("LBFAST" %in% colnames(.)) {
-        LBFAST
-      } else {
-        NA
-      },
-      LBTPTNUM = if ("LBTPTNUM" %in% colnames(.)) {
-        LBTPTNUM
-      } else {
-        NA
-      },
+      LBFAST = ifelse(grepl("LBFAST", colnames(.)), LBFAST, NA),
+      LBTPTNUM = ifelse(grepl("LBTPTNUM", colnames(.)), LBTPTNUM, NA),
       LBTPTNUM = ifelse(LBTESTCD == "GLUC" & is.na(LBTPTNUM), 0, LBTPTNUM),
-      KeyFactor = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
+      KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
     ) %>%
     `rownames<-`(NULL)
 
-  descVariables <- c("LBORRESU", "LBTEST", "LBTESTCD", "LBSPEC", "LBCAT", "LBMETHOD", "LBTPT", "LBTPTNUM", "AGCAT")
-  CovDesc <- data %>%
-    select(intersect(c("DOMAIN", "STUDYID", descVariables), colnames(.))) %>%
+  descriptive_variables <- c(
+    "LBORRESU", "LBTEST", "LBTESTCD", "LBSPEC", 
+    "LBCAT", "LBMETHOD", "LBTPT", "LBTPTNUM", "AGCAT"
+  )
+  
+  descriptive_data <- data %>%
+    select(intersect(c("DOMAIN", "STUDYID", !!descriptive_variables), colnames(.))) %>%
     distinct() %>%
     mutate(
-      KeyMeasures = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
+      KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
     )
 
-  data0 <- full_join(
+  data_values <- full_join(
     x = (data %>%
-      select(KeyFactor, LBORRES, LBTESTCD, LBSPEC, LBCAT, LBTPTNUM) %>%
+      select(KEY_FACTOR, LBORRES, LBTESTCD, LBSPEC, LBCAT, LBTPTNUM) %>%
       mutate(
-        KeyMeasures = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
+        KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
       ) %>%
-      select(KeyFactor, KeyMeasures, LBORRES) %>%
-      spread(key = "KeyMeasures", value = "LBORRES")),
+      select(KEY_FACTOR, KEY_MEASURES, LBORRES) %>%
+      spread(key = "KEY_MEASURES", value = "LBORRES")),
     y = (data %>%
-      select(c("LBDTC", "SUBJID", "VISIT", "DOMAIN", "STUDYID", "LBFAST", "KeyFactor")) %>%
+      select(LBDTC, SUBJID, VISIT, DOMAIN, STUDYID, LBFAST, KEY_FACTOR) %>%
       distinct()),
-    by = c("KeyFactor" = "KeyFactor")
+    by = c("KEY_FACTOR" = "KEY_FACTOR")
   ) %>%
     mutate(
       VISIT = factor(
@@ -352,15 +335,16 @@ formatTableLB <- function(data) {
     ) %>%
     group_by(DOMAIN, STUDYID, SUBJID) %>%
     arrange(VISIT) %>%
-    select(-KeyFactor) %>%
+    select(-KEY_FACTOR) %>%
     data.frame()
 
-  return(list(data = data0, annot = CovDesc))
+  return(list(data = data_values, annotation = descriptive_data))
 }
 
-compute_BMI <- function(data) {
-  if (!"BMI"%in%data$annot[["VSTESTCD"]]) {
-    weight_unit <- data$annot %>% 
+# function to compute bmi if not available
+compute_bmi <- function(data) {
+  if (!"BMI"%in%data$annotation[["VSTESTCD"]]) {
+    weight_unit <- data$annotation %>% 
       filter(VSTESTCD=="WEIGHT") %>% 
       select(VSORRESU) %>% 
       unlist()
@@ -370,7 +354,7 @@ compute_BMI <- function(data) {
       "lb" = {function(x) {x*0.45359237}}
     )
     
-    height_unit <- data$annot %>% 
+    height_unit <- data$annotation %>% 
       filter(VSTESTCD=="HEIGHT") %>% 
       select(VSORRESU) %>% 
       unlist()
@@ -388,7 +372,7 @@ compute_BMI <- function(data) {
     default_CDISC_BMI <- structure(
       list(
         DOMAIN = "VS", 
-        STUDYID = unique(data$annot[["STUDYID"]]), 
+        STUDYID = unique(data$annotation[["STUDYID"]]), 
         VSORRESU = "kg/m2", 
         VSTEST = "Body Mass Index", 
         VSTESTCD = "BMI"
@@ -397,9 +381,50 @@ compute_BMI <- function(data) {
       row.names = 1L, 
       class = "data.frame"
     )
-    data$annot <- bind_rows(data$annot, default_CDISC_BMI)
+    data$annotation <- bind_rows(data$annotation, default_CDISC_BMI)
   }
   return(data)
+}
+
+# function to extract results from lmer functions in a tidy way (one row)
+tidy_lmer <- function(x) {
+  x %>% 
+    summary() %>% 
+    coefficients() %>% 
+    `colnames<-`(c("ESTIMATE", "SE", "DF", "STAT", "PVALUE")) %>% 
+    `rownames<-`(gsub(".*Intercept.*", "Intercept", rownames(.))) %>%
+    as.data.frame() %>% 
+    rownames_to_column(var = "Term") %>% 
+    gather(key = "Variable", value = "Value", -"Term") %>% 
+    unite(Term, Variable, col = Term, sep = "_") %>% 
+    column_to_rownames(var = "Term") %>% 
+    t() %>% 
+    as.data.frame() %>% 
+    return()
+}
+
+# extract residuals from mixed model and list samples with median plus/minus 3*IQR
+getResidualsOutliers <- function(x) {
+  x@frame %>% 
+    mutate(
+      residuals = residuals(x),
+      r_iqr = 3 * IQR(residuals),
+      r_median = median(residuals)
+    ) %>% 
+    filter(between(residuals, r_median-r_iqr, r_median+r_iqr)) %>% 
+    select(SUBJID) %>% 
+    unlist() %>% 
+    return()
+}
+
+# function to compute mean and sd, then paste results for output
+compute_mean_sd <- function(x, digits = 2) {
+  return(paste0(
+    round(mean(x, na.rm = TRUE), digits = digits),
+    " (",
+    round(sd(x, na.rm = TRUE), digits = digits),
+    ")"
+  ))
 }
 ```
 
@@ -471,11 +496,13 @@ sessionInfo()
 cat("\n# Load data from OPAL node\n\n")
 cat("\n## Open connection to OPAL node\n\n")
 
-opal_credentials <- as.data.frame(t(read.table(
+opal_credentials <- read.table(
   file = params$opal_credentials, 
   stringsAsFactors = FALSE, 
   row.names = c("opal_server", "opal_login", "opal_password")
-)), stringsAsFactors = FALSE)
+) %>% 
+  t() %>% 
+  as.data.frame(stringsAsFactors = FALSE)
 
 o <- opal.login(
   username = opal_credentials$opal_login,
@@ -484,35 +511,33 @@ o <- opal.login(
 )
 
 cat("\n## Import table from OPAL node to local R session\n\n")
-availableTable <- opal.datasources(opal = o)[[1]]$table
-
 # Available tables in OPAL (Check RHAPSODY/CDISC documentation for details)
-whichTable <- c("DM", "VS", "LB", "MH", "CM")
+available_tables <- intersect(opal.datasources(opal = o)[[1]]$table, c("DM", "VS", "LB", "MH", "CM"))
 
-for (itable in whichTable) {
+for (itable in available_tables) {
   opal.assign(opal = o, symbol = itable, value = paste0("rhapsody.", itable))
   assign(x = itable, value = opal.execute(o, itable))
 }
 
 cat("\n## Close connection to OPAL node and clean workspace\n\n")
 opal.logout(o)
-rm(list = c("o", "itable", "whichTable"))
+rm(list = c("o", "itable", "available_tables"))
 
 cat("\n## Convert CDSIC to long format\n\n")
-VSformat <- formatTableVS(data = VS)
-LBformat <- formatTableLB(data = LB)
+vs_tidy <- format_vs(data = VS)
+lb_tidy <- format_lb(data = LB)
 # To check if LB/VS are correctly formatted (should return TRUE)
 # all(
-#   nrow(LBformat$data) == length(unique(LB[["SUBJID"]]))*length(unique(LB[["VISIT"]])),
-#   nrow(VSformat$data) == length(unique(VS[["SUBJID"]]))*length(unique(VS[["VISIT"]])),
-#   nrow(LBformat$data) == nrow(VSformat$data)
+#   nrow(lb_tidy$data) == length(unique(LB[["SUBJID"]]))*length(unique(LB[["VISIT"]])),
+#   nrow(vs_tidy$data) == length(unique(VS[["SUBJID"]]))*length(unique(VS[["VISIT"]])),
+#   nrow(lb_tidy$data) == nrow(vs_tidy$data)
 # )
 
 DMVSLB <- merge(
   x = DM %>% mutate(VISIT = "BASELINE") %>% select(-DOMAIN),
   y = merge(
-    VSformat$data %>% select(-DOMAIN),
-    LBformat$data %>% select(-DOMAIN),
+    vs_tidy$data %>% select(-DOMAIN),
+    lb_tidy$data %>% select(-DOMAIN),
     by = c("STUDYID", "SUBJID", "VISIT"),
     all = TRUE
   ),
@@ -521,9 +546,9 @@ DMVSLB <- merge(
 ) %>%
   group_by(STUDYID, SUBJID) %>%
   filter(
-    (VISIT=="BASELINE" & !is.na(AGE) & !is.na(SEX)) |
-      VISIT!="BASELINE"
+    (VISIT=="BASELINE" & !is.na(AGE) & !is.na(SEX)) | VISIT!="BASELINE"
   ) %>% 
+  arrange(VISIT) %>% 
   mutate(
     AGE0 = AGE[1],
     BMI0 = BMI[1],
@@ -536,7 +561,7 @@ DMVSLB <- merge(
 if (
   DMVSLB %>%
     group_by(SUBJID) %>%
-    summarise(n = length(SUBJID)) %>%
+    summarise(n = n()) %>%
     select(n) %>%
     all()
 ) {
@@ -582,19 +607,19 @@ Diagnostic criteria for diabetes ([ADA criteria; Diabetes Care 2015 Jan; 38, Sup
 
 #### Demographic variables
 ```{r display_demographic_marker_description, eval = params_steps$step_2}
-mykable(VSformat$annot)
+pretty_kable(vs_tidy$annotation)
 ```
 
 #### Check if unit is the International Unit
 ```{r check_units_needs_convert, eval = params_steps$step_2}
-LBformat$annot <- LBformat$annot %>%
+lb_tidy$annotation <- lb_tidy$annotation %>%
   mutate(
-    ConvertTo =
+    CONVERT_TO =
       ifelse(
-        LBORRESU %in% c("g/l", "g/L", "mg/l", "mg/L"),
+        tolower(LBORRESU)%in%c("g/l", "mg/l"),
         "mmol/l",
         ifelse(
-          LBORRESU %in% "%" & LBTESTCD == "HBA1C",
+          LBORRESU%in%"%" & LBTESTCD == "HBA1C",
           "mmol/l",
           NA
         )
@@ -608,8 +633,8 @@ cat(
     "The following variables have been converted to mmol/l:\n\n",
     paste0(
       "  * ",
-      LBformat$annot %>%
-        filter(!is.na(ConvertTo)) %>%
+      lb_tidy$annotation %>%
+        filter(!is.na(CONVERT_TO)) %>%
         select(LBTEST, LBTESTCD) %>%
         (function(.data) {
           paste0(.data[, "LBTEST"], " (`", .data[, "LBTESTCD"], "`)")
@@ -623,37 +648,37 @@ cat("\n")
 
 #### Display biomarkers and units
 ```{r display_biomarker_description, eval = params_steps$step_2}
-mykable(LBformat$annot[, -c(ncol(LBformat$annot), ncol(LBformat$annot)-1)])
+pretty_kable(lb_tidy$annotation[, -c(ncol(lb_tidy$annotation), ncol(lb_tidy$annotation)-1)])
 ```
 
 ```{r convert_biomarker_units, eval = params_steps$step_2, include = FALSE}
 DMVSLB <- DMVSLB %>%
   mutate_at(
     vars(
-      LBformat$annot %>%
-        filter(!is.na(ConvertTo) & LBORRESU %in% c("g/l", "g/L")) %>%
-        select(KeyMeasures) %>%
+      lb_tidy$annotation %>%
+        filter(!is.na(CONVERT_TO) & tolower(LBORRESU)%in%"g/l") %>%
+        select(KEY_MEASURES) %>%
         unlist()
     ),
-    funs(convert2mmolL(., from = "g/l"))
+    funs(convert_2mmoll(., from = "g/l"))
   ) %>%
   mutate_at(
     vars(
-      LBformat$annot %>%
-        filter(!is.na(ConvertTo) & LBORRESU %in% c("mg/l", "mg/L")) %>%
-        select(KeyMeasures) %>%
+      lb_tidy$annotation %>%
+        filter(!is.na(CONVERT_TO) & tolower(LBORRESU)%in%"mg/l") %>%
+        select(KEY_MEASURES) %>%
         unlist()
     ),
-    funs(convert2mmolL(., from = "mg/l"))
+    funs(convert_2mmoll(., from = "mg/l"))
   ) %>%
   mutate_at(
     vars(
-      LBformat$annot %>%
-        filter(!is.na(ConvertTo) & LBORRESU %in% c("%")) %>%
-        select(KeyMeasures) %>%
+      lb_tidy$annotation %>%
+        filter(!is.na(CONVERT_TO) & LBORRESU%in%"%") %>%
+        select(KEY_MEASURES) %>%
         unlist()
     ),
-    funs(convertHbA1c(., unitFrom = "%"))
+    funs(convert_hba1c(., unitFrom = "%"))
   )
 
 varNamesGLUC <- grep("^GLUC.*_0$", colnames(DMVSLB), value = TRUE)
@@ -664,7 +689,10 @@ if (length(varNamesGLUC) == 0) {
   varNamesGLUC_new <- "GLUC_NA"
   DMVSLB[, varNamesGLUC_new] <- NA
 } else {
-  varNamesGLUC_new <- sapply(varNamesGLUC, gsub, pattern = "(GLUC_.).*", replacement = "\\1")
+  varNamesGLUC_new <- sapply(
+    X = varNamesGLUC, 
+    FUN = gsub, pattern = "(GLUC_.).*", replacement = "\\1"
+  )
   DMVSLB[, varNamesGLUC_new] <- DMVSLB[, varNamesGLUC]
 }
 
@@ -672,7 +700,10 @@ if (length(varNamesGLUC2H) == 0) {
   varNamesGLUC2H_new <- "GLUC2H_NA"
   DMVSLB[, varNamesGLUC2H_new] <- NA
 } else {
-  varNamesGLUC2H_new <- sapply(varNamesGLUC2H, gsub, pattern = "(GLUC)(_.).*", replacement = "\\12H\\2")
+  varNamesGLUC2H_new <- sapply(
+    X = varNamesGLUC2H, 
+    FUN = gsub, pattern = "(GLUC)(_.).*", replacement = "\\12H\\2"
+  )
   DMVSLB[, varNamesGLUC2H_new] <- DMVSLB[, varNamesGLUC2H]
 }
 
@@ -680,7 +711,10 @@ if (length(varNamesHBA1C) == 0) {
   varNamesHBA1C_new <- "HBA1C_NA"
   DMVSLB[, varNamesHBA1C_new] <- NA
 } else {
-  varNamesHBA1C_new <- sapply(varNamesHBA1C, gsub, pattern = "(HBA1C_.).*", replacement = "\\1")
+  varNamesHBA1C_new <- sapply(
+    X = varNamesHBA1C, 
+    FUN = gsub, pattern = "(HBA1C_.).*", replacement = "\\1"
+  )
   DMVSLB[, varNamesHBA1C_new] <- DMVSLB[, varNamesHBA1C]
 }
 
@@ -697,8 +731,7 @@ if (params$cohort_name == "ADDITION") {
       return()
   }
  
-  DMVSLB <- DMVSLB %>% 
-    convert_blood_to_plasma()
+  DMVSLB <- convert_blood_to_plasma(DMVSLB)
   
   variables_names <- setdiff(variables_names, c("GLUC_B", "GLUC2H_B"))
 }
@@ -707,65 +740,72 @@ if (params$cohort_name == "ADDITION") {
 ### Keep only participants that are fasted at baseline
 ```{r fasted_samples, eval = params_steps$step_2}
 if (all(is.na(DMVSLB[, "LBFAST"]))) {
-  cat("Fasting information (`LBFAST`) is not available: all individuals are kept and supposed to be fasted at baseline.  \n\n")
+  cat(
+    "Fasting information (`LBFAST`) is not available: all individuals are kept and supposed to be fasted at baseline.  \n\n"
+  )
   cat("\n")
-  DMVSLB.QC0 <- DMVSLB
+  DMVSLB_QC0 <- DMVSLB
 } else {
-  nonFastedSamples <- DMVSLB %>%
+  non_fasted_samples <- DMVSLB %>%
     group_by(STUDYID, SUBJID) %>%
     filter(VISIT == "BASELINE") %>%
-    filter(!(LBFAST %in% "Y" | is.na(LBFAST))) %>%
+    filter(!(LBFAST%in%"Y" | is.na(LBFAST))) %>%
     select(STUDYID, SUBJID) %>%
     mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
     ungroup() %>%
-    select(ID) %>%
-    unlist()
+    .[["ID"]]
 
-  DMVSLB.QC0 <- DMVSLB %>%
+  DMVSLB_QC0 <- DMVSLB %>%
     mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-    filter(!ID %in% nonFastedSamples) %>%
+    filter(!ID%in%non_fasted_samples) %>%
     select(-ID)
 
-  naFastedSamples <- DMVSLB.QC0 %>%
+  na_fasted_samples <- DMVSLB_QC0 %>%
     group_by(STUDYID, SUBJID) %>%
     filter(VISIT == "BASELINE" & is.na(LBFAST)) %>%
     ungroup() %>%
     count() %>%
     `[[`("n")
 
-  cat(paste0("Fasting information (`LBFAST`) is missing for ", format(naFastedSamples, big.mark = ","), " individuals: these individuals are kept and supposed to be fasted at baseline.  \n\n"))
+  cat(
+    paste(
+      "Fasting information (`LBFAST`) is missing for", 
+      format(na_fasted_samples, big.mark = ","), 
+      "individuals: these individuals are kept and supposed to be fasted at baseline.  \n\n"
+    )
+  )
   cat("\n")
 }
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB.QC0 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC0 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ### Exclusion of participants with data available for only one time-point
 ```{r check_samples_with_one_measure, eval = params_steps$step_2}
 variables_names_available <- variables_names[!grepl("_NA", variables_names)]
-OneTimePointSamples <- DMVSLB.QC0 %>%
+
+one_time_point_samples <- DMVSLB_QC0 %>%
   group_by(STUDYID, SUBJID) %>%
   summarise_at(
-    .vars = vars(variables_names_available),
+    .vars = vars(!!!variables_names_available),
     .funs = (function(.x) {sum(!is.na(.x))})
   ) %>%
   filter_at(
-    .vars = vars(variables_names_available),
+    .vars = vars(!!!variables_names_available),
     .vars_predicate = any_vars(. <= 1)
   ) %>%
   select(STUDYID, SUBJID) %>%
   mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
   ungroup() %>%
-  select(ID) %>%
-  unlist()
+  .[["ID"]]
 
-DMVSLB.QC1 <- DMVSLB.QC0 %>%
+DMVSLB_QC1 <- DMVSLB_QC0 %>%
   mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  filter(!ID %in% OneTimePointSamples) %>%
+  filter(!ID%in%one_time_point_samples) %>%
   select(-ID)
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB.QC1 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC1 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ### Exclusion of participants with diabetes at baseline
 
@@ -774,105 +814,118 @@ Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB.QC1 %>% 
   * HbA1c $\geq$ 48 mmol/mol (6.5 %)  => `HBA1C`
 
 ```{r check_diabetic_baseline, eval = params_steps$step_2}
-BaselineDiabetesSamples <- DMVSLB.QC1 %>%
+baseline_diabetes_samples <- DMVSLB_QC1 %>%
   group_by(STUDYID, SUBJID) %>%
-  mutate_at(.vars = vars(grep("GLUC_", variables_names, value = TRUE)), .funs = ~.>=7.0) %>% 
-  mutate_at(.vars = vars(grep("HBA1C_", variables_names, value = TRUE)), .funs = ~.>=48) %>% 
+  mutate_at(
+    .vars = vars(grep("GLUC_", variables_names, value = TRUE)), 
+    .funs = ~.>=7.0
+  ) %>% 
+  mutate_at(
+    .vars = vars(grep("HBA1C_", variables_names, value = TRUE)), 
+    .funs = ~.>=48
+  ) %>% 
   filter(VISIT=="BASELINE") %>%
   filter_at(
-    .vars = vars(grep("GLUC_", variables_names, value = TRUE), grep("HBA1C_", variables_names, value = TRUE)),
+    .vars = vars(
+      grep("GLUC_", variables_names, value = TRUE), 
+      grep("HBA1C_", variables_names, value = TRUE)
+    ),
     .vars_predicate = any_vars(.==TRUE)
   ) %>%
   select(STUDYID, SUBJID) %>%
   mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
   ungroup() %>%
-  select(ID) %>%
-  unlist()
+  .[["ID"]]
 
-DMVSLB.QC2 <- DMVSLB.QC1 %>%
+DMVSLB_QC2 <- DMVSLB_QC1 %>%
   mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  filter(!ID%in%BaselineDiabetesSamples) %>%
+  filter(!ID%in%baseline_diabetes_samples) %>%
   select(-ID)
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB.QC2 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC2 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ### Exclusion of participants developing diabetes during the study time without informations about medication
 ```{r check_incident_diabetic_medication, eval = params_steps$step_2}
 # Get samples developing diabetes according to definition
-FollowUpDiabetesSamples.def <- DMVSLB.QC2 %>%
+follow_up_diabetes_samples_def <- DMVSLB_QC2 %>%
   group_by(STUDYID, SUBJID) %>%
-  mutate_at(.vars = vars(grep("GLUC_", variables_names, value = TRUE)), .funs = ~.>=7.0) %>% 
-  mutate_at(.vars = vars(grep("HBA1C_", variables_names, value = TRUE)), .funs = ~.>=48) %>% 
+  mutate_at(
+    .vars = vars(grep("GLUC_", variables_names, value = TRUE)), 
+    .funs = ~.>=7.0
+  ) %>% 
+  mutate_at(
+    .vars = vars(grep("HBA1C_", variables_names, value = TRUE)), 
+    .funs = ~.>=48
+  ) %>% 
   filter_at(
-    .vars = vars(grep("GLUC_", variables_names, value = TRUE), grep("HBA1C_", variables_names, value = TRUE)),
+    .vars = vars(
+      grep("GLUC_", variables_names, value = TRUE), 
+      grep("HBA1C_", variables_names, value = TRUE)
+    ),
     .vars_predicate = any_vars(.==TRUE)
   ) %>% 
   select(STUDYID, SUBJID) %>%
   distinct() %>%
   mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
   ungroup() %>%
-  select(ID) %>%
-  unlist()
+  .[["ID"]]
 
 # Get samples diagnose diabetes during the follow-up
-FollowUpDiabetesSamples.diag <- MH %>%
+follow_up_diabetes_samples_diag <- MH %>%
   filter(
-    MHTERM %in% c("DIABETES", "TYPE 1 DIABETES", "TYPE 2 DIABETES") & MHOCCUR == "Y"
+    MHTERM%in%c("DIABETES", "TYPE 1 DIABETES", "TYPE 2 DIABETES") & MHOCCUR == "Y"
   ) %>%
   select(STUDYID, SUBJID) %>%
   distinct() %>%
   mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
   ungroup() %>%
-  select(ID) %>%
-  unlist()
+  .[["ID"]]
 
 # Get medication information for all samples developing T2D based on definition and diagnostic
-CheckMedication <- CM %>%
+check_medication <- CM %>%
   mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
   filter(
-    ID %in% c(FollowUpDiabetesSamples.def, FollowUpDiabetesSamples.diag)
+    ID%in%c(follow_up_diabetes_samples_def, follow_up_diabetes_samples_diag)
   ) %>%
   filter(
-    CMCAT %in% c("INSULINS AND ANALOGUES", "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS")
+    CMCAT%in%c("INSULINS AND ANALOGUES", "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS")
   ) %>%
   group_by(ID, CMCAT) %>%
   summarise(
-    CHOCCUR = any(CMOCCUR %in% "Y")
+    CHOCCUR = any(CMOCCUR%in%"Y")
   ) %>%
   ungroup() %>%
   filter(CHOCCUR)
 
 # List samples with 'INSULINS AND ANALOGUES' medication for later exclusion
-samplesWithInsulin.ToExclude <- CheckMedication %>%
-  filter(CMCAT %in% "INSULINS AND ANALOGUES") %>%
-  select(ID) %>%
-  unlist()
+samples_with_insulin <- check_medication %>%
+  filter(CMCAT%in%"INSULINS AND ANALOGUES") %>%
+  .[["ID"]]
 
 # List incident diabetic samples with 'BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS'
 # and without 'INSULINS AND ANALOGUES' medication
-diabeticSamplesWithMedicationInfo.ToKeep <- setdiff(
-  (CheckMedication %>%
-    filter(CMCAT %in% "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS") %>%
-    select(ID) %>%
-    unlist()),
-  samplesWithInsulin.ToExclude
+diabetic_samples_with_medication_info <- setdiff(
+  check_medication %>%
+    filter(CMCAT%in%"BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS") %>%
+    .[["ID"]],
+  samples_with_insulin
 )
 
 # List incident diabetic samples without medication information an/or 'INSULINS AND ANALOGUES'
 FollowUpDiabetesSamples.ToExclude <- setdiff(
-  unique(c(FollowUpDiabetesSamples.def, FollowUpDiabetesSamples.diag)),
-  diabeticSamplesWithMedicationInfo.ToKeep
+  unique(c(follow_up_diabetes_samples_def, follow_up_diabetes_samples_diag)),
+  diabetic_samples_with_medication_info
 )
 
 # Exclude samples in 'FollowUpDiabetesSamples.ToExclude'
-DMVSLB.QC3 <- DMVSLB.QC2 %>%
+DMVSLB_QC3 <- DMVSLB_QC2 %>%
   mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  filter(!ID %in% FollowUpDiabetesSamples.ToExclude) %>%
+  filter(!ID%in%FollowUpDiabetesSamples.ToExclude) %>%
   select(-ID)
 ```
 
-Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB.QC3 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`
+Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB_QC3 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
@@ -900,38 +953,13 @@ For cohorts containing family data, the correlation between family members has t
 Default covariates included in the model are `AGE0`, `SEX0` and `BMI0` (baseline values).  
 Additional covariates might be needed depending on the cohort.
 
-```{r preliminary_model_functions, eval = params_steps$step_3}
-# function to extract results from lmer functions in a tidy way (one row)
-tidyLmer <- function(x) {
-  sfit <- coefficients(summary(x))
-  colnames(sfit) <- c("ESTIMATE", "SE", "DF", "STAT", "PVALUE")
-  rownames(sfit)[grep("Intercept", rownames(sfit))] <- "Intercept"
-  return(matrix(
-    data = as.vector(sfit),
-    nrow = 1,
-    dimnames = list(
-      NULL,
-      apply(expand.grid(rownames(sfit), colnames(sfit)), 1, paste, collapse = ".")
-    )
-  ))
-}
-
-# extract residuals from mixed model and list samples with median plus/minus 3*IQR
-getResidualsOutliers <- function(x) {
-  rx <- residuals(x)
-  return(
-    x@frame[names(rx[rx >= median(rx) + 3 * IQR(rx) | rx <= median(rx) - 3 * IQR(rx)]), "SUBJID"]
-  )
-}
-```
-
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ### First Run
 
 #### Check number of time points
 ```{r preliminary_first_run_check_number_measures, eval = params_steps$step_3}
-nTimePoints <- DMVSLB.QC3 %>%
+nTimePoints <- DMVSLB_QC3 %>%
   select(VISIT) %>%
   distinct() %>%
   nrow()
@@ -939,18 +967,34 @@ nTimePoints <- DMVSLB.QC3 %>%
 # Include random slope if more than two time points
 if (nTimePoints > 2) {
   formula.rightPart <- ~ 1 + AGE0 + SEX0 + BMI0 + VISIT_YEARS + (1 + VISIT_YEARS | SUBJID)
-  cat(paste0("Random intercept and random slope are included in the model (up to ", nTimePoints, " time points available).\n\n"))
+  cat(
+    paste0(
+      "Random intercept and random slope are included in the model (up to ", 
+      nTimePoints, 
+      " time points available).\n\n"
+    )
+  )
   cat("\n")
 } else {
   formula.rightPart <- ~ 1 + AGE0 + SEX0 + BMI0 + VISIT_YEARS + (1 | SUBJID)
-  cat(paste0("Only a random intercept is included in the model (up to ", nTimePoints, " time points available).\n\n"))
+  cat(
+    paste0(
+      "Only a random intercept is included in the model (up to ", 
+      nTimePoints, 
+      " time points available).\n\n"
+    )
+  )
   cat("\n")
 }
 ```
 
 ```{r preliminary_first_run, eval = params_steps$step_3}
-residuals_outliers <- as.list(rep(NA, length(variables_names))) %>% 
+residuals_outliers <- variables_names %>% 
+  length() %>% 
+  rep_len(NA, .) %>% 
+  as.list() %>% 
   `names<-`(variables_names)
+
 for (ivariable in variables_names) {
   if (grepl("GLUC_", ivariable)) {
     big_names <- "Glucose"
@@ -964,21 +1008,25 @@ for (ivariable in variables_names) {
   
   cat(paste0("\n\n#### ", big_names, " (`", ivariable, "`)\n"))
 
-  fit.data <- DMVSLB.QC3 %>%
-    select(matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID)
+  fit_data <- select(
+    .data = DMVSLB_QC3, 
+    matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID
+  )
   
-  if (!all(is.na(fit.data[, ivariable]))) {
+  if (!all(is.na(fit_data[, ivariable]))) {
     fit <- lmer(
-      formula = eval(parse(text = paste0('update.formula(formula.rightPart, ', ivariable, '~.)'))),
-      data = fit.data
+      formula = eval(parse(
+        text = paste0('update.formula(formula.rightPart, ', ivariable, '~.)')
+      )),
+      data = fit_data
     )
     
     cat("\n##### Trajectories\n\n")
-    pTraj <- fit.data %>%
+    pTraj <- fit_data %>%
       mutate(
         ID = paste(STUDYID, SUBJID, sep = "_"),
         pT2D = ifelse(
-          ID %in% diabeticSamplesWithMedicationInfo.ToKeep,
+          ID%in%diabetic_samples_with_medication_info,
           "PreDiab",
           "Normo"
         )
@@ -1028,14 +1076,14 @@ for (ivariable in variables_names) {
     cat("\n##### Results for random effect as a matrix\n\n")
     if (nTimePoints > 2) {
       # Compare model with or without random slope (anova)
-      fit.random <- anova(
+      fit_random <- anova(
         update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
         fit, refit = FALSE
       ) %>%
         mutate(Mod = c("Mod0", "Mod1")) %>%
         column_to_rownames(var = "Mod") %>%
         as.data.frame()
-      mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>%
+      pretty_kable(fit_random, pval_cols = grep("Pr(>Chisq)", colnames(fit_random), fixed = TRUE)) %>%
         print()
     } else {
       cat("Not enough time points to test a random slope term.")
@@ -1049,7 +1097,7 @@ for (ivariable in variables_names) {
       as.data.frame()
     
     if (any(grepl("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE))) {
-      mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>%
+      pretty_kable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>%
         print()
     } else {
       cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
@@ -1058,11 +1106,10 @@ for (ivariable in variables_names) {
   
     
     cat("\n##### Results for fixed effect as a row\n\n")
-    fit.fixed <- tidyLmer(fit) %>%
-      as.data.frame()
+    fit_fixed <- tidy_lmer(fit)
   
-    if (any(grepl("PVALUE", colnames(fit.fixed)))) {  
-      mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>%
+    if (any(grepl("PVALUE", colnames(fit_fixed)))) {  
+      pretty_kable(fit_fixed, pval_cols = grep("PVALUE", colnames(fit_fixed))) %>%
         print()
     } else {
       cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
@@ -1080,11 +1127,11 @@ for (ivariable in variables_names) {
 
 ### Second Run (after residuals check)
 ```{r preliminary_second_run_qc, eval = params_steps$step_3}
-DMVSLB.QC4 <- DMVSLB.QC3 %>%
+DMVSLB_QC4 <- DMVSLB_QC3 %>%
   filter(!SUBJID%in%unique(unlist(residuals_outliers)))
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=3, DMVSLB.QC4 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=3, DMVSLB_QC4 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ```{r preliminary_second_run, eval = params_steps$step_3}
 residuals_outliers <- as.list(rep(NA, length(variables_names))) %>% 
@@ -1103,21 +1150,25 @@ for (ivariable in variables_names) {
   
   cat(paste0("\n\n#### ", big_names, " (`", ivariable, "`)\n"))
 
-  fit.data <- DMVSLB.QC4 %>%
-    select(matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID)
+  fit_data <- select(
+    .data = DMVSLB_QC4, 
+    matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID
+  )
   
-  if (!all(is.na(fit.data[, ivariable]))) {
+  if (!all(is.na(fit_data[[ivariable]]))) {
     fit <- lmer(
-      formula = eval(parse(text = paste0('update.formula(formula.rightPart, ', ivariable, '~.)'))),
-      data = fit.data
+      formula = eval(parse(
+        text = paste0('update.formula(formula.rightPart, ', ivariable, '~.)')
+      )),
+      data = fit_data
     )
     
     cat("\n##### Trajectories\n\n")
-    pTraj <- fit.data %>%
+    pTraj <- fit_data %>%
       mutate(
         ID = paste(STUDYID, SUBJID, sep = "_"),
         pT2D = ifelse(
-          ID %in% diabeticSamplesWithMedicationInfo.ToKeep,
+          ID%in%diabetic_samples_with_medication_info,
           "PreDiab",
           "Normo"
         )
@@ -1161,20 +1212,22 @@ for (ivariable in variables_names) {
     cat("\n")
     
     
-    # residuals_outliers[[ivariable]] <- getResidualsOutliers(fit)
-    
-    
     cat("\n##### Results for random effect as a matrix\n\n")
     if (nTimePoints > 2) {
       # Compare model with or without random slope (anova)
-      fit.random <- anova(
+      fit_random <- anova(
         update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
-        fit, refit = FALSE
+        fit, 
+        refit = FALSE
       ) %>%
         mutate(Mod = c("Mod0", "Mod1")) %>%
         column_to_rownames(var = "Mod") %>%
         as.data.frame()
-      mykable(fit.random, pval_cols = grep("Pr(>Chisq)", colnames(fit.random), fixed = TRUE)) %>%
+
+      pretty_kable(
+        data = fit_random, 
+        pval_cols = grep("Pr(>Chisq)", colnames(fit_random), fixed = TRUE)
+      ) %>%
         print()
     } else {
       cat("Not enough time points to test a random slope term.")
@@ -1188,7 +1241,10 @@ for (ivariable in variables_names) {
       as.data.frame()
     
     if (any(grepl("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE))) {
-      mykable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>%
+      pretty_kable(
+        data = coeff_fit, 
+        pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)
+      ) %>%
         print()
     } else {
       cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
@@ -1197,11 +1253,13 @@ for (ivariable in variables_names) {
     
     
     cat("\n##### Results for fixed effect as a row\n\n")
-    fit.fixed <- tidyLmer(fit) %>%
-      as.data.frame()
+    fit_fixed <- tidy_lmer(fit)
     
-    if (any(grepl("PVALUE", colnames(fit.fixed)))) {
-      mykable(fit.fixed, pval_cols = grep("PVALUE", colnames(fit.fixed))) %>%
+    if (any(grepl("PVALUE", colnames(fit_fixed)))) {
+      pretty_kable(
+        data = fit_fixed, 
+        pval_cols = grep("PVALUE", colnames(fit_fixed))
+      ) %>%
         print()
     } else {
       cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
@@ -1219,17 +1277,7 @@ for (ivariable in variables_names) {
 
 # Descriptive statistics
 ```{r display_descriptive_statistics, eval = params_steps$step_3}
-# function to compute mean and sd, then paste results for output
-computeMeanSD <- function(x, digits = 2) {
-  return(paste0(
-    round(mean(x, na.rm = TRUE), digits = digits),
-    " (",
-    round(sd(x, na.rm = TRUE), digits = digits),
-    ")"
-  ))
-}
-
-demoDescriptTable <- DMVSLB.QC4 %>%
+descriptive_table <- DMVSLB_QC4 %>%
   group_by(STUDYID) %>%
   mutate(
     NumberParticipants = format(length(unique(SUBJID)), big.mark = ","),
@@ -1247,15 +1295,15 @@ demoDescriptTable <- DMVSLB.QC4 %>%
     full_join(
       x = .data %>% 
         summarise(
-          NumberParticipants = unique(NumberParticipants),
-          NumberMeasures = computeMeanSD(NumberMeasures, digits = 2),
-          FollowUpDuration = computeMeanSD(FollowUpDuration, digits = 2),
-          MalesPercent = unique(MalesPercent),
-          BaselineAge = computeMeanSD(AGE0, digits = 2),
-          BaselineBMI = computeMeanSD(BMI0, digits = 2)
+          `Number of Participants` = unique(NumberParticipants),
+          `Number of Measures` = compute_mean_sd(NumberMeasures, digits = 2),
+          `Follow-Up Duration` = compute_mean_sd(FollowUpDuration, digits = 2),
+          `Males Percentage` = unique(MalesPercent),
+          `Age (Baseline)`= compute_mean_sd(AGE0, digits = 2),
+          `BMI (Baseline)` = compute_mean_sd(BMI0, digits = 2)
         ),
       y = .data %>% 
-        summarise_at(.vars = vars(variables_names), .funs = computeMeanSD) %>% 
+        summarise_at(.vars = vars(variables_names), .funs = compute_mean_sd) %>% 
         `colnames<-`(c(colnames(.)[1], paste0("Baseline", colnames(.)[-1]))),
       by = "STUDYID"
     )
@@ -1263,14 +1311,14 @@ demoDescriptTable <- DMVSLB.QC4 %>%
   ungroup() %>%
   select(
     STUDYID,
-    NumberParticipants, NumberMeasures, FollowUpDuration, MalesPercent,
-    BaselineAge, BaselineBMI, everything()
+    `Number of Participants`, `Number of Measures`, `Follow-Up Duration`, `Males Percentage`,
+    `Age (Baseline)`, `BMI (Baseline)`, everything()
   ) %>%
   t() %>%
   `colnames<-`(.[1, ]) %>%
   `[`(-1, , drop = FALSE)
 
-mykable(demoDescriptTable)
+pretty_kable(descriptive_table)
 ```
 
 
@@ -1291,11 +1339,13 @@ To perform GWAS analysis, SNP main effect and SNP x time interaction term are in
 Please, provide VCF files in dosage format and check the availability of the imputation quality tag used (e.g. `INFO`).
 
 ```{r check_available_vcf, eval = params_steps$step_4}
-listVCF <- list.files(path = params$vcf_input_directory, pattern = ".vcf.gz$")
+list_vcf_files <- list.files(path = params$vcf_input_directory, pattern = ".vcf.gz$")
 cat(
   paste0(
-    "The following VCF files (", length(listVCF), ") are available within the directory path provided: \n\n",
-    paste0("  * ", listVCF, collapse = "\n")
+    "The following VCF files (", 
+    length(list_vcf_files), 
+    ") are available within the directory path provided: \n\n",
+    paste0("  * ", list_vcf_files, collapse = "\n")
   )
 )
 cat("\n")
@@ -1472,9 +1522,9 @@ done
 
 #### Trajectories
 ```{r lmm_genotypes_plot, eval = params_steps$step_6 & params$variants_analysis}
-DMVSLB.QC5 <- DMVSLB.QC4 %>%
+DMVSLB_QC5 <- DMVSLB_QC4 %>%
   filter(
-    SUBJID %in% (
+    SUBJID%in%(
       grep(
         pattern = "extractVCF",
         x = list.dirs(params$output_directory, full.names = TRUE),
@@ -1489,13 +1539,13 @@ DMVSLB.QC5 <- DMVSLB.QC4 %>%
     )
   ) 
 
-DMVSLB.QC5 %>%
+DMVSLB_QC5 %>%
   select(!!unname(variables_names), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID) %>% 
   gather(key = "Trait", value = "Measure", -c(AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID)) %>% 
   mutate(
     ID = paste(STUDYID, SUBJID, sep = "_"),
     pT2D = ifelse(
-      ID %in% diabeticSamplesWithMedicationInfo.ToKeep,
+      ID%in%diabetic_samples_with_medication_info,
       "PreDiab",
       "Normo"
     )
@@ -1512,79 +1562,82 @@ cat("\n")
 
 #### Mixed Model results
 ```{r lmm_genotypes, eval = params_steps$step_6 & params$variants_analysis}
-listChrDirectories <- grep(
+list_chrom_directories <- grep(
   pattern = "extractVCF",
   x = list.dirs(params$output_directory, full.names = TRUE),
   value = TRUE
 )
 
-for (ichrdirectory in listChrDirectories) {
+for (ichrdirectory in list_chrom_directories) {
   message(ichrdirectory)
 
   # dir.create(gsub("extractVCF", "outputLMM", ichrdirectory), showWarnings = FALSE)
   ichrfilename <- gsub(".*/(.*)/extractVCF", "\\1", ichrdirectory)
-  outputLMMdirectory <- paste0(params$output_directory, "/outputLMM/", ichrfilename)
-  dir.create(outputLMMdirectory, showWarnings = FALSE, recursive = TRUE)
+  output_lmm_directory <- paste0(params$output_directory, "/outputLMM/", ichrfilename)
+  dir.create(output_lmm_directory, showWarnings = FALSE, recursive = TRUE)
 
   ## Read imputed genotypes (dosage file)
-  listDosageFile <- list.files(path = ichrdirectory, pattern = ".DS.gz$", full.names = TRUE)
+  list_dosage_file <- list.files(path = ichrdirectory, pattern = ".DS.gz$", full.names = TRUE)
   
-  listDosageFile <- listDosageFile[c(1, 2)] # to be removed
+  list_dosage_file <- list_dosage_file[c(1, 2)] # to be removed
 
   ## Parallelise on chunks
-  for (idosagefile in listDosageFile) {
+  for (idosagefile in list_dosage_file) {
     message(idosagefile)
-    chunkDosageFile <- read.table(file = idosagefile, header = TRUE, check.names = FALSE)
+    dosage_file <- read.table(file = idosagefile, header = TRUE, check.names = FALSE)
 
     ## Check intersect between phenotypes and genotypes data
     samplesWithPhenoGeno <- intersect(
-      unique(DMVSLB.QC4[, "SUBJID"]),
-      colnames(chunkDosageFile)[-c(1, 2)]
+      unique(DMVSLB_QC4[, "SUBJID"]),
+      colnames(dosage_file)[-c(1, 2)]
     )
-    DMVSLB.QC5 <- DMVSLB.QC4 %>%
-      filter(SUBJID %in% samplesWithPhenoGeno)
+    DMVSLB_QC5 <- filter(.data = DMVSLB_QC4, SUBJID%in%samplesWithPhenoGeno)
 
     ## Format genotypes
-    chunkDosageFile.fmt <- chunkDosageFile[, c("CHROM", "POS", samplesWithPhenoGeno)] %>%
+    dosage_file_tidy <- dosage_file[, c("CHROM", "POS", samplesWithPhenoGeno)] %>%
       mutate(SNP = paste(CHROM, POS, sep = "_")) %>%
       select(-CHROM, -POS)
+    
     ### Remove multi-allele SNPs (duplicated chromosome:positition)
-    multiAlleleSnps <- chunkDosageFile.fmt[duplicated(chunkDosageFile.fmt[, "SNP"]), "SNP"]
-    chunkDosageFile.fmt <- chunkDosageFile.fmt %>%
-      filter(!SNP %in% multiAlleleSnps) %>%
+    multi_allele_snps <- dosage_file_tidy[duplicated(dosage_file_tidy[, "SNP"]), "SNP"]
+    
+    dosage_file_tidy <- dosage_file_tidy %>%
+      filter(!SNP%in%multi_allele_snps) %>%
       column_to_rownames(var = "SNP") %>%
       t()
 
     ## Combine phenotypes and genotypes
-    pheGeno.data <- merge(
-      x = DMVSLB.QC5,
-      y = chunkDosageFile.fmt,
-      by.x = "SUBJID",
-      by.y = "row.names"
+    pheno_geno_data <- full_join(
+      x = DMVSLB_QC5,
+      y = dosage_file_tidy,
+      by = c("SUBJID" = "row.names")
     )
 
     ## Run Mixed Model by SNP
-    resLMM.snp <- mclapply(
-      colnames(chunkDosageFile.fmt),
+    results_lmm_snp <- mclapply(
+      X = colnames(dosage_file_tidy),
       mc.cores = params$n_cpu,
       mc.preschedule = FALSE,
-      function(isnp) {
+      FUN = function(isnp) {
         # print(isnp)
         
-        results_lmm <- as.list(rep(NA, length(variables_names))) %>% 
+        results_lmm <- variables_names %>% 
+          length() %>% 
+          rep(NA, .) %>% 
+          as.list() %>% 
           `names<-`(variables_names)
         for (ivariable in variables_names) {
-          if (!all(is.na(pheGeno.data[, ivariable]))) {
+          if (!all(is.na(pheno_geno_data[, ivariable]))) {
             fit.gluc <- lmer(
               formula = eval(parse(text = paste0(
                 "update.formula(formula.rightPart, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
               ))),
-              data = pheGeno.data
+              data = pheno_geno_data
             )
             results_lmm[[ivariable]] <- cbind.data.frame(
               TRAIT = ivariable,
               SNP = isnp,
-              tidyLmer(fit.gluc)
+              tidy_lmer(fit.gluc)
             ) %>% 
             `colnames<-`(gsub(
               pattern = paste0("`", isnp, "`"),
@@ -1601,16 +1654,16 @@ for (ichrdirectory in listChrDirectories) {
         return(res_all)
       }
     )
-    listerrors <- sapply(resLMM.snp, is, class2 = "try-error")
+    list_errors <- sapply(results_lmm_snp, is, class2 = "try-error")
 
     cat(
-      colnames(chunkDosageFile.fmt)[listerrors],
+      colnames(dosage_file_tidy)[list_errors],
       sep = "\n",
-      file = paste0(outputLMMdirectory, "/", gsub(".*/([^.]*).*", "\\1", idosagefile), ".log")
+      file = paste0(output_lmm_directory, "/", gsub(".*/([^.]*).*", "\\1", idosagefile), ".log")
     )
-    resLMM.snp <- resLMM.snp[!listerrors]
+    results_lmm_snp <- results_lmm_snp[!list_errors]
 
-    annot_chunk <- full_join(
+    annotation_chunk <- full_join(
       x = read_tsv(gsub(".DS.gz", ".frq", idosagefile)),
       y = read_tsv(gsub(".DS.gz", ".hwe", idosagefile)), 
       by = c("CHROM" = "CHR", "POS" = "POS")
@@ -1623,24 +1676,24 @@ for (ichrdirectory in listChrDirectories) {
       ) %>%
         mutate(SNP = paste(CHROM, POS, sep = "_"))
     
-    resLMM.chunk <- merge(
-      x = annot_chunk,
-      y = do.call("rbind", resLMM.snp),
+    results_lmm_chunk <- merge(
+      x = annotation_chunk,
+      y = do.call("rbind", results_lmm_snp),
       by = "SNP"
     )
 
     ## Write results
     for (ivariable in variables_names) {
       if (!grepl("_NA", ivariable)) {
-        dir.create(paste0(outputLMMdirectory, "/", ivariable), showWarnings = FALSE)
+        dir.create(paste0(output_lmm_directory, "/", ivariable), showWarnings = FALSE)
         output_filename <- paste0(
-          paste0(outputLMMdirectory, "/", ivariable),
+          paste0(output_lmm_directory, "/", ivariable),
           "/", ivariable, "_",
           gsub(".*/([^.]*).*", "\\1", idosagefile),
           ".csv"
         )
         write_csv(
-          x = filter(resLMM.chunk, TRAIT == ivariable),
+          x = filter(results_lmm_chunk, TRAIT == ivariable),
           path = output_filename
         )
       }
@@ -1650,12 +1703,12 @@ for (ichrdirectory in listChrDirectories) {
 ```
 
 ```{r lmm_genotypes_ouput, eval = params_steps$step_6, include = params_steps$step_6}
-listChrDirectories <- grep(
+list_chrom_directories <- grep(
   pattern = "extractVCF", 
   x = list.dirs(params$output_directory, full.names = TRUE), 
   value = TRUE
 )
-grep("22", listChrDirectories, value = TRUE) %>% 
+grep("22", list_chrom_directories, value = TRUE) %>% 
   gsub(".*/(.*)/extractVCF", "\\1", .) %>% 
   paste0(params$output_directory, "/outputLMM/", ., "/", variables_names[1], "/") %>% 
   list.files(full.names = TRUE) %>% 
@@ -1682,48 +1735,48 @@ qc_steps <- bind_rows(
     `QC Step` = 1, 
     `QC Step Description` = "Exclude participants that are not fasted at baseline", 
     `Samples Before QC` = count_samples(DMVSLB),
-    `Samples After QC` = count_samples(DMVSLB.QC0),
+    `Samples After QC` = count_samples(DMVSLB_QC0),
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   ),
   tibble(
     `QC Step` = 2, 
     `QC Step Description` = "Exclude participants with data available for one (or zero) time-point", 
-    `Samples Before QC` = count_samples(DMVSLB.QC0),
-    `Samples After QC` = count_samples(DMVSLB.QC1),
+    `Samples Before QC` = count_samples(DMVSLB_QC0),
+    `Samples After QC` = count_samples(DMVSLB_QC1),
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   ),
   tibble(
     `QC Step` = 3, 
     `QC Step Description` = "Exclude participants with diabetes at baseline", 
-    `Samples Before QC` = count_samples(DMVSLB.QC1),
-    `Samples After QC` = count_samples(DMVSLB.QC2),
+    `Samples Before QC` = count_samples(DMVSLB_QC1),
+    `Samples After QC` = count_samples(DMVSLB_QC2),
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   ),
   tibble(
     `QC Step` = 4, 
     `QC Step Description` = "Exclude participants developing diabetes during the study time without informations about medication", 
-    `Samples Before QC` = count_samples(DMVSLB.QC2),
-    `Samples After QC` = count_samples(DMVSLB.QC3),
+    `Samples Before QC` = count_samples(DMVSLB_QC2),
+    `Samples After QC` = count_samples(DMVSLB_QC3),
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   ),
   tibble(
     `QC Step` = 5, 
     `QC Step Description` = "Exclude participants defined as outliers based on residuals from the mixed model, with median plus/minus 3*IQR", 
-    `Samples Before QC` = count_samples(DMVSLB.QC3),
-    `Samples After QC` = count_samples(DMVSLB.QC4),
+    `Samples Before QC` = count_samples(DMVSLB_QC3),
+    `Samples After QC` = count_samples(DMVSLB_QC4),
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   ),
   tibble(
     `QC Step` = 6, 
     `QC Step Description` = "Exclude participants with no genotypes data available", 
-    `Samples Before QC` = count_samples(DMVSLB.QC4),
-    `Samples After QC` = count_samples(DMVSLB.QC5),
+    `Samples Before QC` = count_samples(DMVSLB_QC4),
+    `Samples After QC` = count_samples(DMVSLB_QC5),
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   )
 ) %>% 
   mutate_if(.predicate = is.numeric, .f = ~format(x = .x, big.mark = ","))
 
-mykable(data = qc_steps)
+pretty_kable(data = qc_steps)
 ```
 
 
@@ -1731,11 +1784,19 @@ mykable(data = qc_steps)
 
 ## Output tree structure
 ```{r directory_structure, eval = params_steps$step_7, results = "markup"}
-dir_tree <- c(
-  list.files(path = params$output_directory, pattern = "^22.*", full.names = TRUE) %>%
+outout_tree_structure <- c(
+  list.files(
+    path = params$output_directory, 
+    pattern = "^22.*", 
+    full.names = TRUE
+  ) %>%
     list.files(full.names = TRUE) %>%
     sapply(., list.files, pattern = "preaa", full.names = TRUE),
-  list.files(path = params$output_directory, pattern = "outputLMM", full.names = TRUE) %>%
+  list.files(
+    path = params$output_directory, 
+    pattern = "outputLMM", 
+    full.names = TRUE
+  ) %>%
     list.files(pattern = "22", full.names = TRUE) %>%
     list.files(full.names = TRUE) %>%
     gsub("small_pre.*.log", "small_preaa.log", .) %>% 
@@ -1745,8 +1806,16 @@ dir_tree <- c(
       return(ifelse(length(tmp) != 0, tmp, i))
     }) %>% 
     gsub("22", "CHR*", ., fixed = TRUE),
-  list.files(path = params$output_directory, pattern = "vcffilespath.txt", full.names = TRUE),
-  list.files(path = params$output_directory, pattern = paste0("handleVCF_", params$cohort_name, ".sh"), full.names = TRUE)
+  list.files(
+    path = params$output_directory, 
+    pattern = "vcffilespath.txt", 
+    full.names = TRUE
+  ),
+  list.files(
+    path = params$output_directory, 
+    pattern = paste0("handleVCF_", params$cohort_name, ".sh"), 
+    full.names = TRUE
+  )
 ) %>%
   unlist() %>%
   gsub(params$output_directory, paste0("/", params$cohort_name), .) %>%
@@ -1754,9 +1823,9 @@ dir_tree <- c(
   data.frame(pathString = .) %>%
   as.Node()
 
-dir_tree %>%
+outout_tree_structure %>%
   capture.output() %>%
-  `[`(-1) %>%
+  .[-1] %>%
   sapply(., paste0, "\n") %>%
   paste(collapse = "") %>%
   cat()
