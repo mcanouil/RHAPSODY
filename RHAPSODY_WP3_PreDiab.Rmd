@@ -651,30 +651,30 @@ pretty_kable(lb_tidy$annotation[, -c(ncol(lb_tidy$annotation), ncol(lb_tidy$anno
 ```
 
 ```{r convert_biomarker_units, eval = params_steps$step_2, include = FALSE}
+variables_gl_to_convert <- lb_tidy$annotation %>%
+  filter(!is.na(CONVERT_TO) & tolower(LBORRESU)%in%"g/l") %>%
+  .[["KEY_MEASURES"]]
+
+variables_mgl_to_convert <- lb_tidy$annotation %>%
+  filter(!is.na(CONVERT_TO) & tolower(LBORRESU)%in%"mg/l") %>%
+  .[["KEY_MEASURES"]]
+
+variables_percent_to_convert <- lb_tidy$annotation %>%
+  filter(!is.na(CONVERT_TO) & LBORRESU%in%"%") %>%
+  .[["KEY_MEASURES"]]
+
 DMVSLB <- DMVSLB %>%
   mutate_at(
-    vars(
-      lb_tidy$annotation %>%
-        filter(!is.na(CONVERT_TO) & tolower(LBORRESU)%in%"g/l") %>%
-        .[["KEY_MEASURES"]]
-    ),
-    funs(convert_2mmoll(., from = "g/l"))
+    .vars = vars(!!!variables_gl_to_convert),
+    .funs = funs(convert_2mmoll(., from = "g/l"))
   ) %>%
   mutate_at(
-    vars(
-      lb_tidy$annotation %>%
-        filter(!is.na(CONVERT_TO) & tolower(LBORRESU)%in%"mg/l") %>%
-        .[["KEY_MEASURES"]]
-    ),
-    funs(convert_2mmoll(., from = "mg/l"))
+    .vars = vars(!!!variables_mgl_to_convert),
+    .funs = funs(convert_2mmoll(., from = "mg/l"))
   ) %>%
   mutate_at(
-    vars(
-      lb_tidy$annotation %>%
-        filter(!is.na(CONVERT_TO) & LBORRESU%in%"%") %>%
-        .[["KEY_MEASURES"]]
-    ),
-    funs(convert_hba1c(., unitFrom = "%"))
+    .vars = vars(variables_percent_to_convert),
+    .funs = funs(convert_hba1c(., unitFrom = "%"))
   )
 
 varNamesGLUC <- grep("^GLUC.*_0$", colnames(DMVSLB), value = TRUE)
