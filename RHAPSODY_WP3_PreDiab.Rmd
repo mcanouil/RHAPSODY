@@ -55,6 +55,8 @@ output:
 <!-- Author - Mickaël Canouil, Ph.D. -->
 
 ```{r setup, include = FALSE, echo = FALSE}
+options(stringsAsFactors = FALSE)
+
 check_packages <- function(package) {
   if (!package%in%installed.packages()[, "Package"]) {
     install.packages(
@@ -1105,16 +1107,19 @@ for (ivariable in variables_names) {
     }
   
     
-    cat("\n##### Results for fixed effect as a row\n\n")
-    fit_fixed <- tidy_lmer(fit)
-  
-    if (any(grepl("PVALUE", colnames(fit_fixed)))) {  
-      pretty_kable(fit_fixed, pval_cols = grep("PVALUE", colnames(fit_fixed))) %>%
-        print()
-    } else {
-      cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
-      cat("\n")
-    }
+    # cat("\n##### Results for fixed effect as a row\n\n")
+    # fit_fixed <- tidy_lmer(fit)
+    # 
+    # if (any(grepl("PVALUE", colnames(fit_fixed)))) {
+    #   pretty_kable(
+    #     data = fit_fixed, 
+    #     pval_cols = grep("PVALUE", colnames(fit_fixed))
+    #   ) %>%
+    #     print()
+    # } else {
+    #   cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
+    #   cat("\n")
+    # }
   } else {
     cat(paste0("`", ivariable, "` is not available."))
     cat("\n")
@@ -1255,19 +1260,19 @@ for (ivariable in variables_names) {
     }
     
     
-    cat("\n##### Results for fixed effect as a row\n\n")
-    fit_fixed <- tidy_lmer(fit)
-    
-    if (any(grepl("PVALUE", colnames(fit_fixed)))) {
-      pretty_kable(
-        data = fit_fixed, 
-        pval_cols = grep("PVALUE", colnames(fit_fixed))
-      ) %>%
-        print()
-    } else {
-      cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
-      cat("\n")
-    }
+    # cat("\n##### Results for fixed effect as a row\n\n")
+    # fit_fixed <- tidy_lmer(fit)
+    # 
+    # if (any(grepl("PVALUE", colnames(fit_fixed)))) {
+    #   pretty_kable(
+    #     data = fit_fixed, 
+    #     pval_cols = grep("PVALUE", colnames(fit_fixed))
+    #   ) %>%
+    #     print()
+    # } else {
+    #   cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
+    #   cat("\n")
+    # }
   } else {
     cat(paste0("`", ivariable, "` is not available."))
     cat("\n")
@@ -1605,16 +1610,20 @@ for (ichrdirectory in list_chrom_directories) {
     ### Remove multi-allele SNPs (duplicated chromosome:positition)
     multi_allele_snps <- dosage_file_tidy[duplicated(dosage_file_tidy[, "SNP"]), "SNP"]
     
-    dosage_file_tidy <- dosage_file_tidy %>%
+    dosage_file_tidy <- dosage_file_tidy %>% 
+      as.data.frame() %>%
       filter(!SNP%in%multi_allele_snps) %>%
       column_to_rownames(var = "SNP") %>%
-      t()
+      t() %>% 
+      as.data.frame() %>% 
+      rownames_to_column(var = "SUBJID") %>% 
+      mutate(SUBJID = as.integer(SUBJID))
 
     ## Combine phenotypes and genotypes
     pheno_geno_data <- full_join(
       x = DMVSLB_QC5,
       y = dosage_file_tidy,
-      by = c("SUBJID" = "row.names")
+      by = c("SUBJID" = "SUBJID")
     )
 
     ## Run Mixed Model by SNP
@@ -1674,17 +1683,52 @@ for (ichrdirectory in list_chrom_directories) {
     ) %>% 
       full_join(
         x = .,
-        y = read_tsv(gsub(".DS.gz", ".INFO", idosagefile)) %>% 
-          select(-REF, -ALT), 
+        y = read_tsv(gsub(".DS.gz", ".INFO", idosagefile)), 
         by = c("CHROM" = "CHROM", "POS" = "POS")
       ) %>%
         mutate(SNP = paste(CHROM, POS, sep = "_"))
     
+    annotations_columns <- c(
+      "SNP", "CHROM", "POS", "N_ALLELES", "N_CHR", "frq1", "frq2", 
+      "OBS(HOM1/HET/HOM2)", "E(HOM1/HET/HOM2)", "ChiSq_HWE", "P_HWE", 
+      "P_HET_DEFICIT", "P_HET_EXCESS", "INFO", "TRAIT"
+    )
+    
     results_lmm_chunk <- merge(
       x = annotation_chunk,
-      y = do.call("rbind", results_lmm_snp),
+      y = bind_rows(results_lmm_snp),
       by = "SNP"
     )
+    
+    results_lmm_chunk_output <- results_lmm_chunk %>% 
+      transmute(
+        TRAIT = TRAIT,
+        SNPID = SNP,
+        chr = as.integer(CHROM),
+        position = as.integer(POS),
+        coded_all = ALT,
+        noncoded_all = REF,
+        strand_genome = "+",
+        beta = SNP_ESTIMATE,
+        SE = SNP_SE,
+        pval = SNP_PVALUE,
+        beta_interaction = (
+          if ("VISIT_YEARS:SNP_ESTIMATE" %in% colnames(.)) {`VISIT_YEARS:SNP_ESTIMATE`} else {NA}
+        ),
+        SE_interaction = (
+          if ("VISIT_YEARS:SNP_SE" %in% colnames(.)) {`VISIT_YEARS:SNP_SE`} else {NA}
+        ),
+        pval_interaction = (
+          if ("VISIT_YEARS:SNP_PVALUE" %in% colnames(.)) {`VISIT_YEARS:SNP_PVALUE`} else {NA}
+        ),
+        AF_coded_all = frq2,
+        HWE_pval = P_HWE, 
+        # callrate = NA, 
+        n_total = N_CHR/N_ALLELES,
+        # imputed = as.numeric(INFO!=1),
+        # used_for_imp = as.numeric(INFO==1),
+        imputation_quality_INFO = INFO
+      )
 
     ## Write results
     for (ivariable in variables_names) {
@@ -1697,7 +1741,7 @@ for (ichrdirectory in list_chrom_directories) {
           ".csv"
         )
         write_csv(
-          x = filter(results_lmm_chunk, TRAIT == ivariable),
+          x = filter(results_lmm_chunk_output, TRAIT == ivariable),
           path = output_filename
         )
       }

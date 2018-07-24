@@ -4,6 +4,7 @@
 # Author - Mickaël Canouil, Ph.D.
 # Version - 0.9.0
 #---------------------------------------------------------------------------------------------------
+options(stringsAsFactors = FALSE)
 ###############
 # Node settings
 ###############
@@ -281,7 +282,7 @@ for (itable in available_tables) {
   assign(x = itable, value = opal.execute(o, itable))
 }
 opal.logout(o)
-rm(list = c("o", "itable", "available_tables")
+rm(list = c("o", "itable", "available_tables"))
 
 
 vs_tidy <- try(format_vs(data = VS))
