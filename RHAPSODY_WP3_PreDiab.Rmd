@@ -14,7 +14,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.8.4)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.9.0)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -295,8 +295,8 @@ format_vs <- function(data) {
 format_lb <- function(data) {
   data <- data %>%
     mutate(
-      LBFAST = ifelse(grepl("LBFAST", colnames(.)), LBFAST, NA),
-      LBTPTNUM = ifelse(grepl("LBTPTNUM", colnames(.)), LBTPTNUM, NA),
+      LBFAST = if ("LBFAST" %in% colnames(.)) {LBFAST} else {NA},
+      LBTPTNUM = if ("LBTPTNUM" %in% colnames(.)) {LBTPTNUM} else {NA},
       LBTPTNUM = ifelse(LBTESTCD == "GLUC" & is.na(LBTPTNUM), 0, LBTPTNUM),
       KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
     ) %>%
@@ -409,10 +409,12 @@ get_residuals_outliers <- function(x) {
     mutate(
       residuals = residuals(x),
       r_iqr = 3 * IQR(residuals),
-      r_median = median(residuals)
+      r_median = median(residuals),
+      left = r_median-r_iqr,
+      right = r_median+r_iqr
     ) %>% 
-    filter(between(residuals, r_median-r_iqr, r_median+r_iqr)) %>% 
-    .[["SUBJID"]]
+    filter(residuals<left | residuals>right) %>% 
+    .[["SUBJID"]] %>% 
     return()
 }
 
@@ -524,6 +526,7 @@ rm(list = c("o", "itable", "available_tables"))
 
 cat("\n## Convert CDSIC to long format\n\n")
 vs_tidy <- format_vs(data = VS)
+vs_tidy <- compute_bmi(data = vs_tidy)
 lb_tidy <- format_lb(data = LB)
 # To check if LB/VS are correctly formatted (should return TRUE)
 # all(
@@ -783,7 +786,7 @@ variables_names_available <- variables_names[!grepl("_NA", variables_names)]
 one_time_point_samples <- DMVSLB_QC0 %>%
   group_by(STUDYID, SUBJID) %>%
   summarise_at(
-    .vars = vars(!!!variables_names_available),
+    .vars = vars(!!variables_names_available),
     .funs = (function(.x) {sum(!is.na(.x))})
   ) %>%
   filter_at(
@@ -1317,10 +1320,9 @@ descriptive_table <- DMVSLB_QC4 %>%
   ) %>%
   t() %>%
   `colnames<-`(.[1, ]) %>%
-  as.data.frame() %>% 
-  slice(-1)
+  as.data.frame()
 
-pretty_kable(descriptive_table)
+pretty_kable(descriptive_table[-1, , drop = FALSE])
 ```
 
 
@@ -1835,5 +1837,4 @@ outout_tree_structure %>%
 
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
-
 
