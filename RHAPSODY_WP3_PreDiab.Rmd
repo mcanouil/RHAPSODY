@@ -1708,7 +1708,7 @@ for (ichrdirectory in list_chrom_directories) {
         position = as.integer(POS),
         coded_all = ALT,
         noncoded_all = REF,
-        strand_genome = "+",
+        strand_genome = "+", # hardcoded strand, because when imputed, the forward strand is usually used
         beta = SNP_ESTIMATE,
         SE = SNP_SE,
         pval = SNP_PVALUE,
@@ -1878,6 +1878,35 @@ outout_tree_structure %>%
   paste(collapse = "") %>%
   cat()
 ```
+
+```{r output_description, eval = params_steps$step_7}
+output_description <- tribble(
+  ~"variable name", ~"description",
+  "TRAIT", "trait used for the analysis (GLUC, GLUC2H or HBA1C)",
+  "SNPID", "SNP ID as rs number",
+  "chr", "chromosome number.",
+  "position", "Chromosomal position relative to b37",
+  "coded_all", "coded allele, also called modeled allele (in example of A/G SNP in which AA=0, AG=1 and GG=2, the coded allele is G)",
+  "noncoded_all", "the alternate allele",
+  "strand_genome", "'+' or '-', representing either the positive/forward strand or the negative/reverse strand of the human genome reference sequence; to clarify which strand the coded_all and noncoded_all are on",
+  "beta", "beta estimate from genotype-phenotype association, at least 5 decimal places -- NA if not available",
+  "SE", "standard error of beta estimate, to at least 5 decimal places -- NA if not available",
+  "pval", "p-value of test statistic, here just as a double check -- NA if not available",
+  "beta_interaction", "beta estimate from genotype-phenotype association in interaction with TIME, at least 5 decimal places -- NA if not available",
+  "SE_interaction", "standard error of beta_interaction estimate, to at least 5 decimal places -- NA if not available",
+  "pval_interaction", "p-value of test statistic, here just as a double check -- NA if not available",
+  "AF_coded_all", "allele frequency for the coded allele -- NA if not available",
+  "HWE_pval", "exact test Hardy-Weinberg equilibrium p-value -- only directly typed SNPs, NA for imputed",
+  # "callrate", "genotyping call rate after exclusions -- only directly typed SNPs, NA for imputed",
+  "n_total", "total sample with phenotype and genotype for SNP",
+  # "imputed", "1/0 coding; 1=imputed SNP, 0=if directly typed",
+  # "used_for_imp", "1/0 coding; 1=used for imputation, 0=not used for imputation",
+  # "oevar_imp", "observed divided by expected variance for imputed allele dosage -- NA otherwise",
+  "imputation_quality_INFO", "average posterior probability for imputed SNP allele dosage* (applies to best-guess genotype imputation)"
+)
+pretty_kable(data = output_description)
+```
+
 
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
