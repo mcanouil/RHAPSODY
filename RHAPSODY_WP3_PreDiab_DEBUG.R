@@ -2,9 +2,11 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from 'RHAPSODY_WP3_PreDiab.Rmd'
 # Author - Mickaël Canouil, Ph.D.
-# Version - 0.9.0
+# Version - 0.9.1
 #---------------------------------------------------------------------------------------------------
 options(stringsAsFactors = FALSE)
+
+
 ###############
 # Node settings
 ###############
@@ -14,18 +16,62 @@ opal_credentials <- as.data.frame(t(read.table(
   row.names = c("opal_server", "opal_login", "opal_password")
 )), stringsAsFactors = FALSE)
 
+
 ###############
 # Functions
 ###############
-check_packages <- function(package) {
-  if (!package %in% installed.packages()[, "Package"]) {
-    install.packages(
-			package, 
-			repos = c("https://rhap-fdb01.vital-it.ch/repo/", "https://cran.rstudio.com/", "http://cran.obiba.org"),
-			dependencies = TRUE
-		)
+check_packages_version <- function(list_packages, session_info_csv = "session_info.csv") {
+  check_packages <- function(package) {
+    if (!package%in%installed.packages()[, "Package"]) {
+      install.packages(
+			  pkgs = package, 
+  			repos = c(
+  			  "https://rhap-fdb01.vital-it.ch/repo/", 
+  			  "http://cran.us.r-project.org",
+  			  "https://cran.rstudio.com/", 
+  			  "http://cran.obiba.org"
+  		  ),
+  			dependencies = TRUE
+  		)
+    }
+    library(package = package, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)
   }
-  library(package = package, character.only = TRUE)
+  
+  invisible(sapply(c("devtools", "tidyverse"), check_packages))
+
+  read_csv(file = session_info_csv) %>% 
+    dplyr::mutate(
+      local_version = purrr::map(
+        .x = package, 
+        .f = function(x) {
+          if (x %in% utils::installed.packages()[, 'Package']) {
+            utils::packageDescription(pkg = x, fields = 'Version')
+          }
+        }
+      )
+    ) %>% 
+    filter(local_version!=version) %>% 
+    dplyr::mutate(
+      install = purrr::map2(
+        .x = package, 
+        .y = version,
+        .f = function(x, y) {
+          devtools::install_version(
+            package = x, 
+            version = as.character(y), 
+            repos = c(
+      			  "https://rhap-fdb01.vital-it.ch/repo/", 
+      			  "http://cran.us.r-project.org",
+      			  "https://cran.rstudio.com/", 
+      			  "http://cran.obiba.org"
+      		  )
+          )
+        }
+      )
+    )
+  
+  invisible(sapply(list_packages, check_packages))
+  tidyverse::tidyverse_conflicts()
 }
 
 format_pval <- function (x, thresh = 10^-2, digits = 3, eps = 1e-50) {
@@ -241,6 +287,7 @@ compute_bmi <- function(data) {
 # Load/install libraries
 ###############
 list_packages <- c(
+  "devtools",
   "parallel",
   "grid",
   "scales",
@@ -255,15 +302,11 @@ list_packages <- c(
   "lmerTest",
   "Hmisc",
   "data.tree",
-  # "RCurl", 
-  # "rjson",
   "opal",
-  # "datashieldclient",
-  # "dsCDISC",
   "tidyverse"
 )
 
-invisible(sapply(list_packages, check_packages))
+check_packages_version(list_packages = list_packages, session_info_csv = "session_info.csv")
 
 
 ###############
