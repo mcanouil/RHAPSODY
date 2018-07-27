@@ -19,11 +19,11 @@ list_packages <- c(
 )
 
 ## To set properly the session_info file based on Mickaël Canouil (mickael.canouil@cnrs.fr) setup
-list_packages %>%
-  devtools::session_info(pkgs = .) %>%
-  .$packages %>%
-  dplyr::select(package, version) %>%
-  readr::write_csv(path = "session_info.csv")
+# list_packages %>%
+#   devtools::session_info(pkgs = .) %>%
+#   .$packages %>%
+#   dplyr::select(package, version) %>%
+#   readr::write_csv(path = "session_info.csv")
 
 ## Function to check, install and load packages based on session_info file
 check_packages_version <- function(list_packages, session_info_csv = "session_info.csv") {
