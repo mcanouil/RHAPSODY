@@ -49,12 +49,7 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
   			dependencies = TRUE
   		)
     }
-    library(
-      package = package, 
-      character.only = TRUE, 
-      quietly = TRUE, 
-      warn.conflicts = FALSE
-    )
+    library(package = package, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)
   }
   
   invisible(sapply(c("devtools", "tidyverse"), check_packages))
@@ -71,6 +66,7 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
       )
     ) %>% 
     filter(local_version!=version) %>% 
+    dplyr::arrange(package) %>% 
     dplyr::mutate(
       install = purrr::map2(
         .x = package, 
@@ -80,11 +76,10 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
             package = x, 
             version = as.character(y), 
             repos = c(
-      			  "https://rhap-fdb01.vital-it.ch/repo/", 
-      			  "http://cran.us.r-project.org",
-      			  "https://cran.rstudio.com/", 
-      			  "http://cran.obiba.org"
-      		  )
+              "https://rhap-fdb01.vital-it.ch/repo/", 
+              "http://cran.us.r-project.org",
+              "https://cran.rstudio.com/"
+            )
           )
         }
       )

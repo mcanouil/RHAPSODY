@@ -24,7 +24,7 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
   check_packages <- function(package) {
     if (!package%in%installed.packages()[, "Package"]) {
       install.packages(
-			  pkgs = package, 
+  			pkgs = package, 
   			repos = c(
   			  "https://rhap-fdb01.vital-it.ch/repo/", 
   			  "http://cran.us.r-project.org",
@@ -51,28 +51,21 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
       )
     ) %>% 
     filter(local_version!=version) %>% 
-    dplyr::mutate(
-      package = factor(package, levels = c(setdiff(package, "opal"), "opal"))
-    ) %>% 
     dplyr::arrange(package) %>% 
     dplyr::mutate(
       install = purrr::map2(
         .x = package, 
         .y = version,
         .f = function(x, y) {
-          if (x=="opal") {
-            install.packages(pkgs = 'opal', repos = 'https://cran.obiba.org')
-          } else {
-            devtools::install_version(
-              package = x, 
-              version = as.character(y), 
-              repos = c(
-                "https://rhap-fdb01.vital-it.ch/repo/", 
-                "http://cran.us.r-project.org",
-                "https://cran.rstudio.com/"
-              )
+          devtools::install_version(
+            package = x, 
+            version = as.character(y), 
+            repos = c(
+              "https://rhap-fdb01.vital-it.ch/repo/", 
+              "http://cran.us.r-project.org",
+              "https://cran.rstudio.com/"
             )
-          }
+          )
         }
       )
     )
