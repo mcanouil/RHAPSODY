@@ -31,7 +31,7 @@ At this stage, you were provided with the following files from [the (hidden) Gis
 # Run the analysis
 ## R Setup
 Please use `r R.version.string` (if not possible, newer version "3.4.*" can be used).  
-If VCFtools is not available on your machine, please install it: [VCFtools](https://vcftools.github.io/).
+If VCFtools is not available on your machine, please install it: [VCFtools](https://vcftools.github.io/).  
 Be sure the needed packages are installed (this is also done within the Rmarkdown script) or copy/paste the following command.
 `session_info.csv` provided should be used, by default in the working directory.
 ```{r}
@@ -49,7 +49,12 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
   			dependencies = TRUE
   		)
     }
-    library(package = package, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)
+    library(
+      package = package, 
+      character.only = TRUE, 
+      quietly = TRUE, 
+      warn.conflicts = FALSE
+    )
   }
   
   invisible(sapply(c("devtools", "tidyverse"), check_packages))
@@ -116,6 +121,43 @@ check_packages_version(
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
+## Using Docker
+If you are familiar with Docker, you can find an image which include everything you need to run the analyses.
+
+### Run the docker container with the latest image
+To run the image, you can use the following command (need docker to be installed):
+```{sh}
+docker run \
+  --name rhapsody \
+  --hostname rhapsody \
+  --detach \
+  --volume /your_local_volume:/media/remote_volume \
+  --publish 8787:8787 \
+  --publish 22:22 \
+  biostatgood/rapsody:latest
+```
+`"/your_local_volume"` is the path to the volume (where your data are located) on the machine when you run the docker software.  
+`"/media/remote_volume"` will be the path within the docker container (keep `/media/` as root directory).
+
+### Connect to the docker container
+Login and password have been set respectively to `rhapsody` and `wp3` (`rhapsody` is root via `sudo`).
+You can connect through SSH using standard IP address: `ssh rhapsody@localhost` (equivalent to `ssh rhapsody@127.0.0.1`).  
+You can also connect through Rstudio using a web browser at `http://localhost:8787/` (equivalent to `http://127.0.0.1:8787/`).  
+Once you are connected directly by SSH or with Rstudio, you can go to the bash terminal and change the password using `passwd` (just follow the instructions).
+
+### Docker configuration
+The (hidden) Gist s cloned in `/home/rhapsody/WP3/scripts`.  
+Make sure after starting the Docker image to update the scripts, if necessary.
+```{sh}
+cd /home/rhapspody/WP3/scripts
+git pull origin master
+```
+
+`VCFtools` is also installed in its latest version using github repository.  
+`vcftools`binary is located in the default directory: `/usr/local/bin` (default path in the Rmarkdown scripts).
+
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
+
 ## Run the Rmarkdown script
 1. First, create (or change) the `opal_credentials.txt` with your informations.
 2. Fill in the proper informations.
@@ -144,35 +186,52 @@ check_packages_version(
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
-```{r}
+```{sh}
+#!/bin/sh
+
+R --slave --silent <<RSCRIPT
+
 # set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
 working_directory <- './' 
 
-reportName <- 'RHAPSODY_WP3_PreDiab'
+analysis_step <- 7
+cohort_name <- 'Cohort_Name'
+author_name <- 'Firstname LASTNAME'
+opal_credentials <- 'opal_credentials.txt'
+vcf_directory <- '/media/.../vcf'
+imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be "R2")
 
-# Analysis
+
+# Run the analysis
+dir.create(path = working_directory, showWarnings = FALSE)
 rmarkdown::render(
-  input = "RHAPSODY_WP3_PreDiab.Rmd",
-  output_format = "html_document",
-  output_file = paste0(reportName, ".html"),
+  input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
+  output_format = output_format, 
+  output_file = paste0(
+    'RHAPSODY_WP3_PreDiab_', 
+    cohort_name, _step', 
+    analysis_step, '.html'
+  ), 
   output_dir = working_directory,
   params = list(
-    cohort_name = 'CohortName',
-    author_name = 'Firstname LASTNAME',
-    opal_credentials = 'opal_credentials.txt',
-    vcf_input_directory = './vcfs',
-    imputation_quality_tag = 'INFO', # To be set according to VCF (could also be "R2")
+    cohort_name = cohort_name, 
+    author_name = author_name, 
+    opal_credentials = opal_credentials,
+    vcf_input_directory = vcf_directory, 
+    imputation_quality_tag = imputation_quality_tag, 
     vcftools_binary_path = '/usr/local/bin',
     output_directory = working_directory,
-    analysis_step = 1,
+    analysis_step = analysis_step,
     format_vcfs = TRUE,
     variants_analysis = TRUE,
     n_cpu = 2,
     echo = FALSE, # Should R code be printed in the report
-    warning = TRUE, # Should warnings be printed in the report
+    warning = FALSE, # Should warnings be printed in the report
     message = FALSE # Should messages be printed in the report
   ),
-  encoding = "UTF-8"
+  encoding = 'UTF-8'
 )
+
+RSCRIPT
 ```
