@@ -1,3 +1,5 @@
+#!/bin/sh
+
 ## Description:
 ## When analysing the SNPs in R (lme4) the scripts crashes due to the amount of SNPs.
 ## We need to break down the data into smaller pieces.

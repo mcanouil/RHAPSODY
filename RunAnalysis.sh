@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 R --slave --silent <<RSCRIPT
 # set the output directory or leave as is; 
