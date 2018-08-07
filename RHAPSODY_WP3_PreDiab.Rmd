@@ -5,7 +5,7 @@ params:
   opal_credentials: 'opal_credentials.txt'
   vcf_input_directory: './vcfs'
   imputation_quality_tag: 'INFO'
-  vcftools_binary_path: './vcftools/vcftools_latest/bin'
+  vcftools_binary_path: '/usr/local/bin'
   output_directory: './'
   analysis_step: 1
   format_vcfs: TRUE
@@ -14,7 +14,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.9.1)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.9.2)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'

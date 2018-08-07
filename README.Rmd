@@ -1,6 +1,6 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan"
-subtitle: "(Version 0.9.1)"
+subtitle: "(Version 0.9.2)"
 author: "Mickaël Canouil, Ph.D."
 date: '`r format(Sys.Date(), "%d %B %Y")`'
 output: pdf_document
@@ -49,7 +49,12 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
   			dependencies = TRUE
   		)
     }
-    library(package = package, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)
+    library(
+      package = package, 
+      character.only = TRUE, 
+      quietly = TRUE, 
+      warn.conflicts = FALSE
+    )
   }
   
   invisible(sapply(c("devtools", "tidyverse"), check_packages))
@@ -108,7 +113,10 @@ list_packages <- c(
   "opal",
   "tidyverse"
 )
-check_packages_version(list_packages = list_packages, session_info_csv = "session_info.csv")
+check_packages_version(
+  list_packages = list_packages, 
+  session_info_csv = "session_info.csv"
+)
 ```
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
@@ -160,7 +168,7 @@ rmarkdown::render(
     opal_credentials = 'opal_credentials.txt',
     vcf_input_directory = './vcfs',
     imputation_quality_tag = 'INFO', # To be set according to VCF (could also be "R2")
-    vcftools_binary_path = './vcftools/vcftools_latest/bin',
+    vcftools_binary_path = '/usr/local/bin',
     output_directory = working_directory,
     analysis_step = 1,
     format_vcfs = TRUE,

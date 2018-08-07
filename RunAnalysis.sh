@@ -17,7 +17,7 @@ rmarkdown::render(
     opal_credentials = 'opal_credentials.txt',
     vcf_input_directory = './vcfs',
     imputation_quality_tag = 'INFO', # To be set according to VCF (could also be "R2")
-    vcftools_binary_path = './vcftools/vcftools_latest/bin',
+    vcftools_binary_path = '/usr/local/bin',
     output_directory = working_directory,
     analysis_step = 2,
     format_vcfs = FALSE,
