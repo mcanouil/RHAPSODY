@@ -1,22 +1,14 @@
 list_packages <- c(
-  "devtools",
-  "parallel",
-  "grid",
-  "scales",
-  "broom",
-  "viridis",
-  "readxl",
-  "writexl",
-  "cowplot",
-  "knitr",
-  "kableExtra",
-  "lme4",
-  "lmerTest",
-  "Hmisc",
-  "data.tree",
-  "opal",
-  "tidyverse"
+  "devtools", "parallel", "grid", "scales",
+  "broom", "viridis", "readxl", "writexl",
+  "cowplot", "knitr", "kableExtra", "lme4",
+  "lmerTest", "Hmisc", "data.tree", "opal"
 )
+
+if (!"tidyverse"%in%installed.packages()[, "Package"]) {
+  install.package(pkgs = "tidyverse", repos = "http://cran.us.r-project.org")
+}
+library(tidyverse)
 
 ## To set properly the session_info file based on Mickaël Canouil (mickael.canouil@cnrs.fr) setup
 # list_packages %>%
@@ -30,17 +22,20 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
   check_packages <- function(package) {
     if (!package%in%installed.packages()[, "Package"]) {
       install.packages(
-  			package, 
+  			pkgs = package, 
   			repos = c(
-  			  "https://rhap-fdb01.vital-it.ch/repo/", 
   			  "http://cran.us.r-project.org",
-  			  "https://cran.rstudio.com/", 
-  			  "http://cran.obiba.org"
+  			  "https://cran.rstudio.com/"
   		  ),
   			dependencies = TRUE
   		)
     }
-    library(package = package, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)
+    library(
+      package = package, 
+      character.only = TRUE, 
+      quietly = TRUE, 
+      warn.conflicts = FALSE
+    )
   }
   
   invisible(sapply(c("devtools", "tidyverse"), check_packages))
@@ -56,29 +51,22 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
         }
       )
     ) %>% 
-    dplyr::filter(local_version!=version) %>% 
-    dplyr::mutate(
-      package = factor(package, levels = c(setdiff(package, "opal"), "opal"))
-    ) %>% 
+    filter(local_version!=version) %>% 
     dplyr::arrange(package) %>% 
     dplyr::mutate(
       install = purrr::map2(
         .x = package, 
         .y = version,
         .f = function(x, y) {
-          if (x=="opal") {
-            install.packages(pkgs = 'opal', repos = 'https://cran.obiba.org')
-          } else {
-            devtools::install_version(
-              package = x, 
-              version = as.character(y), 
-              repos = c(
-                "https://rhap-fdb01.vital-it.ch/repo/", 
-                "http://cran.us.r-project.org",
-                "https://cran.rstudio.com/"
-              )
+          devtools::install_version(
+            package = x, 
+            version = as.character(y), 
+            repos = c(
+              "https://rhap-fdb01.vital-it.ch/repo/", 
+              "http://cran.us.r-project.org",
+              "https://cran.rstudio.com/"
             )
-          }
+          )
         }
       )
     )
@@ -88,4 +76,7 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
 }
 
 ## Do the job
-check_packages_version(list_packages = list_packages, session_info_csv = "session_info.csv")
+check_packages_version(
+  list_packages = list_packages, 
+  session_info_csv = "session_info.csv"
+)

@@ -20,21 +20,28 @@ opal_credentials <- as.data.frame(t(read.table(
 ###############
 # Functions
 ###############
+if (!"tidyverse"%in%installed.packages()[, "Package"]) {
+  install.package(pkgs = "tidyverse", repos = "http://cran.us.r-project.org")
+}
+library(tidyverse)
 check_packages_version <- function(list_packages, session_info_csv = "session_info.csv") {
   check_packages <- function(package) {
     if (!package%in%installed.packages()[, "Package"]) {
       install.packages(
   			pkgs = package, 
   			repos = c(
-  			  "https://rhap-fdb01.vital-it.ch/repo/", 
   			  "http://cran.us.r-project.org",
-  			  "https://cran.rstudio.com/", 
-  			  "http://cran.obiba.org"
+  			  "https://cran.rstudio.com/"
   		  ),
   			dependencies = TRUE
   		)
     }
-    library(package = package, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE)
+    library(
+      package = package, 
+      character.only = TRUE, 
+      quietly = TRUE, 
+      warn.conflicts = FALSE
+    )
   }
   
   invisible(sapply(c("devtools", "tidyverse"), check_packages))
@@ -287,26 +294,15 @@ compute_bmi <- function(data) {
 # Load/install libraries
 ###############
 list_packages <- c(
-  "devtools",
-  "parallel",
-  "grid",
-  "scales",
-  "broom",
-  "viridis",
-  "readxl",
-  "writexl",
-  "cowplot",
-  "knitr",
-  "kableExtra",
-  "lme4",
-  "lmerTest",
-  "Hmisc",
-  "data.tree",
-  "opal",
-  "tidyverse"
+  "devtools", "parallel", "grid", "scales",
+  "broom", "viridis", "readxl", "writexl",
+  "cowplot", "knitr", "kableExtra", "lme4",
+  "lmerTest", "Hmisc", "data.tree", "opal"
 )
-
-check_packages_version(list_packages = list_packages, session_info_csv = "session_info.csv")
+check_packages_version(
+  list_packages = list_packages, 
+  session_info_csv = "session_info.csv"
+)
 
 
 ###############

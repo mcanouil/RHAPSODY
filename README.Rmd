@@ -35,16 +35,18 @@ If VCFtools is not available on your machine, please install it: [VCFtools](http
 Be sure the needed packages are installed (this is also done within the Rmarkdown script) or copy/paste the following command.
 `session_info.csv` provided should be used, by default in the working directory.
 ```{r}
+if (!"tidyverse"%in%installed.packages()[, "Package"]) {
+  install.package(pkgs = "tidyverse", repos = "http://cran.us.r-project.org")
+}
+library(tidyverse)
 check_packages_version <- function(list_packages, session_info_csv = "session_info.csv") {
   check_packages <- function(package) {
     if (!package%in%installed.packages()[, "Package"]) {
       install.packages(
   			pkgs = package, 
   			repos = c(
-  			  "https://rhap-fdb01.vital-it.ch/repo/", 
   			  "http://cran.us.r-project.org",
-  			  "https://cran.rstudio.com/", 
-  			  "http://cran.obiba.org"
+  			  "https://cran.rstudio.com/"
   		  ),
   			dependencies = TRUE
   		)
@@ -95,23 +97,10 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
 }
 
 list_packages <- c(
-  "devtools",
-  "parallel",
-  "grid",
-  "scales",
-  "broom",
-  "viridis",
-  "readxl",
-  "writexl",
-  "cowplot",
-  "knitr",
-  "kableExtra",
-  "lme4",
-  "lmerTest",
-  "Hmisc",
-  "data.tree",
-  "opal",
-  "tidyverse"
+  "devtools", "parallel", "grid", "scales",
+  "broom", "viridis", "readxl", "writexl",
+  "cowplot", "knitr", "kableExtra", "lme4",
+  "lmerTest", "Hmisc", "data.tree", "opal"
 )
 check_packages_version(
   list_packages = list_packages, 
