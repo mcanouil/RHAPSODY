@@ -196,7 +196,7 @@ imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be "R2
 dir.create(path = working_directory, showWarnings = FALSE)
 rmarkdown::render(
   input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
-  output_format = output_format, 
+  output_format = "html_document", 
   output_file = paste0(
     'RHAPSODY_WP3_PreDiab_', 
     cohort_name, '_step', 
