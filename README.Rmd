@@ -199,7 +199,7 @@ rmarkdown::render(
   output_format = output_format, 
   output_file = paste0(
     'RHAPSODY_WP3_PreDiab_', 
-    cohort_name, _step', 
+    cohort_name, '_step', 
     analysis_step, '.html'
   ), 
   output_dir = working_directory,
