@@ -1450,7 +1450,7 @@ cat(
 # find $vcfin/*[2][12]*.vcf.gz > $vcfout/vcffilespath.txt
 list.files(
   path = params$vcf_input_directory, 
-  pattern = ".*[2][12]*.*.vcf.gz$", # '*[2][12]*' part to be removed later
+  pattern = ".*[2][12]+.*.vcf.gz$", # '*[2][12]+' part to be removed later
   full.names = TRUE
 ) %>% 
   cat(sep = "\n", file = paste0(params$output_directory,"/vcffilespath.txt"))
