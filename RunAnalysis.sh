@@ -1,6 +1,6 @@
 #!/bin/sh
 
-R --slave --silent -e "
+R --slave --silent <<RSCRIPT
 
 # set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
@@ -43,4 +43,4 @@ rmarkdown::render(
   ),
   encoding = 'UTF-8'
 )
-"
+RSCRIPT

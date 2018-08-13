@@ -495,7 +495,7 @@ The latter analysis will yield a more precise estimation of longitudinal traject
 ```{sh run_analysis, eval = FALSE, echo = TRUE}
 #!/bin/sh
 
-R --slave --silent -e "
+R --slave --silent <<RSCRIPT
 
 # set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
@@ -538,7 +538,7 @@ rmarkdown::render(
   ),
   encoding = 'UTF-8'
 )
-"
+RSCRIPT
 ```
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
