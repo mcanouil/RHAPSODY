@@ -11,7 +11,7 @@ options(stringsAsFactors = FALSE)
 # Node settings
 ###############
 opal_credentials <- as.data.frame(t(read.table(
-  file = '/disks/PROJECT/RHAPSODY/Scripts/BuildScripts/opal_DESIR.txt', # 'opal_credentials.txt',
+  file = 'opal_credentials.txt',
   stringsAsFactors = FALSE,
   row.names = c('opal_server', 'opal_login', 'opal_password')
 )), stringsAsFactors = FALSE)
@@ -301,7 +301,7 @@ list_packages <- c(
 )
 check_packages_version(
   list_packages = list_packages, 
-  session_info_csv = './Scripts/session_info.csv'
+  session_info_csv = 'session_info.csv'
 )
 
 
