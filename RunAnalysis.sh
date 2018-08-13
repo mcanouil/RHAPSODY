@@ -1,6 +1,6 @@
 #!/bin/sh
 
-R --slave --silent <<RSCRIPT
+R --slave --silent -e "
 
 # set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
@@ -11,14 +11,14 @@ cohort_name <- 'Cohort_Name'
 author_name <- 'Firstname LASTNAME'
 opal_credentials <- 'opal_credentials.txt'
 vcf_directory <- '/media/.../vcf'
-imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be "R2")
+imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be 'R2')
 
 
 # Run the analysis
-dir.create(path = working_directory, showWarnings = FALSE)
+dir.create(path = working_directory, showWarnings = FALSE, mode = '0777')
 rmarkdown::render(
   input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
-  output_format = "html_document", 
+  output_format = 'html_document', 
   output_file = paste0(
     'RHAPSODY_WP3_PreDiab_', 
     cohort_name, '_step', 
@@ -43,5 +43,4 @@ rmarkdown::render(
   ),
   encoding = 'UTF-8'
 )
-
-RSCRIPT
+"

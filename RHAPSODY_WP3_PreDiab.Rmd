@@ -14,12 +14,12 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.9.2)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.9.3)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
-monofont: "Source Code Pro"
-monofontoptions: "Scale=0.7"
+monofont: 'Source Code Pro'
+monofontoptions: 'Scale=0.7'
 output:
   html_document:
     keep_md: false
@@ -57,18 +57,18 @@ output:
 ```{r setup, include = FALSE, echo = FALSE}
 options(stringsAsFactors = FALSE)
 
-if (!"tidyverse"%in%installed.packages()[, "Package"]) {
-  install.package(pkgs = "tidyverse", repos = "http://cran.us.r-project.org")
+if (!'tidyverse'%in%installed.packages()[, 'Package']) {
+  install.package(pkgs = 'tidyverse', repos = 'http://cran.us.r-project.org')
 }
 library(tidyverse)
-check_packages_version <- function(list_packages, session_info_csv = "session_info.csv") {
+check_packages_version <- function(list_packages, session_info_csv = 'session_info.csv') {
   check_packages <- function(package) {
-    if (!package%in%installed.packages()[, "Package"]) {
+    if (!package%in%installed.packages()[, 'Package']) {
       install.packages(
   			pkgs = package, 
   			repos = c(
-  			  "http://cran.us.r-project.org",
-  			  "https://cran.rstudio.com/"
+  			  'http://cran.us.r-project.org',
+  			  'https://cran.rstudio.com/'
   		  ),
   			dependencies = TRUE
   		)
@@ -81,7 +81,7 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
     )
   }
   
-  invisible(sapply(c("devtools", "tidyverse"), check_packages))
+  invisible(sapply(c('devtools', 'tidyverse'), check_packages))
 
   read_csv(file = session_info_csv) %>% 
     dplyr::mutate(
@@ -105,9 +105,9 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
             package = x, 
             version = as.character(y), 
             repos = c(
-              "https://rhap-fdb01.vital-it.ch/repo/", 
-              "http://cran.us.r-project.org",
-              "https://cran.rstudio.com/"
+              'https://rhap-fdb01.vital-it.ch/repo/', 
+              'http://cran.us.r-project.org',
+              'https://cran.rstudio.com/'
             )
           )
         }
@@ -119,20 +119,20 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
 }
 
 list_packages <- c(
-  "devtools", "parallel", "grid", "scales",
-  "broom", "viridis", "readxl", "writexl",
-  "cowplot", "knitr", "kableExtra", "lme4",
-  "lmerTest", "Hmisc", "data.tree", "opal"
+  'devtools', 'parallel', 'grid', 'scales',
+  'broom', 'viridis', 'readxl', 'writexl',
+  'cowplot', 'knitr', 'kableExtra', 'lme4',
+  'lmerTest', 'Hmisc', 'data.tree', 'opal'
 )
 check_packages_version(
   list_packages = list_packages, 
-  session_info_csv = "session_info.csv"
+  session_info_csv = 'session_info.csv'
 )
 
 check_steps <- function(params, max) {
   out <- as.list(rep(FALSE, 7))
-  names(out) <- paste0("step_", seq_len(7))
-  out[paste0("step_", seq_len(params$analysis_step))] <- TRUE
+  names(out) <- paste0('step_', seq_len(7))
+  out[paste0('step_', seq_len(params$analysis_step))] <- TRUE
   return(out)
 }
 params_steps <- check_steps(params)
@@ -147,21 +147,21 @@ opts_chunk$set(
   tidy = FALSE,
   crop = TRUE,
   autodep = TRUE,
-  fig.align = "center",
-  fig.pos = "!H",
+  fig.align = 'center',
+  fig.pos = '!H',
   dpi = 120,
-  size = "small", 
-  results = "asis"
+  size = 'small', 
+  results = 'asis'
 )
 
 # Code to resize font size of R code chunks output according to 'size' option (only LATEX)
 if (knitr:::is_latex_output()) {
-  def.chunk.hook <- knitr::knit_hooks$get("chunk")
+  def.chunk.hook <- knitr::knit_hooks$get('chunk')
   knitr::knit_hooks$set(chunk = function(x, options) {
     x <- def.chunk.hook(x, options)
     ifelse(
-      options$size != "normalsize", 
-      paste0("\\", options$size, "\n\n", x, "\n\n \\normalsize"), 
+      options$size != 'normalsize', 
+      paste0('\\', options$size, '\n\n', x, '\n\n \\normalsize'), 
       x
     )
   })
@@ -506,14 +506,14 @@ cohort_name <- 'Cohort_Name'
 author_name <- 'Firstname LASTNAME'
 opal_credentials <- 'opal_credentials.txt'
 vcf_directory <- '/media/.../vcf'
-imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be "R2")
+imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be 'R2')
 
 
 # Run the analysis
-dir.create(path = working_directory, showWarnings = FALSE)
+dir.create(path = working_directory, showWarnings = FALSE, mode = '0777')
 rmarkdown::render(
   input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
-  output_format = "html_document", 
+  output_format = 'html_document', 
   output_file = paste0(
     'RHAPSODY_WP3_PreDiab_', 
     cohort_name, '_step', 
@@ -538,7 +538,6 @@ rmarkdown::render(
   ),
   encoding = 'UTF-8'
 )
-
 "
 ```
 
@@ -1637,10 +1636,10 @@ list_chrom_directories <- grep(
 for (ichrdirectory in list_chrom_directories) {
   message(ichrdirectory)
 
-  # dir.create(gsub("extractVCF", "outputLMM", ichrdirectory), showWarnings = FALSE)
+  # dir.create(gsub("extractVCF", "outputLMM", ichrdirectory), showWarnings = FALSE, mode = '0777')
   ichrfilename <- gsub(".*/(.*)/extractVCF", "\\1", ichrdirectory)
   output_lmm_directory <- paste0(params$output_directory, "/outputLMM/", ichrfilename)
-  dir.create(output_lmm_directory, showWarnings = FALSE, recursive = TRUE)
+  dir.create(output_lmm_directory, showWarnings = FALSE, recursive = TRUE, mode = '0777')
 
   ## Read imputed genotypes (dosage file)
   list_dosage_file <- list.files(path = ichrdirectory, pattern = ".DS.gz$", full.names = TRUE)
@@ -1790,7 +1789,7 @@ for (ichrdirectory in list_chrom_directories) {
     ## Write results
     for (ivariable in variables_names) {
       if (!grepl("_NA", ivariable)) {
-        dir.create(paste0(output_lmm_directory, "/", ivariable), showWarnings = FALSE)
+        dir.create(paste0(output_lmm_directory, "/", ivariable), showWarnings = FALSE, mode = '0777')
         output_filename <- paste0(
           paste0(output_lmm_directory, "/", ivariable),
           "/", ivariable, "_",

@@ -1,6 +1,6 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan"
-subtitle: "(Version 0.9.2)"
+subtitle: "(Version 0.9.3)"
 author: "Mickaël Canouil, Ph.D."
 date: '`r format(Sys.Date(), "%d %B %Y")`'
 output: pdf_document
@@ -35,18 +35,18 @@ If VCFtools is not available on your machine, please install it: [VCFtools](http
 Be sure the needed packages are installed (this is also done within the Rmarkdown script) or copy/paste the following command.
 `session_info.csv` provided should be used, by default in the working directory.
 ```{r}
-if (!"tidyverse"%in%installed.packages()[, "Package"]) {
-  install.package(pkgs = "tidyverse", repos = "http://cran.us.r-project.org")
+if (!'tidyverse'%in%installed.packages()[, 'Package']) {
+  install.package(pkgs = 'tidyverse', repos = 'http://cran.us.r-project.org')
 }
 library(tidyverse)
-check_packages_version <- function(list_packages, session_info_csv = "session_info.csv") {
+check_packages_version <- function(list_packages, session_info_csv = 'session_info.csv') {
   check_packages <- function(package) {
-    if (!package%in%installed.packages()[, "Package"]) {
+    if (!package%in%installed.packages()[, 'Package']) {
       install.packages(
   			pkgs = package, 
   			repos = c(
-  			  "http://cran.us.r-project.org",
-  			  "https://cran.rstudio.com/"
+  			  'http://cran.us.r-project.org',
+  			  'https://cran.rstudio.com/'
   		  ),
   			dependencies = TRUE
   		)
@@ -59,7 +59,7 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
     )
   }
   
-  invisible(sapply(c("devtools", "tidyverse"), check_packages))
+  invisible(sapply(c('devtools', 'tidyverse'), check_packages))
 
   read_csv(file = session_info_csv) %>% 
     dplyr::mutate(
@@ -83,9 +83,9 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
             package = x, 
             version = as.character(y), 
             repos = c(
-              "https://rhap-fdb01.vital-it.ch/repo/", 
-              "http://cran.us.r-project.org",
-              "https://cran.rstudio.com/"
+              'https://rhap-fdb01.vital-it.ch/repo/', 
+              'http://cran.us.r-project.org',
+              'https://cran.rstudio.com/'
             )
           )
         }
@@ -97,14 +97,14 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
 }
 
 list_packages <- c(
-  "devtools", "parallel", "grid", "scales",
-  "broom", "viridis", "readxl", "writexl",
-  "cowplot", "knitr", "kableExtra", "lme4",
-  "lmerTest", "Hmisc", "data.tree", "opal"
+  'devtools', 'parallel', 'grid', 'scales',
+  'broom', 'viridis', 'readxl', 'writexl',
+  'cowplot', 'knitr', 'kableExtra', 'lme4',
+  'lmerTest', 'Hmisc', 'data.tree', 'opal'
 )
 check_packages_version(
   list_packages = list_packages, 
-  session_info_csv = "session_info.csv"
+  session_info_csv = 'session_info.csv'
 )
 ```
 
@@ -178,7 +178,7 @@ git pull origin master
 ```{sh}
 #!/bin/sh
 
-R --slave --silent <<RSCRIPT
+R --slave --silent -e "
 
 # set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
@@ -189,14 +189,14 @@ cohort_name <- 'Cohort_Name'
 author_name <- 'Firstname LASTNAME'
 opal_credentials <- 'opal_credentials.txt'
 vcf_directory <- '/media/.../vcf'
-imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be "R2")
+imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be 'R2')
 
 
 # Run the analysis
-dir.create(path = working_directory, showWarnings = FALSE)
+dir.create(path = working_directory, showWarnings = FALSE, mode = '0777')
 rmarkdown::render(
   input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
-  output_format = "html_document", 
+  output_format = 'html_document', 
   output_file = paste0(
     'RHAPSODY_WP3_PreDiab_', 
     cohort_name, '_step', 
@@ -221,6 +221,5 @@ rmarkdown::render(
   ),
   encoding = 'UTF-8'
 )
-
-RSCRIPT
+"
 ```

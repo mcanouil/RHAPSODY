@@ -2,7 +2,7 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from 'RHAPSODY_WP3_PreDiab.Rmd'
 # Author - Mickaël Canouil, Ph.D.
-# Version - 0.9.2
+# Version - 0.9.3
 #---------------------------------------------------------------------------------------------------
 options(stringsAsFactors = FALSE)
 
@@ -11,27 +11,27 @@ options(stringsAsFactors = FALSE)
 # Node settings
 ###############
 opal_credentials <- as.data.frame(t(read.table(
-  file = "opal_credentials.txt",
+  file = '/disks/PROJECT/RHAPSODY/Scripts/BuildScripts/opal_DESIR.txt', # 'opal_credentials.txt',
   stringsAsFactors = FALSE,
-  row.names = c("opal_server", "opal_login", "opal_password")
+  row.names = c('opal_server', 'opal_login', 'opal_password')
 )), stringsAsFactors = FALSE)
 
 
 ###############
 # Functions
 ###############
-if (!"tidyverse"%in%installed.packages()[, "Package"]) {
-  install.package(pkgs = "tidyverse", repos = "http://cran.us.r-project.org")
+if (!'tidyverse'%in%installed.packages()[, 'Package']) {
+  install.package(pkgs = 'tidyverse', repos = 'http://cran.us.r-project.org')
 }
 library(tidyverse)
-check_packages_version <- function(list_packages, session_info_csv = "session_info.csv") {
+check_packages_version <- function(list_packages, session_info_csv = 'session_info.csv') {
   check_packages <- function(package) {
-    if (!package%in%installed.packages()[, "Package"]) {
+    if (!package%in%installed.packages()[, 'Package']) {
       install.packages(
   			pkgs = package, 
   			repos = c(
-  			  "http://cran.us.r-project.org",
-  			  "https://cran.rstudio.com/"
+  			  'http://cran.us.r-project.org',
+  			  'https://cran.rstudio.com/'
   		  ),
   			dependencies = TRUE
   		)
@@ -44,7 +44,7 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
     )
   }
   
-  invisible(sapply(c("devtools", "tidyverse"), check_packages))
+  invisible(sapply(c('devtools', 'tidyverse'), check_packages))
 
   read_csv(file = session_info_csv) %>% 
     dplyr::mutate(
@@ -68,9 +68,9 @@ check_packages_version <- function(list_packages, session_info_csv = "session_in
             package = x, 
             version = as.character(y), 
             repos = c(
-              "https://rhap-fdb01.vital-it.ch/repo/", 
-              "http://cran.us.r-project.org",
-              "https://cran.rstudio.com/"
+              'https://rhap-fdb01.vital-it.ch/repo/', 
+              'http://cran.us.r-project.org',
+              'https://cran.rstudio.com/'
             )
           )
         }
@@ -91,8 +91,8 @@ format_pval <- function (x, thresh = 10^-2, digits = 3, eps = 1e-50) {
 }
 
 # reference table to convert HbA1c from percentage to mmol/mol
-convert_hba1c <- function(x, unitFrom = "%") {
-  if (unitFrom == "%") {
+convert_hba1c <- function(x, unitFrom = '%') {
+  if (unitFrom == '%') {
     hba1c_unit_table <- structure(list(
       V1 = c(
         10L, 12L, 14L, 16L, 18L, 20L, 22L, 24L,
@@ -117,9 +117,9 @@ convert_hba1c <- function(x, unitFrom = "%") {
         19, 19.2, 19.4, 19.5, 19.7, 19.9, 20.1, 20.3, 20.4, 20.6,
         20.8, 21, 21.2
       )
-    ), .Names = c("V1", "V2"), class = "data.frame", row.names = c(NA, -100L))
+    ), .Names = c('V1', 'V2'), class = 'data.frame', row.names = c(NA, -100L))
     return(sapply(x, function(y) {
-      round(sum(tidy(lm(V1~V2, data = hba1c_unit_table))[, "estimate"] * c(1, y)))
+      round(sum(tidy(lm(V1~V2, data = hba1c_unit_table))[, 'estimate'] * c(1, y)))
     }))
   } else {
     return(x)
@@ -127,20 +127,20 @@ convert_hba1c <- function(x, unitFrom = "%") {
 }
 
 # function to convert g/l to mmol/l
-convert_2mmoll <- function(x, from = "g/l") {
+convert_2mmoll <- function(x, from = 'g/l') {
   switch(EXPR = tolower(from),
-    "g/l" = {x / 0.18},
-    "mg/l" = {x / 0.18 / 100},
-    "mmol/l" = {x},
-    stop("Please check Units: g/l, g/L, mg/l, mg/Ln, mmol/l or mmol/L!")
+    'g/l' = {x / 0.18},
+    'mg/l' = {x / 0.18 / 100},
+    'mmol/l' = {x},
+    stop('Please check Units: g/l, g/L, mg/l, mg/Ln, mmol/l or mmol/L!')
   )
 }
 
-# function to convert "Vital Signs" (VS) OPAL table (CDISC) to "long format"
+# function to convert 'Vital Signs' (VS) OPAL table (CDISC) to 'long format'
 format_vs <- function(data) {
   data <- data %>%
     mutate(
-      KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
+      KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = '_')
     ) %>%
     `rownames<-`(NULL)
   
@@ -148,11 +148,11 @@ format_vs <- function(data) {
     select(DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD) %>%
     distinct()
   
-  if (!"VSTPTNUM"%in%colnames(data)) {
+  if (!'VSTPTNUM'%in%colnames(data)) {
     data <- data %>% 
       mutate(VSTPTNUM = NA)
   }
-  if (!"VSTPT"%in%colnames(data)) {
+  if (!'VSTPT'%in%colnames(data)) {
     data <- data %>% 
       mutate(VSTPT = NA)
   }
@@ -162,27 +162,27 @@ format_vs <- function(data) {
       x = data %>%
         subset(is.na(VSTPTNUM)) %>%
         select(KEY_FACTOR, VSORRES, VSTESTCD) %>%
-        spread(key = "VSTESTCD", value = "VSORRES"),
+        spread(key = 'VSTESTCD', value = 'VSORRES'),
       y = data %>%
         subset(!is.na(VSTPTNUM)) %>%
         select(KEY_FACTOR, VSORRES, VSTESTCD, VSTPTNUM) %>%
-        mutate(KEY_MEASURES = paste(VSTESTCD, VSTPTNUM, sep = "_")) %>%
+        mutate(KEY_MEASURES = paste(VSTESTCD, VSTPTNUM, sep = '_')) %>%
         select(KEY_FACTOR, KEY_MEASURES, VSORRES) %>%
-        spread(key = "KEY_MEASURES", value = "VSORRES"),
-      by = c("KEY_FACTOR" = "KEY_FACTOR")
+        spread(key = 'KEY_MEASURES', value = 'VSORRES'),
+      by = c('KEY_FACTOR' = 'KEY_FACTOR')
     ),
     y = data %>%
       select(-c(VSORRES, VSTPT, VSTPTNUM, VSORRESU, VSTEST, VSTESTCD)) %>%
       distinct(),
-    by = c("KEY_FACTOR" = "KEY_FACTOR")
+    by = c('KEY_FACTOR' = 'KEY_FACTOR')
   ) %>%
     mutate(
       VISIT = factor(
         x = VISIT,
         levels = c(
-          "BASELINE", 
-          sort(grep("VISIT", unique(VISIT), value = TRUE)), 
-          "LAST"
+          'BASELINE', 
+          sort(grep('VISIT', unique(VISIT), value = TRUE)), 
+          'LAST'
         )
       )
     ) %>%
@@ -194,46 +194,46 @@ format_vs <- function(data) {
   return(list(data = data_values, annotation = descriptive_data))
 }
 
-# function to convert "Laboratory Measurements" (LB) OPAL table (CDISC) to "long format"
+# function to convert 'Laboratory Measurements' (LB) OPAL table (CDISC) to 'long format'
 format_lb <- function(data) {
   data <- data %>%
     mutate(
-      LBFAST = if ("LBFAST" %in% colnames(.)) {LBFAST} else {NA},
-      LBTPTNUM = if ("LBTPTNUM" %in% colnames(.)) {LBTPTNUM} else {NA},
-      LBTPTNUM = ifelse(LBTESTCD == "GLUC" & is.na(LBTPTNUM), 0, LBTPTNUM),
-      KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
+      LBFAST = if ('LBFAST' %in% colnames(.)) {LBFAST} else {NA},
+      LBTPTNUM = if ('LBTPTNUM' %in% colnames(.)) {LBTPTNUM} else {NA},
+      LBTPTNUM = ifelse(LBTESTCD == 'GLUC' & is.na(LBTPTNUM), 0, LBTPTNUM),
+      KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = '_')
     ) %>%
     `rownames<-`(NULL)
 
   descriptive_variables <- c(
-    "LBORRESU", "LBTEST", "LBTESTCD", "LBSPEC", 
-    "LBCAT", "LBMETHOD", "LBTPT", "LBTPTNUM", "AGCAT"
+    'LBORRESU', 'LBTEST', 'LBTESTCD', 'LBSPEC', 
+    'LBCAT', 'LBMETHOD', 'LBTPT', 'LBTPTNUM', 'AGCAT'
   )
   
   descriptive_data <- data %>%
-    select(intersect(c("DOMAIN", "STUDYID", !!descriptive_variables), colnames(.))) %>%
+    select(intersect(c('DOMAIN', 'STUDYID', !!descriptive_variables), colnames(.))) %>%
     distinct() %>%
     mutate(
-      KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
+      KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = '_')
     )
 
   data_values <- full_join(
     x = (data %>%
       select(KEY_FACTOR, LBORRES, LBTESTCD, LBSPEC, LBCAT, LBTPTNUM) %>%
       mutate(
-        KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
+        KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = '_')
       ) %>%
       select(KEY_FACTOR, KEY_MEASURES, LBORRES) %>%
-      spread(key = "KEY_MEASURES", value = "LBORRES")),
+      spread(key = 'KEY_MEASURES', value = 'LBORRES')),
     y = (data %>%
       select(LBDTC, SUBJID, VISIT, DOMAIN, STUDYID, LBFAST, KEY_FACTOR) %>%
       distinct()),
-    by = c("KEY_FACTOR" = "KEY_FACTOR")
+    by = c('KEY_FACTOR' = 'KEY_FACTOR')
   ) %>%
     mutate(
       VISIT = factor(
         VISIT,
-        levels = c("BASELINE", sort(grep("VISIT", unique(VISIT), value = TRUE)), "LAST")
+        levels = c('BASELINE', sort(grep('VISIT', unique(VISIT), value = TRUE)), 'LAST')
       )
     ) %>%
     group_by(DOMAIN, STUDYID, SUBJID) %>%
@@ -246,26 +246,26 @@ format_lb <- function(data) {
 
 # function to compute bmi if not available
 compute_bmi <- function(data) {
-  if (!"BMI"%in%data$annotation[["VSTESTCD"]]) {
+  if (!'BMI'%in%data$annotation[['VSTESTCD']]) {
     weight_unit <- data$annotation %>% 
-      filter(VSTESTCD=="WEIGHT") %>% 
+      filter(VSTESTCD=='WEIGHT') %>% 
       select(VSORRESU) %>% 
       unlist()
     convert_weight_unit <- switch(
       EXPR = weight_unit,
-      "kg" = {function(x) {x}},
-      "lb" = {function(x) {x*0.45359237}}
+      'kg' = {function(x) {x}},
+      'lb' = {function(x) {x*0.45359237}}
     )
     
     height_unit <- data$annotation %>% 
-      filter(VSTESTCD=="HEIGHT") %>% 
+      filter(VSTESTCD=='HEIGHT') %>% 
       select(VSORRESU) %>% 
       unlist()
     convert_height_unit <- switch(
       EXPR = height_unit,
-      "cm" = {function(x) {x/100}},
-      "m" = {function(x) {x}},
-      "in" = {function(x) {(x*2.54)/100}}
+      'cm' = {function(x) {x/100}},
+      'm' = {function(x) {x}},
+      'in' = {function(x) {(x*2.54)/100}}
     )
     
     data$data <- data$data %>% 
@@ -274,15 +274,15 @@ compute_bmi <- function(data) {
       )
     default_CDISC_BMI <- structure(
       list(
-        DOMAIN = "VS", 
-        STUDYID = unique(data$annotation[["STUDYID"]]), 
-        VSORRESU = "kg/m2", 
-        VSTEST = "Body Mass Index", 
-        VSTESTCD = "BMI"
+        DOMAIN = 'VS', 
+        STUDYID = unique(data$annotation[['STUDYID']]), 
+        VSORRESU = 'kg/m2', 
+        VSTEST = 'Body Mass Index', 
+        VSTESTCD = 'BMI'
       ), 
-      .Names = c("DOMAIN",  "STUDYID", "VSORRESU", "VSTEST", "VSTESTCD"), 
+      .Names = c('DOMAIN',  'STUDYID', 'VSORRESU', 'VSTEST', 'VSTESTCD'), 
       row.names = 1L, 
-      class = "data.frame"
+      class = 'data.frame'
     )
     data$annotation <- bind_rows(data$annotation, default_CDISC_BMI)
   }
@@ -294,14 +294,14 @@ compute_bmi <- function(data) {
 # Load/install libraries
 ###############
 list_packages <- c(
-  "devtools", "parallel", "grid", "scales",
-  "broom", "viridis", "readxl", "writexl",
-  "cowplot", "knitr", "kableExtra", "lme4",
-  "lmerTest", "Hmisc", "data.tree", "opal"
+  'devtools', 'parallel', 'grid', 'scales',
+  'broom', 'viridis', 'readxl', 'writexl',
+  'cowplot', 'knitr', 'kableExtra', 'lme4',
+  'lmerTest', 'Hmisc', 'data.tree', 'opal'
 )
 check_packages_version(
   list_packages = list_packages, 
-  session_info_csv = "session_info.csv"
+  session_info_csv = './Scripts/session_info.csv'
 )
 
 
@@ -315,73 +315,73 @@ o <- opal.login(
 )
 
 
-available_tables <- intersect(opal.datasources(opal = o)[[1]]$table, c("DM", "VS", "LB", "MH", "CM"))
+available_tables <- intersect(opal.datasources(opal = o)[[1]]$table, c('DM', 'VS', 'LB', 'MH', 'CM'))
 for (itable in available_tables) {
-  opal.assign(opal = o, symbol = itable, value = paste0("rhapsody.", itable))
+  opal.assign(opal = o, symbol = itable, value = paste0('rhapsody.', itable))
   assign(x = itable, value = opal.execute(o, itable))
 }
 opal.logout(o)
-rm(list = c("o", "itable", "available_tables"))
+rm(list = c('o', 'itable', 'available_tables'))
 
 
 vs_tidy <- try(format_vs(data = VS))
 vs_tidybmi <- try(vs_tidy <- compute_bmi(data = vs_tidy))
 lb_tidy <- try(format_lb(data = LB))
 
-if (is(vs_tidy, "try-error")) {
+if (is(vs_tidy, 'try-error')) {
   warning(vs_tidy)
 } else {
-  message("VS table was successfully formated !")
+  message('VS table was successfully formated !')
 }
-if (is(vs_tidybmi, "try-error")) {
+if (is(vs_tidybmi, 'try-error')) {
   warning(vs_tidybmi)
 } else {
-  message("BMI computation was successfull !")
+  message('BMI computation was successfull !')
 }
-if (is(lb_tidy, "try-error")) {
+if (is(lb_tidy, 'try-error')) {
   warning(lb_tidy)
 } else {
-  message("LB table was successfully formated !")
+  message('LB table was successfully formated !')
 }
 
-if (any(c(is(vs_tidy, "try-error"), is(vs_tidybmi, "try-error"), is(lb_tidy, "try-error")))) {
-  stop("LB or VS formatting failed ! Check previous warnings !)")
+if (any(c(is(vs_tidy, 'try-error'), is(vs_tidybmi, 'try-error'), is(lb_tidy, 'try-error')))) {
+  stop('LB or VS formatting failed ! Check previous warnings !)')
 }
   
 
 DMVSLB <- merge(
-  x = DM %>% mutate(VISIT = "BASELINE") %>% select(-DOMAIN),
+  x = DM %>% mutate(VISIT = 'BASELINE') %>% select(-DOMAIN),
   y = merge(
     vs_tidy$data %>% select(-DOMAIN),
     lb_tidy$data %>% select(-DOMAIN),
-    by = c("STUDYID", "SUBJID", "VISIT"),
+    by = c('STUDYID', 'SUBJID', 'VISIT'),
     all = TRUE
   ),
-  by = c("STUDYID", "SUBJID", "VISIT"),
+  by = c('STUDYID', 'SUBJID', 'VISIT'),
   all = TRUE
 ) %>%
   group_by(STUDYID, SUBJID) %>%
   filter(
-    (VISIT=="BASELINE" & !is.na(AGE) & !is.na(SEX)) | VISIT!="BASELINE"
+    (VISIT=='BASELINE' & !is.na(AGE) & !is.na(SEX)) | VISIT!='BASELINE'
   ) %>% 
   arrange(VISIT) %>% 
   mutate(
     AGE0 = AGE[1],
     BMI0 = BMI[1],
-    SEX0 = as.numeric(SEX=="M")[1]
+    SEX0 = as.numeric(SEX=='M')[1]
   ) %>% 
   as.data.frame()
 
 if (
   all(
-    nrow(lb_tidy$data) == length(unique(LB[["SUBJID"]]))*length(unique(LB[["VISIT"]])),
-    nrow(vs_tidy$data) == length(unique(VS[["SUBJID"]]))*length(unique(VS[["VISIT"]])),
+    nrow(lb_tidy$data) == length(unique(LB[['SUBJID']]))*length(unique(LB[['VISIT']])),
+    nrow(vs_tidy$data) == length(unique(VS[['SUBJID']]))*length(unique(VS[['VISIT']])),
     nrow(lb_tidy$data) == nrow(vs_tidy$data)
   )
 ) {
-  message("Good to go! Try to run the whole script.")
+  message('Good to go! Try to run the whole script.')
 } else {
-  stop("Something went wrong, test each of the condition above to locate where is the issue!")
+  stop('Something went wrong, test each of the condition above to locate where is the issue!')
 }
 
 ### To check if all individuals have the same number of visits before convert
@@ -395,10 +395,10 @@ if (
   DMVSLB <- DMVSLB %>%
     mutate(
       VISIT_YEARS = as.numeric(
-        difftime(as.Date(VSDTC), min(as.Date(VSDTC), na.rm = TRUE), unit = "weeks") / 52.25
+        difftime(as.Date(VSDTC), min(as.Date(VSDTC), na.rm = TRUE), unit = 'weeks') / 52.25
       )
     )
 } else {
-  message("The number of visits per individuals differs!")
+  message('The number of visits per individuals differs!')
 }
 
