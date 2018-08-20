@@ -138,7 +138,7 @@ Once you are connected directly by SSH or with Rstudio, you can go to the bash t
 The (hidden) Gist s cloned in `/home/rhapsody/WP3/scripts`.  
 Make sure after starting the Docker image to update the scripts, if necessary.
 ```{sh}
-cd /home/rhapspody/WP3/scripts
+cd /home/rhapsody/WP3/scripts
 git pull origin master
 ```
 
