@@ -1747,7 +1747,7 @@ for (ichrdirectory in list_chrom_directories) {
     annotations_columns <- c(
       "SNP", "CHROM", "POS", "N_ALLELES", "N_CHR", "frq1", "frq2", 
       "OBS(HOM1/HET/HOM2)", "E(HOM1/HET/HOM2)", "ChiSq_HWE", "P_HWE", 
-      "P_HET_DEFICIT", "P_HET_EXCESS", "INFO", "TRAIT"
+      "P_HET_DEFICIT", "P_HET_EXCESS", params$imputation_quality_tag, "TRAIT"
     )
     
     results_lmm_chunk <- merge(
@@ -1781,9 +1781,9 @@ for (ichrdirectory in list_chrom_directories) {
         HWE_pval = P_HWE, 
         # callrate = NA, 
         n_total = N_CHR/N_ALLELES,
-        # imputed = as.numeric(INFO!=1),
-        # used_for_imp = as.numeric(INFO==1),
-        imputation_quality_INFO = INFO
+        # imputed = as.numeric(!!params$imputation_quality_tag!=1),
+        # used_for_imp = as.numeric(!!params$imputation_quality_tag==1),
+        imputation_quality_INFO = !!params$imputation_quality_tag
       )
 
     ## Write results
@@ -1958,7 +1958,7 @@ output_description <- tribble(
   # "imputed", "1/0 coding; 1=imputed SNP, 0=if directly typed",
   # "used_for_imp", "1/0 coding; 1=used for imputation, 0=not used for imputation",
   # "oevar_imp", "observed divided by expected variance for imputed allele dosage -- NA otherwise",
-  "imputation_quality_INFO", "average posterior probability for imputed SNP allele dosage* (applies to best-guess genotype imputation)"
+  "imputation_quality_INFO", "average posterior probability for imputed SNP allele dosage* (applies to best-guess genotype imputation) or R2"
 )
 pretty_kable(data = output_description)
 ```
