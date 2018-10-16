@@ -21,6 +21,9 @@ At this stage, you were provided with the following files from [the (hidden) Gis
       * VCFs formatting/filtering,
       * variants analysis;
   * `opal_credentials.txt`, the server, login and password informations to access phenotype data on your local node;
+  
+Utils files, can be downloaded from the following [(hidden) Gist](https://gist.github.com/mcanouil/f3e2fdc59757fd8577abfe233854580a):
+
   * `./utils/RHAPSODY_WP3_PreDiab_DEBUG.R`, a small part of the main Rmarkdown script, which includes only node access and phenotype QC;
   * `./utils/RunAnalysis.sh`, a example of shell script to run the whole analysis in bash (parameters have to be filled properly according to your informations);
   * `./utils/handleVCF.sh`, the shell script used to format/filter VCFs files prior to the variant analysis. This shell script is also included within the main script, but you can use it directly as a standalone, if so (or if your already done formatting and don't want to do it again), parameter `format_vcfs` must be set to `FALSE`).
