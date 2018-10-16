@@ -507,7 +507,7 @@ imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be 'R2
 
 
 # Run the analysis
-dir.create(path = working_directory, recursuve = TRUE, showWarnings = FALSE, mode = '0777')
+dir.create(path = working_directory, recursive = TRUE, showWarnings = FALSE, mode = '0777')
 rmarkdown::render(
   input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
   output_format = 'html_document', 
