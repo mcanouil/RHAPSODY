@@ -2,7 +2,7 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from 'RHAPSODY_WP3_PreDiab.Rmd'
 # Author - Mickaël Canouil, Ph.D.
-# Version - 0.9.3
+# Version - 1.0.0
 #---------------------------------------------------------------------------------------------------
 options(stringsAsFactors = FALSE)
 
@@ -24,7 +24,7 @@ if (!'tidyverse'%in%installed.packages()[, 'Package']) {
   install.package(pkgs = 'tidyverse', repos = 'http://cran.us.r-project.org')
 }
 library(tidyverse)
-check_packages_version <- function(list_packages, session_info_csv = 'session_info.csv') {
+check_packages_version <- function(list_packages, session_info_csv = './utils/session_info.csv') {
   check_packages <- function(package) {
     if (!package%in%installed.packages()[, 'Package']) {
       install.packages(

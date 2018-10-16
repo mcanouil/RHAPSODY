@@ -14,7 +14,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 0.9.3)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.0.0)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -61,7 +61,7 @@ if (!'tidyverse'%in%installed.packages()[, 'Package']) {
   install.package(pkgs = 'tidyverse', repos = 'http://cran.us.r-project.org')
 }
 library(tidyverse)
-check_packages_version <- function(list_packages, session_info_csv = 'session_info.csv') {
+check_packages_version <- function(list_packages, session_info_csv = './utils/session_info.csv') {
   check_packages <- function(package) {
     if (!package%in%installed.packages()[, 'Package']) {
       install.packages(
@@ -492,11 +492,8 @@ The latter analysis will yield a more precise estimation of longitudinal traject
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 # R commands to run the Rmarkdown script
-```{sh run_analysis, eval = FALSE, echo = TRUE}
-#!/bin/sh
 
-R --slave --silent <<RSCRIPT
-
+```{r run_analysis, eval = FALSE, echo = TRUE}
 # set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
 working_directory <- './' 
@@ -510,7 +507,7 @@ imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be 'R2
 
 
 # Run the analysis
-dir.create(path = working_directory, showWarnings = FALSE, mode = '0777')
+dir.create(path = working_directory, recursuve = TRUE, showWarnings = FALSE, mode = '0777')
 rmarkdown::render(
   input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
   output_format = 'html_document', 
@@ -538,7 +535,6 @@ rmarkdown::render(
   ),
   encoding = 'UTF-8'
 )
-RSCRIPT
 ```
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
@@ -1446,17 +1442,16 @@ cat(
 
 #### List all VCFs path in a file
 ```{r list_vcf, eval = params_steps$step_4}
-# find $vcfin/*[2][12]*.vcf.gz > $vcfout/vcffilespath.txt
 list.files(
   path = params$vcf_input_directory, 
-  pattern = ".*[2][12]+.*.vcf.gz$", # '*[2][12]+' part to be removed later
+  pattern = ".*.vcf.gz$", # '.*[2][12]+' part to be removed later
   full.names = TRUE
 ) %>% 
-  cat(sep = "\n", file = paste0(params$output_directory,"/vcffilespath.txt"))
+  cat(sep = "\n", file = paste0(params$output_directory, "/vcffilespath.txt"))
 ```
 
 ##### Manually format VCFs
-Shell script can be run from your output directory (`` `r params$output_directory` ``) using the generated command line file (`` `r paste0("handleVCF_", params$cohort_name, ".sh")` ``) and shell script (`handleVCF.sh`, must be located in `` `r params$output_directory` ``).
+Shell script can be run from your output directory (`` `r params$output_directory` ``) using the generated command line file (`` `r paste0("handleVCF_", params$cohort_name, ".sh")` ``) and shell script (`./utils/handleVCF.sh`, must be located in `` `r params$output_directory` ``).
 
 ##### Automatically format VCFs
 ```{sh format_vcf, eval = params_steps$step_5 & params$format_vcfs, echo = params_steps$step_5 & params$format_vcfs, results = "hide"}
@@ -1636,16 +1631,14 @@ list_chrom_directories <- grep(
 for (ichrdirectory in list_chrom_directories) {
   message(ichrdirectory)
 
-  # dir.create(gsub("extractVCF", "outputLMM", ichrdirectory), showWarnings = FALSE, mode = '0777')
+  # dir.create(gsub("extractVCF", "output_chunks_lmm", ichrdirectory), showWarnings = FALSE, mode = '0777')
   ichrfilename <- gsub(".*/(.*)/extractVCF", "\\1", ichrdirectory)
-  output_lmm_directory <- paste0(params$output_directory, "/outputLMM/", ichrfilename)
+  output_lmm_directory <- paste0(params$output_directory, "/output_chunks_lmm/", ichrfilename)
   dir.create(output_lmm_directory, showWarnings = FALSE, recursive = TRUE, mode = '0777')
 
   ## Read imputed genotypes (dosage file)
   list_dosage_file <- list.files(path = ichrdirectory, pattern = ".DS.gz$", full.names = TRUE)
   
-  list_dosage_file <- list_dosage_file[c(1, 2)] # to be removed
-
   ## Parallelise on chunks
   for (idosagefile in list_dosage_file) {
     message(idosagefile)
@@ -1744,11 +1737,11 @@ for (ichrdirectory in list_chrom_directories) {
       ) %>%
         mutate(SNP = paste(CHROM, POS, sep = "_"))
     
-    annotations_columns <- c(
-      "SNP", "CHROM", "POS", "N_ALLELES", "N_CHR", "frq1", "frq2", 
-      "OBS(HOM1/HET/HOM2)", "E(HOM1/HET/HOM2)", "ChiSq_HWE", "P_HWE", 
-      "P_HET_DEFICIT", "P_HET_EXCESS", params$imputation_quality_tag, "TRAIT"
-    )
+    # annotations_columns <- c(
+    #   "SNP", "CHROM", "POS", "N_ALLELES", "N_CHR", "frq1", "frq2", 
+    #   "OBS(HOM1/HET/HOM2)", "E(HOM1/HET/HOM2)", "ChiSq_HWE", "P_HWE", 
+    #   "P_HET_DEFICIT", "P_HET_EXCESS", params$imputation_quality_tag, "TRAIT"
+    # )
     
     results_lmm_chunk <- merge(
       x = annotation_chunk,
@@ -1757,6 +1750,7 @@ for (ichrdirectory in list_chrom_directories) {
     )
     
     results_lmm_chunk_output <- results_lmm_chunk %>% 
+      rename(imputation_quality_INFO = !!params$imputation_quality_tag) %>% 
       transmute(
         TRAIT = TRAIT,
         SNPID = SNP,
@@ -1781,9 +1775,9 @@ for (ichrdirectory in list_chrom_directories) {
         HWE_pval = P_HWE, 
         # callrate = NA, 
         n_total = N_CHR/N_ALLELES,
-        # imputed = as.numeric(!!params$imputation_quality_tag!=1),
-        # used_for_imp = as.numeric(!!params$imputation_quality_tag==1),
-        imputation_quality_INFO = !!params$imputation_quality_tag
+        # imputed = as.numeric(imputation_quality_INFO!=1),
+        # used_for_imp = as.numeric(imputation_quality_INFO==1),
+        imputation_quality_INFO = imputation_quality_INFO
       )
 
     ## Write results
@@ -1798,7 +1792,8 @@ for (ichrdirectory in list_chrom_directories) {
         )
         write_csv(
           x = filter(results_lmm_chunk_output, TRAIT == ivariable),
-          path = output_filename
+          path = output_filename,
+          col_names = FALSE
         )
       }
     }
@@ -1806,18 +1801,85 @@ for (ichrdirectory in list_chrom_directories) {
 }
 ```
 
-```{r lmm_genotypes_ouput, eval = params_steps$step_6, include = params_steps$step_6}
-list_chrom_directories <- grep(
-  pattern = "extractVCF", 
-  x = list.dirs(params$output_directory, full.names = TRUE), 
-  value = TRUE
+```{r concatenate_chunks, eval = params_steps$step_6, include = params_steps$step_6}
+csv_header <- paste0(tempfile(), ".csv")
+write_csv(
+  x = cbind.data.frame(
+    "TRAIT", "SNPID", "chr", "position", "coded_all", "noncoded_all", 
+    "strand_genome", "beta", "SE", "pval", 
+    "beta_interaction", "SE_interaction", "pval_interaction", 
+    "AF_coded_all", "HWE_pval", "n_total", "imputation_quality_INFO"
+  ), 
+  path = csv_header, 
+  col_names = FALSE
 )
-grep("22", list_chrom_directories, value = TRUE) %>% 
-  gsub(".*/(.*)/extractVCF", "\\1", .) %>% 
-  paste0(params$output_directory, "/outputLMM/", ., "/", variables_names[1], "/") %>% 
-  list.files(full.names = TRUE) %>% 
-  `[`(1) %>% 
-  read.csv(file = ., header = TRUE, nrows = 20) %>% 
+
+dir.create(
+  path = paste0(params$output_directory, "/results_to_send"), 
+  recursive = TRUE, 
+  showWarnings = FALSE, 
+  mode = '0777'
+)
+concatenate_chunks <- tibble(
+  output_directory = params$output_directory,
+  output_lmm = paste0(output_directory, "/output_chunks_lmm")
+) %>% 
+  mutate(
+    chr_directories = map(
+      .x = output_lmm, 
+      .f = list.dirs, 
+      recursive = FALSE, 
+      full.names = FALSE
+    )
+  ) %>% 
+  unnest(chr_directories) %>% 
+  mutate(
+    trait_directories = map(
+      .x = paste0(output_lmm, "/", chr_directories), 
+      .f = list.dirs, 
+      recursive = FALSE, 
+      full.names = FALSE
+    )
+  ) %>% 
+  unnest(trait_directories) %>% 
+  mutate(
+    chunk_file = map(
+      .x = paste0(output_lmm, "/", chr_directories, "/", trait_directories), 
+      .f = list.files, 
+      full.names = FALSE
+    )
+  ) %>% 
+  unnest(chunk_file) %>% 
+  mutate(
+    trait = trait_directories,
+    chr = gsub("[^0-9]*([0-9]+)[^0-9]*", "\\1", chr_directories),
+    chr = ifelse(!is.na(as.numeric(chr)), sprintf("%02d", as.numeric(chr)), chr),
+    results_filename = paste0(output_directory, "/results_to_send/", params$cohort_name, "_", chr, "_", trait_directories, ".csv.gz")
+  ) %>% 
+  unite(col = file, output_lmm, chr_directories, trait_directories, chunk_file, sep = "/") %>% 
+  select(-output_directory) %>% 
+  group_by(trait, chr) %>% 
+  nest() %>% 
+  mutate(
+    concatenate = map(.x = data, .f = function(.data) {
+      cmd <- paste(
+        "cat",
+        paste(c(csv_header, sort(.data[["file"]])), collapse = " "),
+        "| gzip >",
+        unique(.data[["results_filename"]])
+      )
+      system(command = cmd, intern = TRUE)
+    })
+  )
+```
+
+```{r lmm_genotypes_ouput, eval = params_steps$step_6, include = params_steps$step_6}
+concatenate_chunks %>% 
+  unnest(data) %>% 
+  slice(1) %>% 
+  select(results_filename) %>% 
+  .[[1]] %>% 
+  read_csv(file = ., col_names = TRUE, n_max = 20) %>% 
   mutate_at(.vars = vars(contains("PVALUE")), .funs = funs(format_pval)) %>% 
   rmarkdown:::print.paged_df()
 ``` 
@@ -1891,14 +1953,14 @@ pretty_kable(data = qc_steps)
 outout_tree_structure <- c(
   list.files(
     path = params$output_directory, 
-    pattern = "^22.*", 
+    pattern = "[^0-9]*22[^0-9]*",
     full.names = TRUE
   ) %>%
     list.files(full.names = TRUE) %>%
     sapply(., list.files, pattern = "preaa", full.names = TRUE),
   list.files(
     path = params$output_directory, 
-    pattern = "outputLMM", 
+    pattern = "output_chunks_lmm", 
     full.names = TRUE
   ) %>%
     list.files(pattern = "22", full.names = TRUE) %>%
@@ -1912,6 +1974,12 @@ outout_tree_structure <- c(
     gsub("22", "CHR*", ., fixed = TRUE),
   list.files(
     path = params$output_directory, 
+    pattern = "results_to_send", 
+    full.names = TRUE
+  ) %>%
+    list.files(pattern = "22", full.names = TRUE),
+  list.files(
+    path = params$output_directory, 
     pattern = "vcffilespath.txt", 
     full.names = TRUE
   ),
@@ -1919,7 +1987,8 @@ outout_tree_structure <- c(
     path = params$output_directory, 
     pattern = paste0("handleVCF_", params$cohort_name, ".sh"), 
     full.names = TRUE
-  )
+  ),
+  paste0(params$output_directory, "/RHAPSODY_WP3_PreDiab_", params$cohort_name, "_step", params$analysis_step, ".html")
 ) %>%
   unlist() %>%
   gsub(params$output_directory, paste0("/", params$cohort_name), .) %>%
