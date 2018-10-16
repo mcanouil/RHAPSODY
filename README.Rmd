@@ -36,7 +36,7 @@ Utils files, can be downloaded from the following [(hidden) Gist](https://gist.g
 Please use `r R.version.string` (if not possible, newer version "3.4.*" can be used).  
 If VCFtools is not available on your machine, please install it: [VCFtools](https://vcftools.github.io/).  
 Be sure the needed packages are installed (this is also done within the Rmarkdown script) or copy/paste the following command.
-`./utils/session_info.csv` provided should be used, by default in the working directory.
+`session_info.csv` provided should be used, by default in the working directory.
 ```{r}
 if (!'tidyverse'%in%installed.packages()[, 'Package']) {
   install.package(pkgs = 'tidyverse', repos = 'http://cran.us.r-project.org')
@@ -44,7 +44,7 @@ if (!'tidyverse'%in%installed.packages()[, 'Package']) {
 library(tidyverse)
 check_packages_version <- function(
   list_packages, 
-  session_info_csv = './utils/session_info.csv'
+  session_info_csv = 'session_info.csv'
 ) {
   check_packages <- function(package) {
     if (!package%in%installed.packages()[, 'Package']) {
