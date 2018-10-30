@@ -1518,8 +1518,8 @@ do
   ############ Make a header and attached the header to all Files
   gunzip -c $eVCF/filtered.$base | head -n 200 | awk '/^#/' > $sVCF/tmpHeader
 
-  ## unzip vcf and keep all but header. Split the files into lines of 1000 and call them pre*
-  gunzip -c $eVCF/filtered.$base | awk '!/^#/' |  split - -l1000 $sVCF/pre
+  ## unzip vcf and keep all but header. Split the files into lines of 10000 and call them pre*
+  gunzip -c $eVCF/filtered.$base | awk '!/^#/' |  split - -l10000 $sVCF/pre
 
   ## loop through the pre*, add the header and zip the file. Save as "small_*.vcf.gz"
   find $sVCF/pre* | while read pathToFile;
