@@ -10,11 +10,12 @@ params:
   analysis_step: 1
   format_vcfs: TRUE
   variants_analysis: TRUE
+  chunk_size: 10000
   n_cpu: 2
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.0.0)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.0.1)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -528,6 +529,7 @@ rmarkdown::render(
     analysis_step = analysis_step,
     format_vcfs = TRUE,
     variants_analysis = TRUE,
+    chunk_size = 10000,
     n_cpu = 2,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
@@ -1423,6 +1425,7 @@ Sys.setenv(vcfin = params$vcf_input_directory)
 Sys.setenv(vcfout = params$output_directory)
 Sys.setenv(imputationQualityTag = params$imputation_quality_tag)
 Sys.setenv(vcftoolsPath = params$vcftools_binary_path)
+Sys.setenv(chunksize = params$chunk_size)
 
 cat(
   paste(
@@ -1475,7 +1478,6 @@ echo "Name of Project: $projectName"
 echo "Name of imputation quality tag (INFO/*): $imputationQualityTag"
 
 
-
 # to format only on chromosome 22 vcfs: $vcfin/22*.vcf.gz
 # find $vcfin/*.vcf.gz | while read vcf
 cat $vcfout/vcffilespath.txt | while read vcf
@@ -1519,7 +1521,7 @@ do
   gunzip -c $eVCF/filtered.$base | head -n 200 | awk '/^#/' > $sVCF/tmpHeader
 
   ## unzip vcf and keep all but header. Split the files into lines of 10000 and call them pre*
-  gunzip -c $eVCF/filtered.$base | awk '!/^#/' |  split - -l10000 $sVCF/pre
+  gunzip -c $eVCF/filtered.$base | awk '!/^#/' |  split - -d --lines=$chunksize $sVCF/pre
 
   ## loop through the pre*, add the header and zip the file. Save as "small_*.vcf.gz"
   find $sVCF/pre* | while read pathToFile;
