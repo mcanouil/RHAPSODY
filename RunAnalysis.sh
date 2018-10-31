@@ -36,6 +36,7 @@ rmarkdown::render(
     analysis_step = analysis_step,
     format_vcfs = TRUE,
     variants_analysis = TRUE,
+    chunk_size = 10000,
     n_cpu = 2,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
