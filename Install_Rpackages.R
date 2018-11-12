@@ -9,7 +9,9 @@ if (!'tidyverse'%in%installed.packages()[, 'Package']) {
   install.package(pkgs = 'tidyverse', repos = 'http://cran.us.r-project.org')
 }
 library(tidyverse)
-
+if (!'devtools'%in%installed.packages()[, 'Package']) {
+  install.package(pkgs = 'devtools', repos = 'http://cran.us.r-project.org')
+}
 ## To set properly the session_info file based on Mickaël Canouil (mickael.canouil@cnrs.fr) setup
 # list_packages %>%
 #   devtools::session_info(pkgs = .) %>%
@@ -38,8 +40,6 @@ check_packages_version <- function(list_packages, session_info_csv = 'session_in
     )
   }
   
-  invisible(sapply(c('devtools', 'tidyverse'), check_packages))
-
   read_csv(file = session_info_csv) %>% 
     dplyr::mutate(
       local_version = purrr::map(

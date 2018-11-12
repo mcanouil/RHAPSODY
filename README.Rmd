@@ -1,6 +1,6 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan"
-subtitle: "(Version 1.0.1)"
+subtitle: "(Version 1.0.2)"
 author: "Mickaël Canouil, Ph.D."
 date: '`r format(Sys.Date(), "%d %B %Y")`'
 output: pdf_document
@@ -41,6 +41,9 @@ Be sure the needed packages are installed (this is also done within the Rmarkdow
 if (!'tidyverse'%in%installed.packages()[, 'Package']) {
   install.package(pkgs = 'tidyverse', repos = 'http://cran.us.r-project.org')
 }
+if (!'devtools'%in%installed.packages()[, 'Package']) {
+  install.package(pkgs = 'devtools', repos = 'http://cran.us.r-project.org')
+}
 library(tidyverse)
 check_packages_version <- function(
   list_packages, 
@@ -56,7 +59,6 @@ check_packages_version <- function(
       package = package, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE
     )
   }
-  invisible(sapply(c('devtools', 'tidyverse'), check_packages))
 
   read_csv(file = session_info_csv) %>% 
     dplyr::mutate(
