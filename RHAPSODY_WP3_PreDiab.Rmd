@@ -15,7 +15,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.0.1)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.0.2)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -61,6 +61,9 @@ options(stringsAsFactors = FALSE)
 if (!'tidyverse'%in%installed.packages()[, 'Package']) {
   install.package(pkgs = 'tidyverse', repos = 'http://cran.us.r-project.org')
 }
+if (!'devtools'%in%installed.packages()[, 'Package']) {
+  install.package(pkgs = 'devtools', repos = 'http://cran.us.r-project.org')
+}
 library(tidyverse)
 check_packages_version <- function(list_packages, session_info_csv = 'session_info.csv') {
   check_packages <- function(package) {
@@ -81,8 +84,6 @@ check_packages_version <- function(list_packages, session_info_csv = 'session_in
       warn.conflicts = FALSE
     )
   }
-  
-  invisible(sapply(c('devtools', 'tidyverse'), check_packages))
 
   read_csv(file = session_info_csv) %>% 
     dplyr::mutate(
