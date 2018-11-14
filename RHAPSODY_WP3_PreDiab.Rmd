@@ -10,12 +10,12 @@ params:
   analysis_step: 1
   format_vcfs: TRUE
   variants_analysis: TRUE
-  chunk_size: 10000
+  chunk_size: 1000
   n_cpu: 2
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.0.2)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.0.3)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -530,7 +530,7 @@ rmarkdown::render(
     analysis_step = analysis_step,
     format_vcfs = TRUE,
     variants_analysis = TRUE,
-    chunk_size = 10000,
+    chunk_size = 1000,
     n_cpu = 2,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
@@ -1594,7 +1594,7 @@ DMVSLB_QC5 <- DMVSLB_QC4 %>%
         value = TRUE
       ) %>% 
         .[1] %>% 
-        list.files(pattern = ".DS.gz$", full.names = TRUE) %>% 
+        list.files(pattern = ".DS.gz$", full.names = TRUE, nrows = 100) %>% 
         .[1] %>% 
         read.table(header = TRUE, check.names = FALSE) %>% 
         colnames() %>% 
@@ -1682,27 +1682,28 @@ for (ichrdirectory in list_chrom_directories) {
     results_lmm_snp <- mclapply(
       X = colnames(dosage_file_tidy),
       mc.cores = params$n_cpu,
+      mc.allow.recursive = FALSE,
       mc.preschedule = FALSE,
+      mc_variables_names = variables_names,
+      mc_pheno_geno_data = pheno_geno_data,
       FUN = function(isnp) {
-        # print(isnp)
-        
-        results_lmm <- variables_names %>% 
+        results_lmm <- mc_variables_names %>% 
           length() %>% 
           rep(NA, .) %>% 
           as.list() %>% 
-          `names<-`(variables_names)
-        for (ivariable in variables_names) {
-          if (!all(is.na(pheno_geno_data[, ivariable]))) {
-            fit.gluc <- lmer(
+          `names<-`(mc_variables_names)
+        for (ivariable in mc_variables_names) {
+          if (!all(is.na(mc_pheno_geno_data[, ivariable]))) {
+            fit_lmm <- lmer(
               formula = eval(parse(text = paste0(
                 "update.formula(formula.rightPart, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
               ))),
-              data = pheno_geno_data
+              data = mc_pheno_geno_data
             )
             results_lmm[[ivariable]] <- cbind.data.frame(
               TRAIT = ivariable,
               SNP = isnp,
-              tidy_lmer(fit.gluc)
+              tidy_lmer(fit_lmm)
             ) %>% 
             `colnames<-`(gsub(
               pattern = paste0("`", isnp, "`"),
