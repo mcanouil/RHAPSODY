@@ -1,6 +1,6 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan"
-subtitle: "(Version 1.0.2)"
+subtitle: "(Version 1.0.3)"
 author: "Mickaël Canouil, Ph.D."
 date: '`r format(Sys.Date(), "%d %B %Y")`'
 output: pdf_document
@@ -25,7 +25,7 @@ At this stage, you were provided with the following files from [the (hidden) Gis
 Utils files, can be downloaded from the following [(hidden) Gist](https://gist.github.com/mcanouil/f3e2fdc59757fd8577abfe233854580a):
 
   * `./utils/RHAPSODY_WP3_PreDiab_DEBUG.R`, a small part of the main Rmarkdown script, which includes only node access and phenotype QC;
-  * `./utils/RunAnalysis.sh`, a example of shell script to run the whole analysis in bash (parameters have to be filled properly according to your informations);
+  * `./utils/RunAnalysis.R`, a example of R script to run the whole analysis in bash using `Rscript` (parameters have to be filled properly according to your informations);
   * `./utils/handleVCF.sh`, the shell script used to format/filter VCFs files prior to the variant analysis. This shell script is also included within the main script, but you can use it directly as a standalone, if so (or if your already done formatting and don't want to do it again), parameter `format_vcfs` must be set to `FALSE`).
   * `./utils/Install_Rpackages.R`, a R script which install a predefined version of all R packages loaded in the Rmarkdown script, only if needed (also avaiable within the main script).
   
@@ -199,7 +199,7 @@ rmarkdown::render(
     analysis_step = analysis_step,
     format_vcfs = TRUE,
     variants_analysis = TRUE,
-    chunk_size = 10000,
+    chunk_size = 1000,
     n_cpu = 2,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report

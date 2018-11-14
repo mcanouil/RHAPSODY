@@ -1,7 +1,3 @@
-#!/bin/sh
-
-R --slave --silent <<RSCRIPT
-
 # set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
 working_directory <- './' 
@@ -36,7 +32,7 @@ rmarkdown::render(
     analysis_step = analysis_step,
     format_vcfs = TRUE,
     variants_analysis = TRUE,
-    chunk_size = 10000,
+    chunk_size = 1000,
     n_cpu = 2,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
@@ -44,4 +40,3 @@ rmarkdown::render(
   ),
   encoding = 'UTF-8'
 )
-RSCRIPT

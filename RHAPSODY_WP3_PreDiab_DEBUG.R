@@ -2,7 +2,7 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from 'RHAPSODY_WP3_PreDiab.Rmd'
 # Author - Mickaël Canouil, Ph.D.
-# Version - 1.0.2
+# Version - 1.0.3
 #---------------------------------------------------------------------------------------------------
 options(stringsAsFactors = FALSE)
 
