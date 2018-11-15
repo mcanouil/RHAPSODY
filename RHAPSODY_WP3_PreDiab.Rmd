@@ -1680,7 +1680,7 @@ for (ichrdirectory in list_chrom_directories) {
 
     ## Run Mixed Model by SNP
     results_lmm_snp <- mclapply(
-      X = colnames(dosage_file_tidy),
+      X = head(colnames(dosage_file_tidy), 80),
       mc.cores = params$n_cpu,
       mc.allow.recursive = FALSE,
       mc.preschedule = FALSE,
@@ -1694,28 +1694,29 @@ for (ichrdirectory in list_chrom_directories) {
           `names<-`(mc_variables_names)
         for (ivariable in mc_variables_names) {
           if (!all(is.na(mc_pheno_geno_data[, ivariable]))) {
-            fit_lmm <- lmer(
-              formula = eval(parse(text = paste0(
-                "update.formula(formula.rightPart, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
-              ))),
-              data = mc_pheno_geno_data
-            )
+            local_formula <- eval(parse(text = paste0(
+              "update.formula(formula.rightPart, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
+            )))
+            local_data <- mc_pheno_geno_data[, all.vars(local_formula)]
+            
+            fit_lmm <- lmer(formula = local_formula, data = local_data)
+            
             results_lmm[[ivariable]] <- cbind.data.frame(
               TRAIT = ivariable,
               SNP = isnp,
               tidy_lmer(fit_lmm)
-            ) %>% 
-            `colnames<-`(gsub(
+            )
+            
+            colnames(results_lmm[[ivariable]]) <- gsub(
               pattern = paste0("`", isnp, "`"),
               replacement = "SNP",
-              x = colnames(.),
+              x = colnames(results_lmm[[ivariable]]),
               fixed = TRUE
-            ))
+            )
           } else {
             results_lmm[[ivariable]] <- NULL
           }
         }
-
         res_all <- do.call("rbind", results_lmm)
         return(res_all)
       }
