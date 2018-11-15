@@ -1659,7 +1659,7 @@ for (ichrdirectory in list_chrom_directories) {
       mutate(SNP = paste(CHROM, POS, sep = "_")) %>%
       select(-CHROM, -POS)
     
-    ### Remove multi-allele SNPs (duplicated chromosome:positition)
+    ## Remove multi-allele SNPs (duplicated chromosome:positition)
     multi_allele_snps <- dosage_file_tidy[duplicated(dosage_file_tidy[, "SNP"]), "SNP"]
     
     dosage_file_tidy <- dosage_file_tidy %>% 
@@ -1667,14 +1667,14 @@ for (ichrdirectory in list_chrom_directories) {
       filter(!SNP%in%multi_allele_snps) %>%
       column_to_rownames(var = "SNP") %>%
       t() %>% 
-      as.data.frame() %>% 
-      rownames_to_column(var = "SUBJID") %>% 
-      mutate(SUBJID = as.integer(SUBJID))
+      as.data.frame()
 
     ## Combine phenotypes and genotypes
     pheno_geno_data <- full_join(
       x = DMVSLB_QC5,
-      y = dosage_file_tidy,
+      y = dosage_file_tidy %>% 
+        rownames_to_column(var = "SUBJID") %>% 
+        mutate(SUBJID = as.integer(SUBJID)),
       by = c("SUBJID" = "SUBJID")
     )
 
@@ -1686,7 +1686,7 @@ for (ichrdirectory in list_chrom_directories) {
       mc.preschedule = FALSE,
       mc_variables_names = variables_names,
       mc_pheno_geno_data = pheno_geno_data,
-      FUN = function(isnp) {
+      FUN = function(isnp, mc_variables_names, mc_pheno_geno_data) {
         results_lmm <- mc_variables_names %>% 
           length() %>% 
           rep(NA, .) %>% 
