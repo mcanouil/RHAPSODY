@@ -60,6 +60,7 @@ lattice,0.20-35
 latticeExtra,0.6-28
 lazyeval,0.2.1
 lme4,1.1-14
+numDeriv,2016.8-1
 lmerTest,3.0-1
 lubridate,1.7.4
 magrittr,1.5

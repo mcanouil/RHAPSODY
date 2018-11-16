@@ -1680,7 +1680,7 @@ for (ichrdirectory in list_chrom_directories) {
 
     ## Run Mixed Model by SNP
     results_lmm_snp <- mclapply(
-      X = head(colnames(dosage_file_tidy), 80),
+      X = colnames(dosage_file_tidy),
       mc.cores = params$n_cpu,
       mc.allow.recursive = FALSE,
       mc.preschedule = FALSE,
