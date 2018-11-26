@@ -1731,13 +1731,16 @@ for (ichrdirectory in list_chrom_directories) {
     results_lmm_snp <- results_lmm_snp[!list_errors]
 
     annotation_chunk <- full_join(
-      x = read_tsv(gsub(".DS.gz", ".frq", idosagefile)),
-      y = read_tsv(gsub(".DS.gz", ".hwe", idosagefile)), 
+      x = read_tsv(gsub(".DS.gz", ".frq", idosagefile)) %>% 
+        mutate(POS = as.character(POS)),
+      y = read_tsv(gsub(".DS.gz", ".hwe", idosagefile)) %>% 
+        mutate(POS = as.character(POS)), 
       by = c("CHROM" = "CHR", "POS" = "POS")
     ) %>% 
       full_join(
         x = .,
-        y = read_tsv(gsub(".DS.gz", ".INFO", idosagefile)), 
+        y = read_tsv(gsub(".DS.gz", ".INFO", idosagefile)) %>% 
+          mutate(POS = as.character(POS)), 
         by = c("CHROM" = "CHROM", "POS" = "POS")
       ) %>%
         mutate(SNP = paste(CHROM, POS, sep = "_"))
