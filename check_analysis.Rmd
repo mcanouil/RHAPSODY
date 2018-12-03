@@ -185,9 +185,6 @@ ggmanhattan <- function(data, x_chr, x_pos, y_pval, y_trans = TRUE, x_space = 5e
   if (y_trans) {
     p <- p +
       ggplot2::scale_y_continuous(trans = pval_trans(), limits = c(1, NA))
-  } else {
-    p <- p +
-      ggplot2::scale_y_continuous(expand = ggplot2::expand_scale(mult = c(0, 0.10)))
   }
   return(p)
 }
@@ -277,7 +274,7 @@ ggqqplot <- function (data, col_names = colnames(data), point_size = 1) {
       ggplot2::geom_point(ggplot2::aes_string(x = "exppval", y = "obspval", colour = "labels", shape = "labels"), size = point_size) +
       ggplot2::scale_x_continuous(trans = pval_trans()) +
       ggplot2::scale_y_continuous(trans = pval_trans()) +
-      ggplot2::scale_colour_manual(labels = parse_format(), values = scales::viridis_pal(begin = 0.5, end = 0.5)) +
+      ggplot2::scale_colour_manual(labels = parse_format(), values = scales::viridis_pal(begin = 0.5, end = 0.5)(1)) +
       ggplot2::scale_shape_discrete(solid = FALSE, labels = parse_format()) +
       ggplot2::labs(
         x = "Expected P-value", 
