@@ -1594,7 +1594,7 @@ DMVSLB_QC5 <- DMVSLB_QC4 %>%
         value = TRUE
       ) %>% 
         .[1] %>% 
-        list.files(pattern = ".DS.gz$", full.names = TRUE, nrows = 100) %>% 
+        list.files(pattern = ".DS.gz$", full.names = TRUE) %>% 
         .[1] %>% 
         read.table(header = TRUE, check.names = FALSE) %>% 
         colnames() %>% 
