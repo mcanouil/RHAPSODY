@@ -184,7 +184,7 @@ ggmanhattan <- function(data, x_chr, x_pos, y_pval, y_trans = TRUE, x_space = 5e
     ggplot2::labs(y = y_pval, x = x_chr)
   if (y_trans) {
     p <- p +
-      ggplot2::scale_y_continuous(trans = pval_trans(), expand = ggplot2::expand_scale(mult = c(0, 0.10)), limits = c(1, NA))
+      ggplot2::scale_y_continuous(trans = pval_trans(), limits = c(1, NA))
   } else {
     p <- p +
       ggplot2::scale_y_continuous(expand = ggplot2::expand_scale(mult = c(0, 0.10)))
@@ -193,7 +193,7 @@ ggmanhattan <- function(data, x_chr, x_pos, y_pval, y_trans = TRUE, x_space = 5e
 }
 ```
 
-```{r}
+```{r ggqqplot}
 # devtools::source_url('https://github.com/mcanouil/DEV/raw/master/R/ggqqplot.R')
 ggqqplot <- function (data, col_names = colnames(data), point_size = 1) {
   pval_trans <- function() {
