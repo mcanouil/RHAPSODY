@@ -1973,7 +1973,7 @@ outout_tree_structure <- c(
   ) %>%
     list.files(pattern = "22", full.names = TRUE) %>%
     list.files(full.names = TRUE) %>%
-    gsub("small_pre.*.log", "small_preaa.log", .) %>% 
+    gsub("small_pre.*.log", "small_pre*.log", .) %>% 
     unique() %>% 
     sapply(., function(i) {
       tmp <- list.files(i, pattern = "preaa", full.names = TRUE)
