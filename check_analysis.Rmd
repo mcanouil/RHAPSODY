@@ -36,7 +36,9 @@ knitr::opts_chunk$set(
   fig.pos = '!H',
   dpi = 120,
   size = 'small', 
-  results = 'asis'
+  results = 'asis',
+  dev = 'png',
+  fig.path = paste0(tempdir(), '/')
 )
 
 library(parallel)
