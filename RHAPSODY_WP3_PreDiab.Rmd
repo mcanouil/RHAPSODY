@@ -1584,7 +1584,7 @@ done
 ### Run Mixed Model with imputed genotypes
 
 #### Trajectories
-```{r lmm_genotypes_plot, eval = params_steps$step_6 & params$variants_analysis}
+```{r lmm_genotypes_plot, eval = params_steps$step_6}
 DMVSLB_QC5 <- DMVSLB_QC4 %>%
   filter(
     SUBJID%in%(
