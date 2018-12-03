@@ -293,7 +293,6 @@ logs <- list.files(path = working_directory, pattern = "*.log$", recursive = TRU
   data.frame(snp = .) %>% 
   dplyr::filter(snp!="")
 
-dir.create(path = paste0(working_directory, "/figures"), showWarnings = FALSE, mode = "0777")
 for (file in list.files(paste0(working_directory, '/results_to_send'), full.names = TRUE)) {
   cat("\n\n#", gsub(".*/[A-Za-z_]*_([0-9]+)_(.*).csv.gz", "Chromosome \\1 (\\2)", file), "\n")
   tmp <- readr::read_csv(file = file)
