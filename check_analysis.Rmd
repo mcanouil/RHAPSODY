@@ -1,0 +1,117 @@
+---
+params:
+  cohort_name: 'Cohort Name'
+  author_name: 'Firstname LASTNAME'
+  output_directory: './'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Check (Version 1.0.4)'
+subtitle: '`r params$cohort_name`'
+author: '`r params$author_name`'
+date: '`r format(Sys.Date(), "%d %B %Y")`'
+monofont: 'Source Code Pro'
+monofontoptions: 'Scale=0.7'
+output:
+  pdf_document:
+    toc: false
+    fig_width: 9.45
+    fig_height: 7.05
+    number_sections: true
+    df_print: kable
+    latex_engine: pdflatex
+---
+
+```{r setup, include = FALSE}
+working_directory <- params$output_directory
+
+knitr::opts_chunk$set(
+  cache = FALSE,
+  echo = FALSE,
+  warning = FALSE,
+  error = FALSE,
+  message = FALSE,
+  include = TRUE,
+  tidy = FALSE,
+  crop = TRUE,
+  autodep = TRUE,
+  fig.align = 'center',
+  fig.pos = '!H',
+  dpi = 120,
+  size = 'small', 
+  results = 'asis'
+)
+
+library(parallel)
+library(tidyverse)
+library(scales)
+library(gridExtra)
+library(ggpubr)
+
+options(stringsAsFactors = FALSE)
+base_size <- 12
+ggplot2::theme_set(ggplot2::theme_light(base_size = base_size))
+devtools::source_url('https://github.com/mcanouil/DEV/raw/master/R/ggmanhattan.R')
+devtools::source_url('https://github.com/mcanouil/DEV/raw/master/R/ggqqplot.R')
+```
+
+```{r check_figures}
+logs <- list.files(path = working_directory, pattern = "*.log$", recursive = TRUE, full.names = TRUE) %>% 
+  purrr::map_chr(.f = readLines) %>% 
+  data.frame(snp = .) %>% 
+  dplyr::filter(snp!="")
+
+dir.create(path = paste0(working_directory, "/figures"), showWarnings = FALSE, mode = "0777")
+for (file in list.files(paste0(working_directory, '/results_to_send'), full.names = TRUE)) {
+  cat("\n\n#", gsub(".*/[A-Za-z_]*_([0-9]+)_(.*).csv.gz", "Chromosome \\1 (\\2)", file), "\n")
+  tmp <- readr::read_csv(file = file)
+  p1 <- ggplot2::ggplot(data = tmp, mapping = ggplot2::aes(x = seq(length(position)), y = position)) +
+    ggplot2::geom_point(colour = scales::viridis_pal(begin = 0.75, end = 0.75)(1)) +
+    ggplot2::scale_y_continuous(labels = function(x) { 
+      parse(
+        text = scales::scientific_format()(x) %>% 
+          gsub("0e+00", "0", ., fixed = TRUE) %>% 
+          gsub("e", " %*% 10^", .)
+      ) 
+    }) +
+    ggplot2::scale_x_continuous(labels = function(x) { 
+      parse(
+        text = scales::scientific_format()(x) %>% 
+          gsub("0e+00", "0", ., fixed = TRUE) %>% 
+          gsub("e", " %*% 10^", .)
+      ) 
+    }) +
+    ggplot2::labs(x = "Sequential position", y = "Chromosome position") +
+    ggplot2::theme(plot.margin = ggplot2::margin(t = base_size/2, r = base_size, b = base_size/2, l = base_size/2))
+  p2 <- ggqqplot(data = tmp[, "pval", drop = FALSE]) +
+    ggplot2::theme(legend.position = c(1, 0), legend.justification = c(1.05, -0.05)) +
+    ggplot2::labs(title = NULL)
+  p3 <- ggmanhattan(data = tmp, x_chr = "chr", x_pos = "position", y_pval = "pval") +
+    ggplot2::labs(x = "Chromosome", y = "P-Value")
+  
+  ggpubr::ggarrange(
+    ggpubr::ggarrange(
+      p1, p2,
+      ncol = 2,
+      labels = c("A", "B")
+    ),
+    p3,
+    nrow = 2,
+    labels = c("", "C")
+  ) %>%
+    gridExtra::arrangeGrob(
+      top = ggpubr::text_grob(
+        label = gsub(".*/[A-Za-z_]*_([0-9]+)_(.*).csv.gz", "Chromosome \\1 (\\2)", file), 
+        color = "black", 
+        face = "bold", 
+        size = 16
+      ),
+      left = "",
+      right = "", 
+      bottom = ""
+    ) %>%
+    ggpubr::as_ggplot() %>% 
+    print()
+  
+  if (knitr:::is_latex_output()) {cat('\\clearpage')}
+  cat("\n")
+}
+```
+
