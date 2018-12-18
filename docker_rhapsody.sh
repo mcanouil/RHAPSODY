@@ -7,13 +7,13 @@
 # docker login
 
 # Build image
-docker build --tag biostatgood/rhapsody:1.0.5 --compress /media/Project/RHAPSODY/Scripts/docker
+docker build --tag biostatgood/rhapsody:1.0.6 --compress /media/Project/RHAPSODY/Scripts/docker
 
 # Tag image with name and version
-docker tag biostatgood/rhapsody:1.0.5 biostatgood/rhapsody:latest
+docker tag biostatgood/rhapsody:1.0.6 biostatgood/rhapsody:latest
 
 # Push image to docker hub
-docker push biostatgood/rhapsody:1.0.5
+docker push biostatgood/rhapsody:1.0.6
 docker push biostatgood/rhapsody:latest
 
 # docker system prune --all
