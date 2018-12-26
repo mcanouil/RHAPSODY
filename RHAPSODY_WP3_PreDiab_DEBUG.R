@@ -2,7 +2,7 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from 'RHAPSODY_WP3_PreDiab.Rmd'
 # Author - Mickaël Canouil, Ph.D.
-# Version - 1.0.6
+# Version - 1.1.0
 #---------------------------------------------------------------------------------------------------
 options(stringsAsFactors = FALSE)
 
@@ -29,9 +29,45 @@ format_pval <- function (x, thresh = 10^-2, digits = 3, eps = 1e-50) {
   return(pout)
 }
 
+pretty_kable <- function(
+  data,
+  font_size = 12,
+  format.args = list(scientific = -1, digits = 3, big.mark = ","),
+  col.names = NA,
+  pval_cols = NULL,
+  ...
+) {
+  if (!is.null(pval_cols)) {
+    data[, pval_cols] <- format_pval(
+      x = data[, pval_cols],
+      digits = format.args$digits
+    )
+  }
+  colnames(data) <- capitalize(colnames(data))
+  if (knitr:::is_latex_output()) {
+    options(knitr.table.format = "latex")
+    kable(x = data, booktabs = TRUE, format.args = format.args, col.names = col.names, ...) %>%
+      kable_styling(
+        latex_options = c("hold_position"),
+        full_width = FALSE,
+        position = "center",
+        font_size = font_size
+      )
+  } else {
+    options(knitr.table.format = "html")
+    kable(x = data, format.args = format.args, col.names = col.names, ...) %>%
+      kable_styling(
+        bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+        full_width = TRUE,
+        position = "center",
+        font_size = font_size
+      )
+  }
+}
+
 # reference table to convert HbA1c from percentage to mmol/mol
-convert_hba1c <- function(x, unitFrom = '%') {
-  if (unitFrom == '%') {
+convert_hba1c <- function(x, unitFrom = "%") {
+  if (unitFrom == "%") {
     hba1c_unit_table <- structure(list(
       V1 = c(
         10L, 12L, 14L, 16L, 18L, 20L, 22L, 24L,
@@ -56,9 +92,9 @@ convert_hba1c <- function(x, unitFrom = '%') {
         19, 19.2, 19.4, 19.5, 19.7, 19.9, 20.1, 20.3, 20.4, 20.6,
         20.8, 21, 21.2
       )
-    ), .Names = c('V1', 'V2'), class = 'data.frame', row.names = c(NA, -100L))
+    ), .Names = c("V1", "V2"), class = "data.frame", row.names = c(NA, -100L))
     return(sapply(x, function(y) {
-      round(sum(tidy(lm(V1~V2, data = hba1c_unit_table))[, 'estimate'] * c(1, y)))
+      round(sum(tidy(lm(V1~V2, data = hba1c_unit_table))[, "estimate"] * c(1, y)))
     }))
   } else {
     return(x)
@@ -66,34 +102,30 @@ convert_hba1c <- function(x, unitFrom = '%') {
 }
 
 # function to convert g/l to mmol/l
-convert_2mmoll <- function(x, from = 'g/l') {
+convert_2mmoll <- function(x, from = "g/l") {
   switch(EXPR = tolower(from),
-    'g/l' = {x / 0.18},
-    'mg/l' = {x / 0.18 / 100},
-    'mmol/l' = {x},
-    stop('Please check Units: g/l, g/L, mg/l, mg/Ln, mmol/l or mmol/L!')
+    "g/l" = {x / 0.18},
+    "mg/l" = {x / 0.18 / 100},
+    "mmol/l" = {x},
+    stop("Please check Units: g/l, g/L, mg/l, mg/Ln, mmol/l or mmol/L!")
   )
 }
 
-# function to convert 'Vital Signs' (VS) OPAL table (CDISC) to 'long format'
+# function to convert "Vital Signs" (VS) OPAL table (CDISC) to "long format"
 format_vs <- function(data) {
-  data <- data %>%
-    mutate(
-      KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = '_')
-    ) %>%
-    `rownames<-`(NULL)
+  data <- mutate(
+    .data = data,
+    KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
+  )
+  rownames(data) <- NULL
   
-  descriptive_data <- data %>%
-    select(DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD) %>%
-    distinct()
+  descriptive_data <- distinct(.data = select(.data = data, DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD))
   
-  if (!'VSTPTNUM'%in%colnames(data)) {
-    data <- data %>% 
-      mutate(VSTPTNUM = NA)
+  if (!"VSTPTNUM"%in%colnames(data)) {
+    data <- mutate(.data = data, VSTPTNUM = NA)
   }
-  if (!'VSTPT'%in%colnames(data)) {
-    data <- data %>% 
-      mutate(VSTPT = NA)
+  if (!"VSTPT"%in%colnames(data)) {
+    data <- mutate(.data = data, VSTPT = NA)
   }
   
   data_values <- full_join(
@@ -101,27 +133,27 @@ format_vs <- function(data) {
       x = data %>%
         subset(is.na(VSTPTNUM)) %>%
         select(KEY_FACTOR, VSORRES, VSTESTCD) %>%
-        spread(key = 'VSTESTCD', value = 'VSORRES'),
+        spread(key = "VSTESTCD", value = "VSORRES"),
       y = data %>%
         subset(!is.na(VSTPTNUM)) %>%
         select(KEY_FACTOR, VSORRES, VSTESTCD, VSTPTNUM) %>%
-        mutate(KEY_MEASURES = paste(VSTESTCD, VSTPTNUM, sep = '_')) %>%
+        mutate(KEY_MEASURES = paste(VSTESTCD, VSTPTNUM, sep = "_")) %>%
         select(KEY_FACTOR, KEY_MEASURES, VSORRES) %>%
-        spread(key = 'KEY_MEASURES', value = 'VSORRES'),
-      by = c('KEY_FACTOR' = 'KEY_FACTOR')
+        spread(key = "KEY_MEASURES", value = "VSORRES"),
+      by = c("KEY_FACTOR" = "KEY_FACTOR")
     ),
     y = data %>%
       select(-c(VSORRES, VSTPT, VSTPTNUM, VSORRESU, VSTEST, VSTESTCD)) %>%
       distinct(),
-    by = c('KEY_FACTOR' = 'KEY_FACTOR')
+    by = c("KEY_FACTOR" = "KEY_FACTOR")
   ) %>%
     mutate(
       VISIT = factor(
         x = VISIT,
         levels = c(
-          'BASELINE', 
-          sort(grep('VISIT', unique(VISIT), value = TRUE)), 
-          'LAST'
+          "BASELINE", 
+          sort(grep("VISIT", unique(VISIT), value = TRUE)), 
+          "LAST"
         )
       )
     ) %>%
@@ -133,46 +165,50 @@ format_vs <- function(data) {
   return(list(data = data_values, annotation = descriptive_data))
 }
 
-# function to convert 'Laboratory Measurements' (LB) OPAL table (CDISC) to 'long format'
+# function to convert "Laboratory Measurements" (LB) OPAL table (CDISC) to "long format"
 format_lb <- function(data) {
-  data <- data %>%
-    mutate(
-      LBFAST = if ('LBFAST' %in% colnames(.)) {LBFAST} else {NA},
-      LBTPTNUM = if ('LBTPTNUM' %in% colnames(.)) {LBTPTNUM} else {NA},
-      LBTPTNUM = ifelse(LBTESTCD == 'GLUC' & is.na(LBTPTNUM), 0, LBTPTNUM),
-      KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = '_')
-    ) %>%
-    `rownames<-`(NULL)
+  data <- mutate(
+    .data = data,
+    LBFAST = if ("LBFAST" %in% colnames(data)) {LBFAST} else {NA},
+    LBTPTNUM = if ("LBTPTNUM" %in% colnames(data)) {LBTPTNUM} else {NA},
+    LBTPTNUM = ifelse(LBTESTCD == "GLUC" & is.na(LBTPTNUM), 0, LBTPTNUM),
+    KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
+  )
+  rownames(data) <- NULL
 
   descriptive_variables <- c(
-    'LBORRESU', 'LBTEST', 'LBTESTCD', 'LBSPEC', 
-    'LBCAT', 'LBMETHOD', 'LBTPT', 'LBTPTNUM', 'AGCAT'
+    "LBORRESU", "LBTEST", "LBTESTCD", "LBSPEC", 
+    "LBCAT", "LBMETHOD", "LBTPT", "LBTPTNUM", "AGCAT"
   )
   
   descriptive_data <- data %>%
-    select(intersect(c('DOMAIN', 'STUDYID', !!descriptive_variables), colnames(.))) %>%
+    select(intersect(c("DOMAIN", "STUDYID", !!descriptive_variables), colnames(.))) %>%
     distinct() %>%
     mutate(
-      KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = '_')
+      KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
     )
 
   data_values <- full_join(
     x = (data %>%
       select(KEY_FACTOR, LBORRES, LBTESTCD, LBSPEC, LBCAT, LBTPTNUM) %>%
       mutate(
-        KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = '_')
+        KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
       ) %>%
       select(KEY_FACTOR, KEY_MEASURES, LBORRES) %>%
-      spread(key = 'KEY_MEASURES', value = 'LBORRES')),
+      spread(key = "KEY_MEASURES", value = "LBORRES")),
     y = (data %>%
       select(LBDTC, SUBJID, VISIT, DOMAIN, STUDYID, LBFAST, KEY_FACTOR) %>%
       distinct()),
-    by = c('KEY_FACTOR' = 'KEY_FACTOR')
+    by = c("KEY_FACTOR" = "KEY_FACTOR")
   ) %>%
     mutate(
       VISIT = factor(
-        VISIT,
-        levels = c('BASELINE', sort(grep('VISIT', unique(VISIT), value = TRUE)), 'LAST')
+        x = VISIT,
+        levels = c(
+          "BASELINE", 
+          sort(grep("VISIT", unique(VISIT), value = TRUE)), 
+          "LAST"
+        )
       )
     ) %>%
     group_by(DOMAIN, STUDYID, SUBJID) %>%
@@ -185,43 +221,43 @@ format_lb <- function(data) {
 
 # function to compute bmi if not available
 compute_bmi <- function(data) {
-  if (!'BMI'%in%data$annotation[['VSTESTCD']]) {
+  if (!"BMI"%in%data$annotation[["VSTESTCD"]]) {
     weight_unit <- data$annotation %>% 
-      filter(VSTESTCD=='WEIGHT') %>% 
+      filter(VSTESTCD=="WEIGHT") %>% 
       select(VSORRESU) %>% 
       unlist()
     convert_weight_unit <- switch(
       EXPR = weight_unit,
-      'kg' = {function(x) {x}},
-      'lb' = {function(x) {x*0.45359237}}
+      "kg" = {function(x) {x}},
+      "lb" = {function(x) {x*0.45359237}}
     )
     
     height_unit <- data$annotation %>% 
-      filter(VSTESTCD=='HEIGHT') %>% 
+      filter(VSTESTCD=="HEIGHT") %>% 
       select(VSORRESU) %>% 
       unlist()
     convert_height_unit <- switch(
       EXPR = height_unit,
-      'cm' = {function(x) {x/100}},
-      'm' = {function(x) {x}},
-      'in' = {function(x) {(x*2.54)/100}}
+      "cm" = {function(x) {x/100}},
+      "m" = {function(x) {x}},
+      "in" = {function(x) {(x*2.54)/100}}
     )
     
-    data$data <- data$data %>% 
-      mutate(
-        BMI = convert_weight_unit(WEIGHT) / convert_height_unit(HEIGHT)
-      )
+    data$data <- mutate(
+      .data = data$data,
+      BMI = convert_weight_unit(WEIGHT) / convert_height_unit(HEIGHT)
+    )
     default_CDISC_BMI <- structure(
       list(
-        DOMAIN = 'VS', 
-        STUDYID = unique(data$annotation[['STUDYID']]), 
-        VSORRESU = 'kg/m2', 
-        VSTEST = 'Body Mass Index', 
-        VSTESTCD = 'BMI'
+        DOMAIN = "VS", 
+        STUDYID = unique(data$annotation[["STUDYID"]]), 
+        VSORRESU = "kg/m2", 
+        VSTEST = "Body Mass Index", 
+        VSTESTCD = "BMI"
       ), 
-      .Names = c('DOMAIN',  'STUDYID', 'VSORRESU', 'VSTEST', 'VSTESTCD'), 
+      .Names = c("DOMAIN",  "STUDYID", "VSORRESU", "VSTEST", "VSTESTCD"), 
       row.names = 1L, 
-      class = 'data.frame'
+      class = "data.frame"
     )
     data$annotation <- bind_rows(data$annotation, default_CDISC_BMI)
   }

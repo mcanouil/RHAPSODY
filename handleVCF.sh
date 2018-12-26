@@ -13,7 +13,7 @@ projectName=$1
 vcfout=$2
 imputationQualityTag=$3
 vcftoolsPath=$4
-chunksize=10000
+chunksize=1000
 
 
 echo -e "\n"
@@ -65,7 +65,7 @@ do
   gunzip -c $eVCF/filtered.$base | head -n 200 | awk '/^#/' > $sVCF/tmpHeader
 
   ## unzip vcf and keep all but header. Split the files into lines of 1000 and call them pre*
-  gunzip -c $eVCF/filtered.$base | awk '!/^#/' |  split - -d --lines=$chunksize $sVCF/pre
+  gunzip -c $eVCF/filtered.$base | awk '!/^#/' |  split - --lines=$chunksize $sVCF/pre
 
   ## loop through the pre*, add the header and zip the file. Save as "small_*.vcf.gz"
   find $sVCF/pre* | while read pathToFile;
