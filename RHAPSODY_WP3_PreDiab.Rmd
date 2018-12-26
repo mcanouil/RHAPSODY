@@ -386,23 +386,19 @@ convert_2mmoll <- function(x, from = "g/l") {
 
 # function to convert "Vital Signs" (VS) OPAL table (CDISC) to "long format"
 format_vs <- function(data) {
-  data <- data %>%
-    mutate(
-      KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
-    ) %>%
-    `rownames<-`(NULL)
+  data <- mutate(
+    .data = data,
+    KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
+  )
+  rownames(data) <- NULL
   
-  descriptive_data <- data %>%
-    select(DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD) %>%
-    distinct()
+  descriptive_data <- distinct(.data = select(.data = data, DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD))
   
   if (!"VSTPTNUM"%in%colnames(data)) {
-    data <- data %>% 
-      mutate(VSTPTNUM = NA)
+    data <- mutate(.data = data, VSTPTNUM = NA)
   }
   if (!"VSTPT"%in%colnames(data)) {
-    data <- data %>% 
-      mutate(VSTPT = NA)
+    data <- mutate(.data = data, VSTPT = NA)
   }
   
   data_values <- full_join(
@@ -444,14 +440,14 @@ format_vs <- function(data) {
 
 # function to convert "Laboratory Measurements" (LB) OPAL table (CDISC) to "long format"
 format_lb <- function(data) {
-  data <- data %>%
-    mutate(
-      LBFAST = if ("LBFAST" %in% colnames(.)) {LBFAST} else {NA},
-      LBTPTNUM = if ("LBTPTNUM" %in% colnames(.)) {LBTPTNUM} else {NA},
-      LBTPTNUM = ifelse(LBTESTCD == "GLUC" & is.na(LBTPTNUM), 0, LBTPTNUM),
-      KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
-    ) %>%
-    `rownames<-`(NULL)
+  data <- mutate(
+    .data = data,
+    LBFAST = if ("LBFAST" %in% colnames(data)) {LBFAST} else {NA},
+    LBTPTNUM = if ("LBTPTNUM" %in% colnames(data)) {LBTPTNUM} else {NA},
+    LBTPTNUM = ifelse(LBTESTCD == "GLUC" & is.na(LBTPTNUM), 0, LBTPTNUM),
+    KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
+  )
+  rownames(data) <- NULL
 
   descriptive_variables <- c(
     "LBORRESU", "LBTEST", "LBTESTCD", "LBSPEC", 
@@ -480,8 +476,12 @@ format_lb <- function(data) {
   ) %>%
     mutate(
       VISIT = factor(
-        VISIT,
-        levels = c("BASELINE", sort(grep("VISIT", unique(VISIT), value = TRUE)), "LAST")
+        x = VISIT,
+        levels = c(
+          "BASELINE", 
+          sort(grep("VISIT", unique(VISIT), value = TRUE)), 
+          "LAST"
+        )
       )
     ) %>%
     group_by(DOMAIN, STUDYID, SUBJID) %>%
@@ -516,10 +516,10 @@ compute_bmi <- function(data) {
       "in" = {function(x) {(x*2.54)/100}}
     )
     
-    data$data <- data$data %>% 
-      mutate(
-        BMI = convert_weight_unit(WEIGHT) / convert_height_unit(HEIGHT)
-      )
+    data$data <- mutate(
+      .data = data$data,
+      BMI = convert_weight_unit(WEIGHT) / convert_height_unit(HEIGHT)
+    )
     default_CDISC_BMI <- structure(
       list(
         DOMAIN = "VS", 
@@ -539,34 +539,44 @@ compute_bmi <- function(data) {
 
 # function to extract results from lmer functions in a tidy way (one row)
 tidy_lmer <- function(x) {
-  x %>% 
-    summary() %>% 
-    coefficients() %>% 
-    `colnames<-`(c("ESTIMATE", "SE", "DF", "STAT", "PVALUE")) %>% 
-    `rownames<-`(gsub(".*Intercept.*", "Intercept", rownames(.))) %>%
-    as.data.frame() %>% 
-    rownames_to_column(var = "Term") %>% 
-    gather(key = "Variable", value = "Value", -"Term") %>% 
-    unite(Term, Variable, col = Term, sep = "_") %>% 
-    column_to_rownames(var = "Term") %>% 
-    t() %>% 
-    as.data.frame() %>% 
-    return()
+  res <- coefficients(summary(x))
+  colnames(res) <- c("ESTIMATE", "SE", "DF", "STAT", "PVALUE")
+  rownames(res) <- gsub(".*Intercept.*", "Intercept", rownames(res))
+  return(
+    as.data.frame(
+      t(
+        column_to_rownames(
+          df = unite(
+            data = gather(
+              data = rownames_to_column(df = as.data.frame(res), var = "Term"),
+              key = "Variable", value = "Value", -"Term"
+            ), 
+            col = Term, Term, Variable, sep = "_"
+          ),
+          var = "Term"
+        )
+      )
+    )
+  )
+  
+  
 }
 
 # extract residuals from mixed model and list samples with median plus/minus 3*IQR
 get_residuals_outliers <- function(x) {
-  x@frame %>% 
-    mutate(
-      residuals = residuals(x),
-      r_iqr = 3 * IQR(residuals),
-      r_median = median(residuals),
-      left = r_median-r_iqr,
-      right = r_median+r_iqr
-    ) %>% 
-    filter(residuals<left | residuals>right) %>% 
-    .[["SUBJID"]] %>% 
-    return()
+  return(
+    filter( 
+      .data = mutate(
+        .data = x@frame,
+        residuals = residuals(x),
+        r_iqr = 3 * IQR(residuals),
+        r_median = median(residuals),
+        left = r_median-r_iqr,
+        right = r_median+r_iqr
+      ),
+      residuals<left | residuals>right
+    )[["SUBJID"]]
+  )
 }
 
 # function to compute mean and sd, then paste results for output
