@@ -15,7 +15,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.0.6)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.1.0)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -558,8 +558,6 @@ tidy_lmer <- function(x) {
       )
     )
   )
-  
-  
 }
 
 # extract residuals from mixed model and list samples with median plus/minus 3*IQR
@@ -590,7 +588,9 @@ compute_mean_sd <- function(x, digits = 2) {
 }
 ```
 
+
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
+
 
 # Goal
 
@@ -612,7 +612,9 @@ Results from analyses from different cohorts will be combined in two meta-analys
 
 The latter analysis will yield a more precise estimation of longitudinal trajectories than when data from only two time-points are available. 
 
+
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
+
 
 # R commands to run the Rmarkdown script
 
@@ -663,25 +665,17 @@ rmarkdown::render(
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
-# R session information
-Please use `r R.version.string` (if not possible, newer version "3.4.*" can be used).
-```{r session_info, results = "markup"}
-devtools::session_info()
-```
-
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
-
 ```{r open_opal_connection, eval = params_steps$step_1, results = ifelse(params$echo, "asis", "hide")}
 cat("\n# Load data from OPAL node\n\n")
 cat("\n## Open connection to OPAL node\n\n")
 
-opal_credentials <- read.table(
-  file = params$opal_credentials, 
-  stringsAsFactors = FALSE, 
-  row.names = c("opal_server", "opal_login", "opal_password")
-) %>% 
-  t() %>% 
-  as.data.frame(stringsAsFactors = FALSE)
+opal_credentials <- as.data.frame(t(
+  read.table(
+    file = params$opal_credentials, 
+    stringsAsFactors = FALSE, 
+    row.names = c("opal_server", "opal_login", "opal_password")
+  )
+), stringsAsFactors = FALSE)
 
 o <- opal.login(
   username = opal_credentials$opal_login,
@@ -713,17 +707,25 @@ lb_tidy <- format_lb(data = LB)
 #   nrow(lb_tidy$data) == nrow(vs_tidy$data)
 # )
 
-DMVSLB <- merge(
-  x = DM %>% mutate(VISIT = "BASELINE") %>% select(-DOMAIN),
-  y = merge(
-    vs_tidy$data %>% select(-DOMAIN),
-    lb_tidy$data %>% select(-DOMAIN),
-    by = c("STUDYID", "SUBJID", "VISIT"),
-    all = TRUE
+DMVSLB <- full_join(
+  x = select(.data = mutate(.data = DM, VISIT = "BASELINE"), -DOMAIN),
+  y = full_join(
+    x = select(.data = mutate(.data = vs_tidy$data, VISIT = as.character(VISIT)), -DOMAIN),
+    y = select(.data = mutate(.data = lb_tidy$data, VISIT = as.character(VISIT)), -DOMAIN),
+    by = c("STUDYID", "SUBJID", "VISIT")
   ),
-  by = c("STUDYID", "SUBJID", "VISIT"),
-  all = TRUE
+  by = c("STUDYID", "SUBJID", "VISIT")
 ) %>%
+  mutate(
+    VISIT = factor(
+      x = VISIT,
+      levels = c(
+        "BASELINE", 
+        sort(grep("VISIT", unique(VISIT), value = TRUE)), 
+        "LAST"
+      )
+    )
+  ) %>% 
   group_by(STUDYID, SUBJID) %>%
   filter(
     (VISIT=="BASELINE" & !is.na(AGE) & !is.na(SEX)) | VISIT!="BASELINE"
@@ -745,23 +747,26 @@ if (
     select(n) %>%
     all()
 ) {
-  DMVSLB <- DMVSLB %>%
-    mutate(
-      VISIT_YEARS = as.numeric(
-        difftime(as.Date(VSDTC), min(as.Date(VSDTC), na.rm = TRUE), unit = "weeks") / 52.25
-      )
+  DMVSLB <- mutate(
+    .data = DMVSLB,
+    VISIT_YEARS = as.numeric(
+      difftime(as.Date(VSDTC), min(as.Date(VSDTC), na.rm = TRUE), unit = "weeks") / 52.25
     )
+  )
 } else {
   cat("The number of visits per individuals differs!")
   cat("\n")
 }
 ```
 
+
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
+
 
 # Quality control of phenotype data
 
 ## Summary
+
 1.  Make sure measured biomarker data are in the same units across all the cohorts.  
 Fasting and 2-h plasma glucose in mmol/l and HbA1c in mmol/mol.
 2.  For fasting and 2-h glucose, ensure only those participants who are fasted for at least 8-h are included.
@@ -786,11 +791,13 @@ Diagnostic criteria for diabetes ([ADA criteria; Diabetes Care 2015 Jan; 38, Sup
 ### Make sure measured biomarker data are in the same units across all the cohorts
 
 #### Demographic variables
+
 ```{r display_demographic_marker_description, eval = params_steps$step_2}
 pretty_kable(vs_tidy$annotation)
 ```
 
 #### Check if unit is the International Unit
+
 ```{r check_units_needs_convert, eval = params_steps$step_2}
 lb_tidy$annotation <- lb_tidy$annotation %>%
   mutate(
@@ -827,22 +834,23 @@ cat("\n")
 ```
 
 #### Display biomarkers and units
+
 ```{r display_biomarker_description, eval = params_steps$step_2}
 pretty_kable(lb_tidy$annotation[, -c(ncol(lb_tidy$annotation), ncol(lb_tidy$annotation)-1)])
 ```
 
 ```{r convert_biomarker_units, eval = params_steps$step_2, include = FALSE}
-variables_gl_to_convert <- lb_tidy$annotation %>%
-  filter(!is.na(CONVERT_TO) & tolower(LBORRESU)%in%"g/l") %>%
-  .[["KEY_MEASURES"]]
+variables_gl_to_convert <- filter(
+  .data = lb_tidy$annotation, !is.na(CONVERT_TO) & tolower(LBORRESU)%in%"g/l"
+)[["KEY_MEASURES"]]
 
-variables_mgl_to_convert <- lb_tidy$annotation %>%
-  filter(!is.na(CONVERT_TO) & tolower(LBORRESU)%in%"mg/l") %>%
-  .[["KEY_MEASURES"]]
+variables_mgl_to_convert <- filter(
+  .data = lb_tidy$annotation, !is.na(CONVERT_TO) & tolower(LBORRESU)%in%"mg/l"
+)[["KEY_MEASURES"]]
 
-variables_percent_to_convert <- lb_tidy$annotation %>%
-  filter(!is.na(CONVERT_TO) & LBORRESU%in%"%") %>%
-  .[["KEY_MEASURES"]]
+variables_percent_to_convert <- filter(
+  .data = lb_tidy$annotation, !is.na(CONVERT_TO) & LBORRESU%in%"%"
+)[["KEY_MEASURES"]]
 
 DMVSLB <- DMVSLB %>%
   mutate_at(
@@ -915,6 +923,7 @@ if (params$cohort_name == "ADDITION") {
 ```
 
 ### Keep only participants that are fasted at baseline
+
 ```{r fasted_samples, eval = params_steps$step_2}
 if (all(is.na(DMVSLB[, "LBFAST"]))) {
   cat(
@@ -958,6 +967,7 @@ if (all(is.na(DMVSLB[, "LBFAST"]))) {
 Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC0 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ### Exclusion of participants with data available for only one time-point
+
 ```{r check_samples_with_one_measure, eval = params_steps$step_2}
 variables_names_available <- variables_names[!grepl("_NA", variables_names)]
 
@@ -1023,6 +1033,7 @@ DMVSLB_QC2 <- DMVSLB_QC1 %>%
 Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC2 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ### Exclusion of participants developing diabetes during the study time without informations about medication
+
 ```{r check_incident_diabetic_medication, eval = params_steps$step_2}
 # Get samples developing diabetes according to definition
 follow_up_diabetes_samples_def <- DMVSLB_QC2 %>%
@@ -1076,24 +1087,22 @@ check_medication <- CM %>%
   filter(CHOCCUR)
 
 # List samples with 'INSULINS AND ANALOGUES' medication for later exclusion
-samples_with_insulin <- check_medication %>%
-  filter(CMCAT%in%"INSULINS AND ANALOGUES") %>%
-  .[["ID"]]
+samples_with_insulin <- filter(.data = check_medication, CMCAT%in%"INSULINS AND ANALOGUES")[["ID"]]
 
 # List incident diabetic samples with 'BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS'
 # and without 'INSULINS AND ANALOGUES' medication
 diabetic_samples_with_medication_info <- setdiff(
-    filter(
-      .data = check_medication, 
-      CMCAT%in%"BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS"
-    )[["ID"]],
-  samples_with_insulin
+  x = filter(
+    .data = check_medication, 
+    CMCAT%in%"BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS"
+  )[["ID"]],
+  y = samples_with_insulin
 )
 
 # List incident diabetic samples without medication information an/or 'INSULINS AND ANALOGUES'
 FollowUpDiabetesSamples.ToExclude <- setdiff(
-  unique(c(follow_up_diabetes_samples_def, follow_up_diabetes_samples_diag)),
-  diabetic_samples_with_medication_info
+  x = unique(c(follow_up_diabetes_samples_def, follow_up_diabetes_samples_diag)),
+  y = diabetic_samples_with_medication_info
 )
 
 # Exclude samples in 'FollowUpDiabetesSamples.ToExclude'
@@ -1105,11 +1114,14 @@ DMVSLB_QC3 <- DMVSLB_QC2 %>%
 
 Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB_QC3 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`
 
+
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
+
 
 # Preliminary modelling
 
 ## Summary
+
 The linear mixed model (LMM) is a suitably flexible approach, given that the intervals between data collection points is not uniform between cohorts; the LMM also permits the inclusion of different covariates, as well as unbalanced data within each cohort. 
 
 The LMM can be described as $y_{ij}=\alpha+\alpha_i+\beta t_{ij}+\beta_i t_{ij}+\epsilon_{ij}$, where $y_{ij}$ is a trait measurement for participant $i$ at time $j$ ($j=1,2,\dots$), $\alpha$ and $\beta$ are fixed effects for average intercept and time (slope), respectively.  
@@ -1136,11 +1148,9 @@ Additional covariates might be needed depending on the cohort.
 ### First Run
 
 #### Check number of time points
+
 ```{r preliminary_first_run_check_number_measures, eval = params_steps$step_3}
-nTimePoints <- DMVSLB_QC3 %>%
-  select(VISIT) %>%
-  distinct() %>%
-  nrow()
+nTimePoints <- nrow(distinct(select(.data = DMVSLB_QC3)))
 
 # Include random slope if more than two time points
 if (nTimePoints > 2) {
@@ -1167,11 +1177,8 @@ if (nTimePoints > 2) {
 ```
 
 ```{r preliminary_first_run, eval = params_steps$step_3}
-residuals_outliers <- variables_names %>% 
-  length() %>% 
-  rep_len(NA, .) %>% 
-  as.list() %>% 
-  `names<-`(variables_names)
+residuals_outliers <- as.list(rep_len(NA, length(variables_names)))
+names(residuals_outliers) <- variables_names
 
 for (ivariable in variables_names) {
   if (grepl("GLUC_", ivariable)) {
@@ -1200,20 +1207,19 @@ for (ivariable in variables_names) {
     )
     
     cat("\n##### Trajectories\n\n")
-    pTraj <- fit_data %>%
-      mutate(
-        ID = paste(STUDYID, SUBJID, sep = "_"),
-        pT2D = ifelse(
-          ID%in%diabetic_samples_with_medication_info,
-          "PreDiab",
-          "Normo"
-        )
-      ) %>%
+    pTraj <- mutate(.data = fit_data,
+      ID = paste(STUDYID, SUBJID, sep = "_"),
+      pT2D = ifelse(
+        ID%in%diabetic_samples_with_medication_info,
+        "PreDiab",
+        "Normo"
+      )
+    ) %>%
       ggplot(data = ., aes_string(x = "VISIT_YEARS", y = ivariable, colour = "ID")) +
-      geom_line() +
-      guides(colour = "none") +
-      scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
-      facet_grid(.~pT2D)
+        geom_line(na.rm = TRUE) +
+        guides(colour = "none") +
+        scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+        facet_grid(.~pT2D)
     print(pTraj)
     cat("\n")
     
@@ -1251,51 +1257,45 @@ for (ivariable in variables_names) {
     residuals_outliers[[ivariable]] <- get_residuals_outliers(fit)
     
     
-    cat("\n##### Results for random effect as a matrix\n\n")
+    cat("\n##### Random effect\n\n")
     if (nTimePoints > 2) {
       # Compare model with or without random slope (anova)
       fit_random <- anova(
         update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
         fit, refit = FALSE
-      ) %>%
-        mutate(Mod = c("Mod0", "Mod1")) %>%
-        column_to_rownames(var = "Mod") %>%
-        as.data.frame()
-      pretty_kable(fit_random, pval_cols = grep("Pr(>Chisq)", colnames(fit_random), fixed = TRUE)) %>%
-        print()
+      ) 
+      fit_random <- as.data.frame(
+        column_to_rownames(
+          df = mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
+          var = "Mod"
+        )
+      )
+      print(
+        pretty_kable(
+          data = fit_random, 
+          pval_cols = grep("Pr(>Chisq)", colnames(fit_random), fixed = TRUE)
+        )
+      )
     } else {
       cat("Not enough time points to test a random slope term.")
       cat("\n")
     }
     
     
-    cat("\n##### Results for fixed effect as a matrix\n\n")
-    coeff_fit <- summary(fit) %>%
-      coefficients() %>%
-      as.data.frame()
+    cat("\n##### Fixed effect\n\n")
+    coeff_fit <- as.data.frame(coefficients(summary(fit)))
     
     if (any(grepl("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE))) {
-      pretty_kable(coeff_fit, pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)) %>%
-        print()
+      print(
+        pretty_kable(
+          data = coeff_fit, 
+          pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)
+        )
+      )
     } else {
       cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
       cat("\n")
     }
-  
-    
-    # cat("\n##### Results for fixed effect as a row\n\n")
-    # fit_fixed <- tidy_lmer(fit)
-    # 
-    # if (any(grepl("PVALUE", colnames(fit_fixed)))) {
-    #   pretty_kable(
-    #     data = fit_fixed, 
-    #     pval_cols = grep("PVALUE", colnames(fit_fixed))
-    #   ) %>%
-    #     print()
-    # } else {
-    #   cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
-    #   cat("\n")
-    # }
   } else {
     cat(paste0("`", ivariable, "` is not available."))
     cat("\n")
@@ -1307,19 +1307,16 @@ for (ivariable in variables_names) {
 ```
 
 ### Second Run (after residuals check)
+
 ```{r preliminary_second_run_qc, eval = params_steps$step_3}
-DMVSLB_QC4 <- DMVSLB_QC3 %>%
-  filter(!SUBJID%in%unique(unlist(residuals_outliers)))
+DMVSLB_QC4 <- filter(.data = DMVSLB_QC3, !SUBJID%in%unique(unlist(residuals_outliers)))
 ```
 
 Total individuals available : `r ifelse(params$analysis_step>=3, DMVSLB_QC4 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ```{r preliminary_second_run, eval = params_steps$step_3}
-residuals_outliers <- variables_names %>% 
-  length() %>% 
-  rep_len(NA, .) %>% 
-  as.list() %>% 
-  `names<-`(variables_names)
+residuals_outliers <- as.list(rep_len(NA, length(variables_names)))
+names(residuals_outliers) <- variables_names
 
 for (ivariable in variables_names) {
   if (grepl("GLUC_", ivariable)) {
@@ -1348,20 +1345,20 @@ for (ivariable in variables_names) {
     )
     
     cat("\n##### Trajectories\n\n")
-    pTraj <- fit_data %>%
-      mutate(
-        ID = paste(STUDYID, SUBJID, sep = "_"),
-        pT2D = ifelse(
-          ID%in%diabetic_samples_with_medication_info,
-          "PreDiab",
-          "Normo"
-        )
-      ) %>%
+    pTraj <- mutate(
+      .data = fit_data,
+      ID = paste(STUDYID, SUBJID, sep = "_"),
+      pT2D = ifelse(
+        ID%in%diabetic_samples_with_medication_info,
+        "PreDiab",
+        "Normo"
+      )
+    ) %>%
       ggplot(data = ., aes_string(x = "VISIT_YEARS", y = ivariable, colour = "ID")) +
-      geom_line() +
-      guides(colour = "none") +
-      scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
-      facet_grid(.~pT2D)
+        geom_line(na.rm = TRUE) +
+        guides(colour = "none") +
+        scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+        facet_grid(.~pT2D)
     print(pTraj)
     cat("\n")
     
@@ -1396,59 +1393,47 @@ for (ivariable in variables_names) {
     cat("\n")
     
     
-    cat("\n##### Results for random effect as a matrix\n\n")
+    cat("\n##### Random effect\n\n")
     if (nTimePoints > 2) {
       # Compare model with or without random slope (anova)
       fit_random <- anova(
         update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
         fit, 
         refit = FALSE
-      ) %>%
-        mutate(Mod = c("Mod0", "Mod1")) %>%
-        column_to_rownames(var = "Mod") %>%
-        as.data.frame()
+      ) 
+      fit_random <- as.data.frame(
+        column_to_rownames(
+          df = mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
+          var = "Mod"
+        )
+      )
 
-      pretty_kable(
-        data = fit_random, 
-        pval_cols = grep("Pr(>Chisq)", colnames(fit_random), fixed = TRUE)
-      ) %>%
-        print()
+      print(
+        pretty_kable(
+          data = fit_random, 
+          pval_cols = grep("Pr(>Chisq)", colnames(fit_random), fixed = TRUE)
+        )
+      )
     } else {
       cat("Not enough time points to test a random slope term.")
       cat("\n")
     }
     
     
-    cat("\n##### Results for fixed effect as a matrix\n\n")
-    coeff_fit <- summary(fit) %>%
-      coefficients() %>%
-      as.data.frame()
+    cat("\n##### Fixed effect\n\n")
+    coeff_fit <- as.data.frame(coefficients(summary(fit)))
     
     if (any(grepl("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE))) {
-      pretty_kable(
-        data = coeff_fit, 
-        pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)
-      ) %>%
-        print()
+      print(
+        pretty_kable(
+          data = coeff_fit, 
+          pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)
+        )
+      )
     } else {
       cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
       cat("\n")
     }
-    
-    
-    # cat("\n##### Results for fixed effect as a row\n\n")
-    # fit_fixed <- tidy_lmer(fit)
-    # 
-    # if (any(grepl("PVALUE", colnames(fit_fixed)))) {
-    #   pretty_kable(
-    #     data = fit_fixed, 
-    #     pval_cols = grep("PVALUE", colnames(fit_fixed))
-    #   ) %>%
-    #     print()
-    # } else {
-    #   cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
-    #   cat("\n")
-    # }
   } else {
     cat(paste0("`", ivariable, "` is not available."))
     cat("\n")
@@ -1460,6 +1445,7 @@ for (ivariable in variables_names) {
 ```
 
 # Descriptive statistics
+
 ```{r display_descriptive_statistics, eval = params_steps$step_3}
 descriptive_table <- DMVSLB_QC4 %>%
   group_by(STUDYID) %>%
@@ -1510,9 +1496,11 @@ pretty_kable(descriptive_table[-1, , drop = FALSE])
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
+
 # Association and interaction analyses
 
 ## Summary
+
 To perform GWAS analysis, SNP main effect and SNP x time interaction term are included to the preliminary model above; these parameters are average linear effect of time and SNP effect on the rate change (SNP x time), respectively. 
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
@@ -1541,6 +1529,7 @@ cat("\n")
 ### Prepare and format VCF files
 
 #### Export Rmarkdown parameters in system environment for bash use
+
 ```{r export_rmarkdown_parameters, eval = params_steps$step_4}
 Sys.setenv(projectName = params$cohort_name)
 Sys.setenv(vcfin = params$vcf_input_directory)
@@ -1566,19 +1555,22 @@ cat(
 #### Format and split VCF using bash and vcftools (needs to be installed)
 
 #### List all VCFs path in a file
+
 ```{r list_vcf, eval = params_steps$step_4}
-list.files(
+list_files <- list.files(
   path = params$vcf_input_directory, 
-  pattern = ".*.vcf.gz$", # '.*[2][12]+' part to be removed later
+  pattern = '.*[2][12]+.*.vcf.gz$', # '.*.vcf.gz$', # '.*[2][12]+.*.vcf.gz$' part to be removed later
   full.names = TRUE
-) %>% 
-  cat(sep = "\n", file = paste0(params$output_directory, "/vcffilespath.txt"))
+)
+cat(list_files, sep = "\n", file = paste0(params$output_directory, "/vcffilespath.txt"))
 ```
 
 ##### Manually format VCFs
+
 Shell script can be run from your output directory (`` `r params$output_directory` ``) using the generated command line file (`` `r paste0("handleVCF_", params$cohort_name, ".sh")` ``) and shell script (`./utils/handleVCF.sh`, must be located in `` `r params$output_directory` ``).
 
 ##### Automatically format VCFs
+
 ```{sh format_vcf, eval = params_steps$step_5 & params$format_vcfs, echo = params_steps$step_5 & params$format_vcfs, results = "hide"}
 ## Description:
 ## When analysing the SNPs in R (lme4) the scripts crashes due to the amount of SNPs.
@@ -1593,6 +1585,7 @@ Shell script can be run from your output directory (`` `r params$output_director
 # vcfout=$2
 # imputationQualityTag=$3
 # vcftoolsPath=$4
+# chunksize=1000
 
 
 echo -e "\n"
@@ -1705,23 +1698,24 @@ done
 ### Run Mixed Model with imputed genotypes
 
 #### Trajectories
+
 ```{r lmm_genotypes_plot, eval = params_steps$step_6}
-DMVSLB_QC5 <- DMVSLB_QC4 %>%
-  filter(
-    SUBJID%in%(
-      grep(
-        pattern = "extractVCF",
-        x = list.dirs(params$output_directory, full.names = TRUE),
-        value = TRUE
-      ) %>% 
-        .[1] %>% 
-        list.files(pattern = ".DS.gz$", full.names = TRUE) %>% 
-        .[1] %>% 
-        read.table(header = TRUE, check.names = FALSE) %>% 
-        colnames() %>% 
-        .[-c(1, 2)]
-    )
-  ) 
+DMVSLB_QC5 <- filter(
+  .data = DMVSLB_QC4,
+  SUBJID %in% (
+    grep(
+      pattern = "extractVCF",
+      x = list.dirs(params$output_directory, full.names = TRUE),
+      value = TRUE
+    ) %>% 
+      .[1] %>% 
+      list.files(pattern = ".DS.gz$", full.names = TRUE) %>% 
+      .[1] %>% 
+      read.table(header = TRUE, check.names = FALSE) %>% 
+      colnames() %>% 
+      .[-c(1, 2)]
+  )
+) 
 
 DMVSLB_QC5 %>%
   select(!!unname(variables_names), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID) %>% 
@@ -1734,18 +1728,68 @@ DMVSLB_QC5 %>%
       "Normo"
     )
   ) %>%
-  ggplot(data = ., aes_string(x = "VISIT_YEARS", y = "Measure", colour = "ID")) +
-  geom_line() +
-  guides(colour = "none") +
-  scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
-  facet_grid(Trait~pT2D, scales = "free_y") +
-  labs(y = "Measure (SI)")
+    ggplot(data = ., aes_string(x = "VISIT_YEARS", y = "Measure", colour = "ID")) +
+      geom_line(na.rm = TRUE) +
+      guides(colour = "none") +
+      scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+      facet_grid(Trait~pT2D, scales = "free_y") +
+      labs(y = "Measure (SI)")
 
 cat("\n")
 ```
 
+#### Descriptive statistics
+
+```{r lmm_descriptive_statistics, eval = params_steps$step_6}
+descriptive_table <- DMVSLB_QC5 %>%
+  group_by(STUDYID) %>%
+  mutate(
+    NumberParticipants = format(length(unique(SUBJID)), big.mark = ","),
+    MalesPercent = round((sum(SEX0) / length(SEX0)) * 100, digits = 2)
+  ) %>%
+  group_by(STUDYID, SUBJID) %>%
+  mutate(
+    NumberMeasures = length(unique(VISIT_YEARS)),
+    FollowUpDuration = diff(range(VISIT_YEARS, na.rm = TRUE))
+  ) %>%
+  filter(VISIT == "BASELINE") %>%
+  ungroup() %>%
+  group_by(STUDYID) %>%
+  (function(.data) {
+    full_join(
+      x = .data %>% 
+        summarise(
+          `Number of Participants` = unique(NumberParticipants),
+          `Number of Measures` = compute_mean_sd(NumberMeasures, digits = 2),
+          `Follow-Up Duration` = compute_mean_sd(FollowUpDuration, digits = 2),
+          `Males Percentage` = unique(MalesPercent),
+          `Age (Baseline)`= compute_mean_sd(AGE0, digits = 2),
+          `BMI (Baseline)` = compute_mean_sd(BMI0, digits = 2)
+        ),
+      y = .data %>% 
+        summarise_at(.vars = vars(variables_names), .funs = compute_mean_sd) %>% 
+        `colnames<-`(c(colnames(.)[1], paste0(colnames(.)[-1], " (Baseline)"))),
+      by = "STUDYID"
+    )
+  }) %>%
+  ungroup() %>%
+  select(
+    STUDYID,
+    `Number of Participants`, `Number of Measures`, `Follow-Up Duration`, `Males Percentage`,
+    `Age (Baseline)`, `BMI (Baseline)`, 
+    everything()
+  ) %>%
+  t() %>%
+  `colnames<-`(.[1, ]) %>%
+  as.data.frame()
+
+pretty_kable(descriptive_table[-1, , drop = FALSE])
+```
+
 #### Mixed Model results
+
 ```{r lmm_genotypes, eval = params_steps$step_6 & params$variants_analysis}
+n_total <- unique(DMVSLB_QC5[["SUBJID"]])
 list_chrom_directories <- grep(
   pattern = "extractVCF",
   x = list.dirs(params$output_directory, full.names = TRUE),
@@ -1764,7 +1808,7 @@ for (ichrdirectory in list_chrom_directories) {
   list_dosage_file <- list.files(path = ichrdirectory, pattern = ".DS.gz$", full.names = TRUE)
   
   ## Parallelise on chunks
-  for (idosagefile in list_dosage_file) {
+  for (idosagefile in list_dosage_file[c(1, 2)]) {
     message(idosagefile)
     dosage_file <- read.table(file = idosagefile, header = TRUE, check.names = FALSE)
 
@@ -1776,26 +1820,36 @@ for (ichrdirectory in list_chrom_directories) {
     DMVSLB_QC5 <- filter(.data = DMVSLB_QC4, SUBJID%in%samplesWithPhenoGeno)
 
     ## Format genotypes
-    dosage_file_tidy <- dosage_file[, c("CHROM", "POS", samplesWithPhenoGeno)] %>%
-      mutate(SNP = paste(CHROM, POS, sep = "_")) %>%
-      select(-CHROM, -POS)
+    dosage_file_tidy <- select(
+      .data = mutate(
+        .data = dosage_file[, c("CHROM", "POS", samplesWithPhenoGeno)],
+        SNP = paste(CHROM, POS, sep = "_")
+      ),
+      -CHROM, -POS
+    )
     
     ## Remove multi-allele SNPs (duplicated chromosome:positition)
     multi_allele_snps <- dosage_file_tidy[duplicated(dosage_file_tidy[, "SNP"]), "SNP"]
     
-    dosage_file_tidy <- dosage_file_tidy %>% 
-      as.data.frame() %>%
-      filter(!SNP%in%multi_allele_snps) %>%
-      column_to_rownames(var = "SNP") %>%
-      t() %>% 
-      as.data.frame()
+    dosage_file_tidy <- as.data.frame(
+      t(
+        column_to_rownames(
+          df = filter(
+            .data = as.data.frame(dosage_file_tidy), 
+            !SNP%in%multi_allele_snps
+          ),
+          var = "SNP"
+        )
+      ) 
+    )
 
     ## Combine phenotypes and genotypes
     pheno_geno_data <- full_join(
       x = DMVSLB_QC5,
-      y = dosage_file_tidy %>% 
-        rownames_to_column(var = "SUBJID") %>% 
-        mutate(SUBJID = as.integer(SUBJID)),
+      y = mutate(
+        .data = rownames_to_column(df = dosage_file_tidy, var = "SUBJID"), 
+        SUBJID = as.integer(SUBJID)
+      ),
       by = c("SUBJID" = "SUBJID")
     )
 
@@ -1808,11 +1862,8 @@ for (ichrdirectory in list_chrom_directories) {
       mc_variables_names = variables_names,
       mc_pheno_geno_data = pheno_geno_data,
       FUN = function(isnp, mc_variables_names, mc_pheno_geno_data) {
-        results_lmm <- mc_variables_names %>% 
-          length() %>% 
-          rep(NA, .) %>% 
-          as.list() %>% 
-          `names<-`(mc_variables_names)
+        results_lmm <- as.list(rep(NA, length(mc_variables_names))) 
+        names(results_lmm) <- mc_variables_names
         for (ivariable in mc_variables_names) {
           if (!all(is.na(mc_pheno_geno_data[, ivariable]))) {
             local_formula <- eval(parse(text = paste0(
@@ -1821,13 +1872,13 @@ for (ichrdirectory in list_chrom_directories) {
             local_data <- mc_pheno_geno_data[, all.vars(local_formula)]
             
             fit_lmm <- lmer(formula = local_formula, data = local_data)
-            
             results_lmm[[ivariable]] <- cbind.data.frame(
-              TRAIT = ivariable,
-              SNP = isnp,
+              TRAIT = ivariable, 
+              SNP = isnp, 
+              # n_alleles = sum(distinct(local_data[, c("SUBJID", isnp)])[[isnp]]),
+              n_total = length(unique(local_data[["SUBJID"]])),
               tidy_lmer(fit_lmm)
             )
-            
             colnames(results_lmm[[ivariable]]) <- gsub(
               pattern = paste0("`", isnp, "`"),
               replacement = "SNP",
@@ -1852,19 +1903,25 @@ for (ichrdirectory in list_chrom_directories) {
     results_lmm_snp <- results_lmm_snp[!list_errors]
 
     annotation_chunk <- full_join(
-      x = read_tsv(gsub(".DS.gz", ".frq", idosagefile)) %>% 
-        mutate(POS = as.character(POS)),
-      y = read_tsv(gsub(".DS.gz", ".hwe", idosagefile)) %>% 
-        mutate(POS = as.character(POS)), 
+      x = mutate(
+        .data = read_tsv(gsub(".DS.gz", ".frq", idosagefile)),
+        POS = as.character(POS)
+      ),
+      y = mutate(
+        .data = read_tsv(gsub(".DS.gz", ".hwe", idosagefile)),
+        POS = as.character(POS)
+      ), 
       by = c("CHROM" = "CHR", "POS" = "POS")
-    ) %>% 
-      full_join(
-        x = .,
-        y = read_tsv(gsub(".DS.gz", ".INFO", idosagefile)) %>% 
-          mutate(POS = as.character(POS)), 
-        by = c("CHROM" = "CHROM", "POS" = "POS")
-      ) %>%
-        mutate(SNP = paste(CHROM, POS, sep = "_"))
+    )
+    annotation_chunk <- full_join(
+      x = annotation_chunk,
+      y = mutate(
+        .data = read_tsv(gsub(".DS.gz", ".INFO", idosagefile)),
+        POS = as.character(POS)
+      ), 
+      by = c("CHROM" = "CHROM", "POS" = "POS")
+    ) %>%
+      mutate(SNP = paste(CHROM, POS, sep = "_"))
     
     # annotations_columns <- c(
     #   "SNP", "CHROM", "POS", "N_ALLELES", "N_CHR", "frq1", "frq2", 
@@ -1872,42 +1929,47 @@ for (ichrdirectory in list_chrom_directories) {
     #   "P_HET_DEFICIT", "P_HET_EXCESS", params$imputation_quality_tag, "TRAIT"
     # )
     
-    results_lmm_chunk <- merge(
+    results_lmm_chunk <- full_join(
       x = annotation_chunk,
       y = bind_rows(results_lmm_snp),
       by = "SNP"
     )
     
-    results_lmm_chunk_output <- results_lmm_chunk %>% 
-      rename(imputation_quality_INFO = !!params$imputation_quality_tag) %>% 
-      transmute(
-        TRAIT = TRAIT,
-        SNPID = SNP,
-        chr = as.integer(CHROM),
-        position = as.integer(POS),
-        coded_all = ALT,
-        noncoded_all = REF,
-        strand_genome = "+", # hardcoded strand, because when imputed, the forward strand is usually used
-        beta = SNP_ESTIMATE,
-        SE = SNP_SE,
-        pval = SNP_PVALUE,
-        beta_interaction = (
-          if ("VISIT_YEARS:SNP_ESTIMATE" %in% colnames(.)) {`VISIT_YEARS:SNP_ESTIMATE`} else {NA}
-        ),
-        SE_interaction = (
-          if ("VISIT_YEARS:SNP_SE" %in% colnames(.)) {`VISIT_YEARS:SNP_SE`} else {NA}
-        ),
-        pval_interaction = (
-          if ("VISIT_YEARS:SNP_PVALUE" %in% colnames(.)) {`VISIT_YEARS:SNP_PVALUE`} else {NA}
-        ),
-        AF_coded_all = frq2,
-        HWE_pval = P_HWE, 
-        # callrate = NA, 
-        n_total = N_CHR/N_ALLELES,
-        # imputed = as.numeric(imputation_quality_INFO!=1),
-        # used_for_imp = as.numeric(imputation_quality_INFO==1),
-        imputation_quality_INFO = imputation_quality_INFO
-      )
+    results_lmm_chunk_output <- rename(
+      .data = results_lmm_chunk, 
+      imputation_quality_INFO = !!params$imputation_quality_tag
+    ) 
+    cnames_output <- colnames(results_lmm_chunk_output)
+    results_lmm_chunk_output <- transmute(
+      .data = results_lmm_chunk_output,
+      TRAIT = TRAIT,
+      SNPID = SNP,
+      chr = as.integer(CHROM),
+      position = as.integer(POS),
+      coded_all = ALT,
+      noncoded_all = REF,
+      strand_genome = "+", # hardcoded strand, because when imputed, the forward strand is usually used
+      beta = SNP_ESTIMATE,
+      SE = SNP_SE,
+      pval = SNP_PVALUE,
+      beta_interaction = (
+        if ("VISIT_YEARS:SNP_ESTIMATE" %in% cnames_output) {`VISIT_YEARS:SNP_ESTIMATE`} else {NA}
+      ),
+      SE_interaction = (
+        if ("VISIT_YEARS:SNP_SE" %in% cnames_output) {`VISIT_YEARS:SNP_SE`} else {NA}
+      ),
+      pval_interaction = (
+        if ("VISIT_YEARS:SNP_PVALUE" %in% cnames_output) {`VISIT_YEARS:SNP_PVALUE`} else {NA}
+      ),
+      AF_coded_all = frq2,
+      HWE_pval = P_HWE, 
+      # callrate = NA, 
+      n_total = n_total, # N_CHR/N_ALLELES,
+      # n_alleles = n_alleles,
+      # imputed = as.numeric(imputation_quality_INFO!=1),
+      # used_for_imp = as.numeric(imputation_quality_INFO==1),
+      imputation_quality_INFO = imputation_quality_INFO
+    )
 
     ## Write results
     for (ivariable in variables_names) {
@@ -1937,7 +1999,8 @@ write_csv(
     "TRAIT", "SNPID", "chr", "position", "coded_all", "noncoded_all", 
     "strand_genome", "beta", "SE", "pval", 
     "beta_interaction", "SE_interaction", "pval_interaction", 
-    "AF_coded_all", "HWE_pval", "n_total", "imputation_quality_INFO"
+    "AF_coded_all", "HWE_pval", "n_total", # "n_alleles", 
+    "imputation_quality_INFO"
   ), 
   path = csv_header, 
   col_names = FALSE
@@ -2016,13 +2079,12 @@ concatenate_chunks %>%
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
-## Samples exclusion summary
+
+# Samples exclusion summary
+
 ```{r qc_summary, eval = params_steps$step_2}
 count_samples <- function(data) { 
-  data %>% 
-    select(STUDYID, SUBJID) %>% 
-    distinct() %>% 
-    nrow()
+  nrow(distinct(select(.data = data, STUDYID, SUBJID)))
 }
 
 qc_steps <- bind_rows(
@@ -2077,7 +2139,9 @@ pretty_kable(data = qc_steps)
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
-## Output tree structure
+
+# Output tree structure
+
 ```{r directory_structure, eval = params_steps$step_7, results = "markup"}
 outout_tree_structure <- c(
   list.files(
@@ -2125,12 +2189,7 @@ outout_tree_structure <- c(
   data.frame(pathString = .) %>%
   as.Node()
 
-outout_tree_structure %>%
-  capture.output() %>%
-  .[-1] %>%
-  sapply(., paste0, "\n") %>%
-  paste(collapse = "") %>%
-  cat()
+cat(paste(sapply(capture.output(outout_tree_structure)[-1], paste0, "\n"), collapse = ""))
 ```
 
 ```{r output_description, eval = params_steps$step_7}
@@ -2153,6 +2212,7 @@ output_description <- tribble(
   "HWE_pval", "exact test Hardy-Weinberg equilibrium p-value -- only directly typed SNPs, NA for imputed",
   # "callrate", "genotyping call rate after exclusions -- only directly typed SNPs, NA for imputed",
   "n_total", "total sample with phenotype and genotype for SNP",
+  # "n_alleles", "total number of alleles",
   # "imputed", "1/0 coding; 1=imputed SNP, 0=if directly typed",
   # "used_for_imp", "1/0 coding; 1=used for imputation, 0=not used for imputation",
   # "oevar_imp", "observed divided by expected variance for imputed allele dosage -- NA otherwise",
@@ -2165,3 +2225,11 @@ pretty_kable(data = output_description)
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
+
+# R session information
+
+```{r session_info, results = "markup"}
+devtools::session_info()
+```
+
+`r if (knitr:::is_latex_output()) {'\\clearpage'}`
