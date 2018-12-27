@@ -229,7 +229,7 @@ docker run \
   --volume /your_local_volume:/media/remote_volume \
   --publish 8787:8787 \
   --publish 22:22 \
-  biostatgood/rhapsody:latest
+  umr8199/rhapsody:latest
 ```
 `"/your_local_volume"` is the path to the volume (where your data are located) on the machine when you run the docker software.  
 `"/media/remote_volume"` will be the path within the docker container (keep `/media/` as root directory).
