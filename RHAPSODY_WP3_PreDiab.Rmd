@@ -1559,7 +1559,7 @@ cat(
 ```{r list_vcf, eval = params_steps$step_4}
 list_files <- list.files(
   path = params$vcf_input_directory, 
-  pattern = '.*[2][12]+.*.vcf.gz$', # '.*.vcf.gz$', # '.*[2][12]+.*.vcf.gz$' part to be removed later
+  pattern = '.*.vcf.gz$', # '.*[2][12]+.*.vcf.gz$' part to be removed later
   full.names = TRUE
 )
 cat(list_files, sep = "\n", file = paste0(params$output_directory, "/vcffilespath.txt"))
@@ -1808,7 +1808,7 @@ for (ichrdirectory in list_chrom_directories) {
   list_dosage_file <- list.files(path = ichrdirectory, pattern = ".DS.gz$", full.names = TRUE)
   
   ## Parallelise on chunks
-  for (idosagefile in list_dosage_file[c(1, 2)]) {
+  for (idosagefile in list_dosage_file) {
     message(idosagefile)
     dosage_file <- read.table(file = idosagefile, header = TRUE, check.names = FALSE)
 
