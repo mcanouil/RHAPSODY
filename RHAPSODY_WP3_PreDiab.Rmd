@@ -380,7 +380,7 @@ convert_2mmoll <- function(x, from = "g/l") {
     "g/l" = {x / 0.18},
     "mg/l" = {x / 0.18 / 100},
     "mmol/l" = {x},
-    stop("Please check Units: g/l, g/L, mg/l, mg/Ln, mmol/l or mmol/L!")
+    stop("Please check Units: g/l, g/L, mg/l, mg/L, mmol/l or mmol/L!")
   )
 }
 
