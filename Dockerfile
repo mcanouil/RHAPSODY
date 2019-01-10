@@ -293,7 +293,9 @@ RUN mkdir -p /home/rhapsody/WP3 \
   && git clone https://gist.github.com/f3e2fdc59757fd8577abfe233854580a.git utils \
   && chown -R rhapsody:rhapsody /home/rhapsody/ \
   && chown -R rhapsody:rhapsody /home/rhapsody/WP3/scripts/.git \
-  && chown -R rhapsody:rhapsody /home/rhapsody/WP3/scripts/utils/.git
+  && chmod -R 777 /home/rhapsody/WP3/scripts/.git \
+  && chown -R rhapsody:rhapsody /home/rhapsody/WP3/scripts/utils/.git \
+  && chmod -R 777 /home/rhapsody/WP3/scripts/utils/.git
 
   
 EXPOSE 8787
