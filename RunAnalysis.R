@@ -9,7 +9,7 @@ n_cpu <- 2
 
 opal_credentials <- 'opal_credentials.txt'
 
-vcf_directory <- '/media/.../vcf'
+vcf_directory <- '/media/vcf'
 imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be 'R2')
 vcftools_binary_path <- '/usr/local/bin'
 format_vcfs <- TRUE
