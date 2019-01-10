@@ -115,6 +115,8 @@ cat(paste(sapply(capture.output(outout_tree_structure)[-1], paste0, '\n'), colla
   a Rmarkdown script to 'quickly' check if the analyses went well (*i.e.*, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);
 * `~/WP3/scripts/utils/README.Rmd`  
   a Rmarkdown script to create `README.pdf`.
+* `~/WP3/scripts/utils/howto.Rmd`  
+  a how-to document and its html version `howto.html`.
 
 ### Check environment settings
 
@@ -559,7 +561,8 @@ cat(paste(sapply(capture.output(outout_tree_structure)[-1], paste0, '\n'), colla
   a Rmarkdown script to 'quickly' check if the analyses went well (*i.e.*, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);
 * `/home/rhapsody/WP3/scripts/utils/README.Rmd`  
   a Rmarkdown script to create `README.pdf`.
-
+* `/home/rhapsody/WP3/scripts/utils/howto.Rmd`  
+  a how-to document and its html version `howto.html`.
 
 ### Run the analysis
 
@@ -764,6 +767,8 @@ cat(paste(sapply(capture.output(outout_tree_structure)[-1], paste0, '\n'), colla
   a Rmarkdown script to 'quickly' check if the analyses went well (*i.e.*, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);
 * `/home/rhapsody/WP3/scripts/utils/README.Rmd`  
   a Rmarkdown script to create `README.pdf`.
+* `/home/rhapsody/WP3/scripts/utils/howto.Rmd`  
+  a how-to document and its html version `howto.html`.
 
 ### Run the analysis
 
