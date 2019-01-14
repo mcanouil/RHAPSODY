@@ -1150,7 +1150,7 @@ Additional covariates might be needed depending on the cohort.
 #### Check number of time points
 
 ```{r preliminary_first_run_check_number_measures, eval = params_steps$step_3}
-nTimePoints <- nrow(distinct(select(.data = DMVSLB_QC3)))
+nTimePoints <- max(table(DMVSLB_QC3[["SUBJID"]]))
 
 # Include random slope if more than two time points
 if (nTimePoints > 2) {
