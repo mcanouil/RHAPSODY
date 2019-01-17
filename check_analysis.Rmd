@@ -3,7 +3,7 @@ params:
   cohort_name: 'Cohort Name'
   author_name: 'Firstname LASTNAME'
   output_directory: './'
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Check (Version 1.0.4)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Check (Version 1.1.0)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
