@@ -1,0 +1,16 @@
+FROM umr8199/rhapsody:latest
+
+
+RUN git -C /home/rhapsody/WP3/scripts pull origin master \
+  && git -C /home/rhapsody/WP3/scripts/utils pull origin master \
+  && chown -R rhapsody:rhapsody /home/rhapsody/ \
+  && chown -R rhapsody:rhapsody /home/rhapsody/WP3/scripts/.git \
+  && chmod -R 777 /home/rhapsody/WP3/scripts/.git \
+  && chown -R rhapsody:rhapsody /home/rhapsody/WP3/scripts/utils/.git \
+  && chmod -R 777 /home/rhapsody/WP3/scripts/utils/.git
+
+  
+EXPOSE 8787
+
+
+CMD ["/bin/sh", "/tmp/boot.sh"]
