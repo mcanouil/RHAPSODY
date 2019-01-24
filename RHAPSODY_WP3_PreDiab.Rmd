@@ -15,7 +15,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.1.0)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.1.1)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -1563,6 +1563,7 @@ list_files <- list.files(
   full.names = TRUE
 )
 cat(list_files, sep = "\n", file = paste0(params$output_directory, "/vcffilespath.txt"))
+cat(DMVSLB_QC4[["SUBJID"]], sep = "\n", file = paste0(params$output_directory, "/sample_qced.txt"))
 ```
 
 ##### Manually format VCFs
@@ -1622,6 +1623,7 @@ do
     --out $eVCF/tmp
   awk '{if($5<0.3) print $1"\t"$2}' $eVCF/tmp.INFO > $eVCF/delme
   $vcftoolsPath/vcftools --gzvcf $vcf \
+    --keep  $vcfout/sample_qced.txt \
     --exclude-positions $eVCF/delme \
     --maf 0.01 \
     --remove-indels \
@@ -1636,7 +1638,7 @@ do
   gunzip -c $eVCF/filtered.$base | head -n 200 | awk '/^#/' > $sVCF/tmpHeader
 
   ## unzip vcf and keep all but header. Split the files into lines of 1000 and call them pre*
-  gunzip -c $eVCF/filtered.$base | awk '!/^#/' |  split - --lines=$chunksize $sVCF/pre
+  gunzip -c $eVCF/filtered.$base | awk '!/^#/' | split - --lines=$chunksize $sVCF/pre
 
   ## loop through the pre*, add the header and zip the file. Save as "small_*.vcf.gz"
   find $sVCF/pre* | while read pathToFile;
@@ -1814,10 +1816,9 @@ for (ichrdirectory in list_chrom_directories) {
 
     ## Check intersect between phenotypes and genotypes data
     samplesWithPhenoGeno <- intersect(
-      unique(DMVSLB_QC4[, "SUBJID"]),
+      unique(DMVSLB_QC5[, "SUBJID"]),
       colnames(dosage_file)[-c(1, 2)]
     )
-    DMVSLB_QC5 <- filter(.data = DMVSLB_QC4, SUBJID%in%samplesWithPhenoGeno)
 
     ## Format genotypes
     dosage_file_tidy <- select(
