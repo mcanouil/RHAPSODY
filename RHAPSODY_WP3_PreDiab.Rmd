@@ -1791,7 +1791,6 @@ pretty_kable(descriptive_table[-1, , drop = FALSE])
 #### Mixed Model results
 
 ```{r lmm_genotypes, eval = params_steps$step_6 & params$variants_analysis}
-n_total <- unique(DMVSLB_QC5[["SUBJID"]])
 list_chrom_directories <- grep(
   pattern = "extractVCF",
   x = list.dirs(params$output_directory, full.names = TRUE),
@@ -1877,7 +1876,7 @@ for (ichrdirectory in list_chrom_directories) {
               TRAIT = ivariable, 
               SNP = isnp, 
               # n_alleles = sum(distinct(local_data[, c("SUBJID", isnp)])[[isnp]]),
-              n_total = length(unique(local_data[["SUBJID"]])),
+              N_TOTAL = length(unique(local_data[["SUBJID"]])),
               tidy_lmer(fit_lmm)
             )
             colnames(results_lmm[[ivariable]]) <- gsub(
@@ -1965,7 +1964,7 @@ for (ichrdirectory in list_chrom_directories) {
       AF_coded_all = frq2,
       HWE_pval = P_HWE, 
       # callrate = NA, 
-      n_total = n_total, # N_CHR/N_ALLELES,
+      n_total = N_TOTAL, # N_CHR/N_ALLELES,
       # n_alleles = n_alleles,
       # imputed = as.numeric(imputation_quality_INFO!=1),
       # used_for_imp = as.numeric(imputation_quality_INFO==1),
