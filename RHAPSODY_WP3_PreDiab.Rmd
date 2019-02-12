@@ -15,7 +15,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.1.1)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.0)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -539,25 +539,12 @@ compute_bmi <- function(data) {
 
 # function to extract results from lmer functions in a tidy way (one row)
 tidy_lmer <- function(x) {
-  res <- coefficients(summary(x))
+  res <- data.frame(coefficients(summary(x)), check.names = FALSE, stringsAsFactors = FALSE)
   colnames(res) <- c("ESTIMATE", "SE", "DF", "STAT", "PVALUE")
-  rownames(res) <- gsub(".*Intercept.*", "Intercept", rownames(res))
-  return(
-    as.data.frame(
-      t(
-        column_to_rownames(
-          df = unite(
-            data = gather(
-              data = rownames_to_column(df = as.data.frame(res), var = "Term"),
-              key = "Variable", value = "Value", -"Term"
-            ), 
-            col = Term, Term, Variable, sep = "_"
-          ),
-          var = "Term"
-        )
-      )
-    )
-  )
+  res[, "Term"] <- gsub(".*Intercept.*", "Intercept", rownames(res))
+  res <- gather(data = res, key = "Variable", value = "Value", -"Term")
+  rownames(res) <- paste(res[, "Term"], res[, "Variable"], sep = "_")
+  return(data.frame(t(res[, "Value", drop = FALSE]), check.names = FALSE, stringsAsFactors = FALSE))
 }
 
 # extract residuals from mixed model and list samples with median plus/minus 3*IQR
@@ -1797,7 +1784,7 @@ list_chrom_directories <- grep(
   value = TRUE
 )
 
-for (ichrdirectory in list_chrom_directories) {
+trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
   message(ichrdirectory)
 
   # dir.create(gsub("extractVCF", "output_chunks_lmm", ichrdirectory), showWarnings = FALSE, mode = '0777')
@@ -1809,7 +1796,7 @@ for (ichrdirectory in list_chrom_directories) {
   list_dosage_file <- list.files(path = ichrdirectory, pattern = ".DS.gz$", full.names = TRUE)
   
   ## Parallelise on chunks
-  for (idosagefile in list_dosage_file) {
+  trash <- map(.x = list_dosage_file, .f = function(idosagefile) {
     message(idosagefile)
     dosage_file <- read.table(file = idosagefile, header = TRUE, check.names = FALSE)
 
@@ -1855,16 +1842,14 @@ for (ichrdirectory in list_chrom_directories) {
 
     ## Run Mixed Model by SNP
     results_lmm_snp <- mclapply(
-      X = colnames(dosage_file_tidy),
+      X = colnames(dosage_file_tidy)[1:100],
       mc.cores = params$n_cpu,
       mc.allow.recursive = FALSE,
       mc.preschedule = FALSE,
       mc_variables_names = variables_names,
       mc_pheno_geno_data = pheno_geno_data,
       FUN = function(isnp, mc_variables_names, mc_pheno_geno_data) {
-        results_lmm <- as.list(rep(NA, length(mc_variables_names))) 
-        names(results_lmm) <- mc_variables_names
-        for (ivariable in mc_variables_names) {
+        map_df(.x = mc_variables_names, .f = function(ivariable) {
           if (!all(is.na(mc_pheno_geno_data[, ivariable]))) {
             local_formula <- eval(parse(text = paste0(
               "update.formula(formula.rightPart, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
@@ -1872,25 +1857,29 @@ for (ichrdirectory in list_chrom_directories) {
             local_data <- mc_pheno_geno_data[, all.vars(local_formula)]
             
             fit_lmm <- lmer(formula = local_formula, data = local_data)
-            results_lmm[[ivariable]] <- cbind.data.frame(
+            out <- cbind.data.frame(
               TRAIT = ivariable, 
               SNP = isnp, 
-              # n_alleles = sum(distinct(local_data[, c("SUBJID", isnp)])[[isnp]]),
               N_TOTAL = length(unique(local_data[["SUBJID"]])),
               tidy_lmer(fit_lmm)
             )
-            colnames(results_lmm[[ivariable]]) <- gsub(
+            colnames(out) <- gsub(
               pattern = paste0("`", isnp, "`"),
               replacement = "SNP",
-              x = colnames(results_lmm[[ivariable]]),
+              x = colnames(out),
               fixed = TRUE
             )
+            return(out)
           } else {
-            results_lmm[[ivariable]] <- NULL
+            out <- cbind.data.frame(
+              TRAIT = ivariable, 
+              SNP = isnp, 
+              N_TOTAL = length(unique(local_data[["SUBJID"]])),
+              NA
+            )
+            return(out)
           }
-        }
-        res_all <- do.call("rbind", results_lmm)
-        return(res_all)
+        })
       }
     )
     list_errors <- sapply(results_lmm_snp, is, class2 = "try-error")
@@ -1972,7 +1961,7 @@ for (ichrdirectory in list_chrom_directories) {
     )
 
     ## Write results
-    for (ivariable in variables_names) {
+    trash <- map(.x = variables_names, .f = function(ivariable) {
       if (!grepl("_NA", ivariable)) {
         dir.create(paste0(output_lmm_directory, "/", ivariable), showWarnings = FALSE, mode = '0777')
         output_filename <- paste0(
@@ -1987,9 +1976,30 @@ for (ichrdirectory in list_chrom_directories) {
           col_names = FALSE
         )
       }
-    }
-  }
-}
+    })
+  })
+  
+  rm(
+    list = c(
+      # "ichrfilename",
+      # "output_lmm_directory",
+      # "list_dosage_file",
+      # "idosagefile",
+      "dosage_file",
+      # "samplesWithPhenoGeno",
+      "dosage_file_tidy",
+      # "multi_allele_snps",
+      "pheno_geno_data",
+      "results_lmm_snp",
+      # "list_errors",
+      "annotation_chunk",
+      "results_lmm_chunk_output"#,
+      # "cnames_output",
+      # "output_filename"
+    )
+  )
+  gc(verbose = FALSE, reset = TRUE, full = TRUE)
+})
 ```
 
 ```{r concatenate_chunks, eval = params_steps$step_6, include = params_steps$step_6}
