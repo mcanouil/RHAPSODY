@@ -1842,7 +1842,7 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
 
     ## Run Mixed Model by SNP
     results_lmm_snp <- mclapply(
-      X = colnames(dosage_file_tidy)[1:100],
+      X = colnames(dosage_file_tidy),
       mc.cores = params$n_cpu,
       mc.allow.recursive = FALSE,
       mc.preschedule = FALSE,
