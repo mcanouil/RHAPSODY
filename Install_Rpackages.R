@@ -167,6 +167,7 @@ mapply(
 )
 
 list_packages <- c(
+  'tidyverse',
   'devtools', 'parallel', 'grid', 'scales',
   'broom', 'viridis', 'readxl', 'writexl',
   'cowplot', 'knitr', 'kableExtra', 'lme4',
