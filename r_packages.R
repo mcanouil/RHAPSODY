@@ -16,7 +16,6 @@ utils::install.packages(
   quiet = TRUE
 )
 
-
 list_packages <- read.table(
   col.names = c('package', 'version'), 
   text = "'acepack'	'1.4.1'
