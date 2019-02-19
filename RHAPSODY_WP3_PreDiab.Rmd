@@ -1798,6 +1798,14 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
   ## Parallelise on chunks
   trash <- map(.x = list_dosage_file, .f = function(idosagefile) {
     message(idosagefile)
+    log_file <- paste0(output_lmm_directory, "/", gsub(".*/([^.]*).*", "\\1", idosagefile), ".log")
+    if (file.exists(log_file)) {
+      message(
+        paste0('Chunk "', basename(idosagefile), '" from "', ichrfilename, '" was already analysed.', '\n'),
+        paste0('Chunk "', basename(idosagefile), ' is skipped.')
+      )
+      return(NULL)
+    }
     dosage_file <- read.table(file = idosagefile, header = TRUE, check.names = FALSE)
 
     ## Check intersect between phenotypes and genotypes data
@@ -1887,7 +1895,7 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
     cat(
       colnames(dosage_file_tidy)[list_errors],
       sep = "\n",
-      file = paste0(output_lmm_directory, "/", gsub(".*/([^.]*).*", "\\1", idosagefile), ".log")
+      file = log_file
     )
     results_lmm_snp <- results_lmm_snp[!list_errors]
 
