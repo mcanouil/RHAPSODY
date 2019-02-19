@@ -88,7 +88,7 @@ git push --tags
 docker build \
   --tag umr8199/rhapsody:VERSION \
   --compress \
-  --file /media/Project/RHAPSODY/Scripts/docker/Dockerfile_update 
+  --file /media/Project/RHAPSODY/Scripts/docker/Dockerfile_update \
   /media/Project/RHAPSODY/Scripts/docker/
 ```
 
