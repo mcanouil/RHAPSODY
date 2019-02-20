@@ -444,7 +444,7 @@ o <- opal.login(
 )
 
 
-available_tables <- intersect(opal.datasources(opal = o)[[1]]$table, c("DM", "VS", "LB", "MH", "CM", "APMH"))
+available_tables <- intersect(opal.datasources(opal = o)[[1]]$table, c("DM", "VS", "LB", "APMH"))
 for (itable in available_tables) {
   opal.assign(opal = o, symbol = itable, value = paste0("rhapsody.", itable))
   assign(x = itable, value = opal.execute(o, itable))
