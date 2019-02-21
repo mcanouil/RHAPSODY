@@ -48,11 +48,10 @@ convert_hba1c <- function(x, unitFrom = "%") {
         20.8, 21, 21.2
       )
     ), .Names = c("V1", "V2"), class = "data.frame", row.names = c(NA, -100L))
-    return(sapply(x, function(y) {
-      round(sum(tidy(lm(V1~V2, data = hba1c_unit_table))[, "estimate"] * c(1, y)))
-    }))
+    hba1c_model <- coef(lm(V1~V2, data = hba1c_unit_table))
+    sapply(x, function(y) round(sum(hba1c_model * c(1, y))))
   } else {
-    return(x)
+    x
   }
 }
 
