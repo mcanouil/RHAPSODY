@@ -76,6 +76,7 @@ git subtree pull --prefix docker_analysis/ docker_analysis master
 git commit -am 'update docker_analysis'
 
 git push origin master
+
 git tag VERSION -m 'Update all scripts'
 git push --tags
 ```
