@@ -48,12 +48,10 @@ convert_hba1c <- function(x, unitFrom = "%") {
         20.8, 21, 21.2
       )
     ), .Names = c("V1", "V2"), class = "data.frame", row.names = c(NA, -100L))
-    return(sapply(x, function(y) {
-      round(sum(tidy(lm(V1~V2, data = hba1c_unit_table))[, "estimate"] * c(1, y)))
-    }))
-  } else {
-    return(x)
+    hba1c_model <- coef(lm(V1~V2, data = hba1c_unit_table))
+    x <- sapply(x, function(y) round(sum(hba1c_model * c(1, y))))
   }
+  x
 }
 
 # function to convert g/l to mmol/l
@@ -117,7 +115,7 @@ format_vs <- function(data) {
     select(-KEY_FACTOR) %>%
     data.frame()
   
-  return(list(data = data_values, annotation = descriptive_data))
+  list(data = data_values, annotation = descriptive_data)
 }
 
 # function to convert "Laboratory Measurements" (LB) OPAL table (CDISC) to "long format"
@@ -127,23 +125,23 @@ format_lb <- function(data) {
     filter(LBTESTCD=="HBA1C") %>% 
     distinct()
   if (nrow(check_multiple_hba1c)>1) {
-    if (any(grepl("mmol/mol", check_multiple_hba1c[["LBORRESU"]]))) {
+    if (any(grepl("%", check_multiple_hba1c[["LBORRESU"]]))) {
       data <- data %>% 
         filter(
-          !(LBTESTCD=="HBA1C" & LBORRESU %in% setdiff(check_multiple_hba1c[["LBORRESU"]], "mmol/mol"))
+          !(LBTESTCD=="HBA1C" & LBORRESU %in% setdiff(check_multiple_hba1c[["LBORRESU"]], "%"))
         )
     } else {
        data <- data %>% 
         filter(
-          !(LBTESTCD=="HBA1C" & LBORRESU %in% setdiff(check_multiple_hba1c[["LBORRESU"]], "%"))
+          !(LBTESTCD=="HBA1C" & LBORRESU %in% setdiff(check_multiple_hba1c[["LBORRESU"]], "mmol/mol"))
         )
     }
   }
   
   data <- mutate(
     .data = data,
-    LBFAST = if ("LBFAST" %in% colnames(data)) {LBFAST} else {NA},
-    LBTPTNUM = if ("LBTPTNUM" %in% colnames(data)) {LBTPTNUM} else {NA},
+    LBFAST = if ("LBFAST" %in% colnames(data)) LBFAST else NA,
+    LBTPTNUM = if ("LBTPTNUM" %in% colnames(data)) LBTPTNUM else NA,
     LBTPTNUM = ifelse(LBTESTCD == "GLUC" & is.na(LBTPTNUM), 0, LBTPTNUM),
     KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
   )
@@ -189,20 +187,20 @@ format_lb <- function(data) {
     select(-KEY_FACTOR) %>%
     data.frame()
 
-  return(list(data = data_values, annotation = descriptive_data))
+  list(data = data_values, annotation = descriptive_data)
 }
 
 # function to compute bmi if not available
 compute_bmi <- function(data) {
   if (!"BMI"%in%data$annotation[["VSTESTCD"]]) {
     weight_unit <- data$annotation %>% 
-      filter(VSTESTCD=="WEIGHT") %>% 
+      filter(VSTESTCD == "WEIGHT") %>% 
       select(VSORRESU) %>% 
       unlist()
     convert_weight_unit <- switch(
       EXPR = weight_unit,
-      "kg" = {function(x) {x}},
-      "lb" = {function(x) {x*0.45359237}}
+      "kg" = {function(x) x},
+      "lb" = {function(x) x * 0.45359237}
     )
     
     height_unit <- data$annotation %>% 
@@ -211,9 +209,9 @@ compute_bmi <- function(data) {
       unlist()
     convert_height_unit <- switch(
       EXPR = height_unit,
-      "cm" = {function(x) {x/100}},
-      "m" = {function(x) {x}},
-      "in" = {function(x) {(x*2.54)/100}}
+      "cm" = {function(x) x / 100},
+      "m" = {function(x) x},
+      "in" = {function(x) (x * 2.54) / 100}
     )
     
     data$data <- mutate(
@@ -234,7 +232,7 @@ compute_bmi <- function(data) {
     )
     data$annotation <- bind_rows(data$annotation, default_CDISC_BMI)
   }
-  return(data)
+  data
 }
 
 
