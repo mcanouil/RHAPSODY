@@ -2117,7 +2117,7 @@ concatenate_chunks %>%
 
 # Samples exclusion summary
 
-```{r qc_summary, eval = params_steps$step_2}
+```{r qc_summary, eval = params_steps$step_7}
 count_samples <- function(data) { 
   nrow(distinct(select(.data = data, STUDYID, SUBJID)))
 }
