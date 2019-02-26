@@ -94,7 +94,7 @@ format_lb <- function(data) {
     }
   }
   
-  data <- dplyr::filter(
+  data <- dplyr::mutate(
     .data = data,
     LBFAST = if ("LBFAST" %in% colnames(data)) LBFAST else NA,
     LBTPTNUM = if ("LBTPTNUM" %in% colnames(data)) LBTPTNUM else NA,
@@ -397,7 +397,7 @@ o <- opal::opal.login(
   url = opal_credentials$opal_server
 )
 
-available_tables <- intersect(opal::opal.datasources(opal = o)[[1]]$table, c("DM", "VS", "LB", "MH", "CM"))
+available_tables <- intersect(opal::opal.datasources(opal = o)[[1]]$table, c("DM", "VS", "LB", "APMH"))
 
 for (itable in available_tables) {
   opal::opal.assign(opal = o, symbol = itable, value = paste0("rhapsody.", itable))
