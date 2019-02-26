@@ -30,13 +30,15 @@ output:
     toc: true
     toc_depth: 4
     toc_float: 
-      collapsed: true
-    fig_width: 5
-    fig_height: 4
+      collapsed: false
+    fig_width: 6.3
+    fig_height: 4.7
     number_sections: true
     self_contained: true
     mathjax: default
     df_print: kable
+editor_options: 
+  chunk_output_type: console
 ---
 
 <!-- Author - Mickaël Canouil, Ph.D. -->
@@ -1717,7 +1719,7 @@ list_chrom_directories <- grep(
 )
 if (params$debug) list_chrom_directories <- list_chrom_directories[1]
 
-trash <- purrr::map(.x = list_chrom_directories[c(1, 2)], .f = function(ichrdirectory) {
+trash <- purrr::map(.x = list_chrom_directories, .f = function(ichrdirectory) {
   message(ichrdirectory)
 
   # dir.create(gsub("extractVCF", "output_chunks_lmm", ichrdirectory), showWarnings = FALSE, mode = '0777')
@@ -1790,23 +1792,25 @@ trash <- purrr::map(.x = list_chrom_directories[c(1, 2)], .f = function(ichrdire
       mc.cores = params$n_cpu,
       mc.allow.recursive = FALSE,
       mc.preschedule = FALSE,
+      mc.cleanup = TRUE,
       mc_variables_names = variables_names,
       mc_pheno_geno_data = pheno_geno_data,
       FUN = function(isnp, mc_variables_names, mc_pheno_geno_data) {
         purrr::map_df(.x = mc_variables_names, .f = function(ivariable) {
-          if (!all(is.na(mc_pheno_geno_data[, ivariable]))) {
-            local_formula <- eval(parse(text = paste0(
-              "update.formula(formula.rightPart, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
-            )))
-            local_data <- mc_pheno_geno_data[, all.vars(local_formula)]
-            
+          local_formula <- eval(parse(text = paste0(
+            "update.formula(formula.rightPart, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
+          )))
+          local_data <- mc_pheno_geno_data[, all.vars(local_formula)]
+          if (!all(is.na(local_data[, ivariable]))) {
             fit_lmm <- lmerTest::lmer(formula = local_formula, data = local_data)
             out <- cbind.data.frame(
               TRAIT = ivariable, 
               SNP = isnp, 
               N_TOTAL = length(unique(local_data[["SUBJID"]])),
-              tidy_lmer(fit_lmm)
+              tidy_lmer(fit_lmm), 
+              stringsAsFactors = FALSE
             )
+            rownames(out) <- NULL
             colnames(out) <- gsub(
               pattern = paste0("`", isnp, "`"),
               replacement = "SNP",
@@ -1814,11 +1818,11 @@ trash <- purrr::map(.x = list_chrom_directories[c(1, 2)], .f = function(ichrdire
               fixed = TRUE
             )
           } else {
-            out <- cbind.data.frame(
+            out <- data.frame(
               TRAIT = ivariable, 
               SNP = isnp, 
-              N_TOTAL = length(unique(local_data[["SUBJID"]])),
-              NA
+              N_TOTAL = length(unique(local_data[["SUBJID"]])), 
+              stringsAsFactors = FALSE
             )
           }
           
@@ -1923,25 +1927,25 @@ trash <- purrr::map(.x = list_chrom_directories[c(1, 2)], .f = function(ichrdire
     })
   })
   
-  rm(
-    list = c(
-      # "ichrfilename",
-      # "output_lmm_directory",
-      # "list_dosage_file",
-      # "idosagefile",
-      "dosage_file",
-      # "samplesWithPhenoGeno",
-      "dosage_file_tidy",
-      # "multi_allele_snps",
-      "pheno_geno_data",
-      "results_lmm_snp",
-      # "list_errors",
-      "annotation_chunk",
-      "results_lmm_chunk_output"#,
-      # "cnames_output",
-      # "output_filename"
-    )
-  )
+  # rm(
+  #   list = c(
+  #     # "ichrfilename",
+  #     # "output_lmm_directory",
+  #     # "list_dosage_file",
+  #     # "idosagefile",
+  #     "dosage_file",
+  #     # "samplesWithPhenoGeno",
+  #     "dosage_file_tidy",
+  #     # "multi_allele_snps",
+  #     "pheno_geno_data",
+  #     "results_lmm_snp",
+  #     # "list_errors",
+  #     "annotation_chunk",
+  #     "results_lmm_chunk_output"#,
+  #     # "cnames_output",
+  #     # "output_filename"
+  #   )
+  # )
   gc(verbose = FALSE, reset = TRUE)
   return(NULL)
 })
