@@ -249,7 +249,7 @@ check_steps <- function(params, max) {
   out <- as.list(rep(FALSE, 7))
   names(out) <- paste0('step_', seq_len(7))
   out[paste0('step_', seq_len(params$analysis_step))] <- TRUE
-  return(out)
+  out
 }
 params_steps <- check_steps(params)
 
@@ -297,12 +297,11 @@ if (!file.exists(paste0(params$vcftools_binary_path, "/vcftools"))) {
 
 ```{r define_r_functions, include = FALSE, echo = FALSE}
 format_pval <- function (x, thresh = 10^-2, digits = 3, eps = 1e-50) {
-  pout <- ifelse(
+  ifelse(
     x>=thresh, 
     Hmisc::format.pval(x, digits = digits, eps = eps, nsmall = digits), 
     base::format.pval(x, digits = digits, eps = eps, scientific = TRUE, nsmall = digits)
   )
-  return(pout)
 }
 
 pretty_kable <- function(
@@ -912,12 +911,10 @@ variables_names <- c(varNamesGLUC_new, varNamesGLUC2H_new, varNamesHBA1C_new)
 ### Blood to Plasma measure conversion for ADDITION cohort
 if (params$cohort_name == "ADDITION") {
   convert_blood_to_plasma <- function(data) {
-    data %>% 
-      mutate(
-        GLUC_P = ifelse(VISIT=="BASELINE", 0.64 + 1.05 * GLUC_B, GLUC_P),
-        GLUC2H_P = ifelse(VISIT=="BASELINE", -0.30 + 0.97 * GLUC2H_B, GLUC2H_P)
-      ) %>% 
-      return()
+    mutate(.data = data,
+      GLUC_P = ifelse(VISIT=="BASELINE", 0.64 + 1.05 * GLUC_B, GLUC_P),
+      GLUC2H_P = ifelse(VISIT=="BASELINE", -0.30 + 0.97 * GLUC2H_B, GLUC2H_P)
+    )
   }
  
   DMVSLB <- convert_blood_to_plasma(DMVSLB)
@@ -1894,7 +1891,6 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
               x = colnames(out),
               fixed = TRUE
             )
-            return(out)
           } else {
             out <- cbind.data.frame(
               TRAIT = ivariable, 
@@ -1902,8 +1898,9 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
               N_TOTAL = length(unique(local_data[["SUBJID"]])),
               NA
             )
-            return(out)
           }
+          
+          out
         })
       }
     )
@@ -2197,7 +2194,7 @@ outout_tree_structure <- c(
     unique() %>% 
     sapply(., function(i) {
       tmp <- list.files(i, pattern = "preaa", full.names = TRUE)
-      return(ifelse(length(tmp) != 0, tmp, i))
+      ifelse(length(tmp) != 0, tmp, i)
     }) %>% 
     gsub("22", "CHR*", ., fixed = TRUE),
   list.files(
