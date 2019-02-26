@@ -1,6 +1,6 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes"
-subtitle: "(Version 1.2.1)"
+subtitle: "(Version 1.2.2)"
 author: "Mickaël Canouil, Ph.D."
 date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: 
