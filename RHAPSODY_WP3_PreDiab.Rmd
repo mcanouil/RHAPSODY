@@ -688,7 +688,7 @@ o <- opal::opal.login(
 
 cat("\n## Import table from OPAL node to local R session\n\n")
 # Available tables in OPAL (Check RHAPSODY/CDISC documentation for details)
-available_tables <- intersect(opal::opal.datasources(opal = o)[[1]]$table, c("DM", "VS", "LB", "APMH"))
+available_tables <- intersect(opal::opal.datasources(opal = o)[[1]]$table, c("DM", "VS", "LB", "APMH", "CM", "MH"))
 
 for (itable in available_tables) {
   opal::opal.assign(opal = o, symbol = itable, value = paste0("rhapsody.", itable))
