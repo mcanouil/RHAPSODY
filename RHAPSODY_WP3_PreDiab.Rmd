@@ -11,6 +11,7 @@ params:
   format_vcfs: TRUE
   variants_analysis: TRUE
   chunk_size: 1000
+  exclude_X: TRUE
   n_cpu: 2
   install_packages: FALSE
   echo: FALSE
@@ -1482,6 +1483,7 @@ list_files <- list.files(
   pattern = '.*.vcf.gz$', # '.*[2][12]+.*.vcf.gz$' part to be removed later
   full.names = TRUE
 )
+if (params$exclude_X) list_files <- list_files[grepl("X", list_files) | grepl("23", list_files)]
 cat(list_files, sep = "\n", file = paste0(params$output_directory, "/vcffilespath.txt"))
 cat(DMVSLB_QC4[["SUBJID"]], sep = "\n", file = paste0(params$output_directory, "/sample_qced.txt"))
 ```
