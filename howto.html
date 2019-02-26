@@ -11,7 +11,7 @@
 
 <meta name="author" content="Mickaël Canouil, Ph.D." />
 
-<meta name="date" content="2019-02-12" />
+<meta name="date" content="2019-02-26" />
 
 <title>RHAPSODY WP3 Pre-Diabetes</title>
 
@@ -120,9 +120,9 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">RHAPSODY WP3 Pre-Diabetes</h1>
-<h3 class="subtitle"><em>(Version 1.2.0)</em></h3>
+<h3 class="subtitle"><em>(Version 1.2.1)</em></h3>
 <h4 class="author"><em>Mickaël Canouil, Ph.D.</em></h4>
-<h4 class="date"><em>12 February 2019</em></h4>
+<h4 class="date"><em>February 26, 2019</em></h4>
 
 </div>
 
@@ -154,9 +154,8 @@ git clone https://gist.github.com/f3e2fdc59757fd8577abfe233854580a.git ~/WP3/scr
 ## 10                  ¦--howto.html                  
 ## 11                  ¦--howto.Rmd                   
 ## 12                  ¦--Install_Rpackages.R         
-## 13                  ¦--README.Rmd                  
-## 14                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
-## 15                  °--RunAnalysis.R</code></pre>
+## 13                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
+## 14                  °--RunAnalysis.R</code></pre>
 </div>
 <div id="description" class="section level4">
 <h4><span class="header-section-number">1.1.1.2</span> Description</h4>
@@ -198,7 +197,7 @@ a how-to document and its html version <code>howto.html</code>.</li>
 <div id="r-and-r-packages-version" class="section level4">
 <h4><span class="header-section-number">1.1.2.1</span> R and R packages version</h4>
 <p>Before runing anything, you can check the current settings of your cluster/grid/computer/laptop.<br />
-<strong>For reproducibily:</strong></p>
+<strong>For reproducibility:</strong></p>
 <ul>
 <li>The default R version is <strong>R version 3.4.2 (2017-09-28)</strong>.</li>
 <li>The default R packages are listed below.</li>
@@ -1126,151 +1125,151 @@ ggpubr
 <li><p>To only check R packages version, you can copy/paste the following code (<em>i.e.</em>, line <code>#14</code> to line <code>#153</code> of <code>~/WP3/scripts/utils/Install_Rpackages.R</code>) and display the <code>data.frame</code> (<em>i.e.</em>, <code>show(list_packages)</code>).<br />
 Either you get a zero line <code>data.frame</code> (<em>i.e.</em>, everything is as it should be), or you get a line for each discrepancy (<em>i.e.</em>, package name, recommended version and your local version).</p>
 <pre class="r"><code>list_packages &lt;- read.table(
-  col.names = c('package', 'version'), 
-  text = &quot;'acepack' '1.4.1'
-  'assertthat'  '0.2.0'
-  'backports'   '1.1.1'
-  'base64enc'   '0.1-3'
-  'BH'  '1.66.0-1'
-  'bindr'   '0.1.1'
-  'plogr'   '0.2.0'
-  'bindrcpp'    '0.2.2'
-  'bitops'  '1.0-6'
-  'brew'    '1.0-6'
-  'foreign' '0.8-69'
-  'mnormt'  '1.5-5'
-  'lattice' '0.20-35'
-  'nlme'    '3.1-131'
-  'psych'   '1.7.8'
-  'plyr'    '1.8.4'
-  'pkgconfig'   '2.0.1'
-  'utf8'    '1.1.3'
-  'pillar'  '1.2.2'
-  'tibble'  '1.4.2'
-  'purrr'   '0.2.4'
-  'tidyselect'  '0.2.4'
-  'dplyr'   '0.7.5'
-  'reshape2'    '1.4.3'
-  'tidyr'   '0.8.1'
-  'broom'   '0.4.4'
-  'callr'   '1.0.0'
-  'rematch' '1.0.1'
-  'cellranger'  '1.1.0'
-  'checkmate'   '1.8.5'
-  'cli' '1.0.0'
-  'cluster' '2.0.6'
-  'colorspace'  '1.3-2'
-  'compiler'    '3.4.2'
-  'RColorBrewer'    '1.1-2'
-  'dichromat'   '2.0-0'
-  'munsell' '0.4.3'
-  'labeling'    '0.3'
-  'viridisLite' '0.3.0'
-  'scales'  '0.5.0'
-  'gtable'  '0.2.0'
-  'lazyeval'    '0.2.1'
-  'ggplot2' '2.2.1'
-  'cowplot' '0.9.1'
-  'crayon'  '1.3.4'
-  'curl'    '3.0'
-  'data.table'  '1.10.4-3'
-  'downloader'  '0.4'
-  'htmlwidgets' '0.9'
-  'Matrix'  '1.2-12'
-  'irlba'   '2.3.1'
-  'igraph'  '1.1.2'
-  'influenceR'  '0.1.0'
-  'Rook'    '1.1-1'
-  'XML' '3.98-1.9'
-  'rgexf'   '0.15.3'
-  'gridExtra'   '2.3'
-  'viridis' '0.5.1'
-  'visNetwork'  '2.0.1'
-  'hms' '0.4.2'
-  'readr'   '1.1.1'
-  'DiagrammeR'  '0.9.2'
-  'data.tree'   '0.7.4'
-  'DBI' '0.7'
-  'dbplyr'  '1.2.1'
-  'devtools'    '1.13.5'
-  'digest'  '0.6.15'
-  'evaluate'    '0.10.1'
-  'forcats' '0.3.0'
-  'Formula' '1.2-2'
-  'git2r'   '0.19.0'
-  'glue'    '1.2.0'
-  'graphics'    '3.4.2'
-  'grDevices'   '3.4.2'
-  'grid'    '3.4.2'
-  'haven'   '1.1.1'
-  'highr'   '0.6'
-  'rpart'   '4.1-11'
-  'latticeExtra'    '0.6-28'
-  'survival'    '2.41-3'
-  'nnet'    '7.3-12'
-  'htmlTable'   '1.11.0'
-  'Hmisc'   '4.1-1'
-  'htmltools'   '0.3.6'
-  'httr'    '1.3.1'
-  'jsonlite'    '1.5'
-  'xml2'    '1.2.0'
-  'selectr' '0.3-1'
-  'rvest'   '0.3.2'
-  'kableExtra'  '0.6.1'
-  'knitr'   '1.20'
-  'minqa'   '1.2.4'
-  'nloptr'  '1.0.4'
-  'RcppEigen'   '0.3.3.3.1'
-  'lme4'    '1.1-14'
-  'numDeriv'    '2016.8-1'
-  'lmerTest'    '3.0-1'
-  'lubridate'   '1.7.4'
-  'magrittr'    '1.5'
-  'markdown'    '0.8'
-  'MASS'    '7.3-47'
-  'memoise' '1.1.0'
-  'methods' '3.4.2'
-  'mgcv'    '1.8-22'
-  'mime'    '0.5'
-  'modelr'  '0.1.1'
-  'openssl' '0.9.9'
-  'parallel'    '3.4.2'
-  'R6'  '2.2.2'
-  'Rcpp'    '0.12.17'
-  'RCurl'   '1.95-4.8'
-  'readxl'  '1.1.0'
-  'reprex'  '0.1.2'
-  'rjson'   '0.2.15'
-  'rlang'   '0.2.1'
-  'rmarkdown'   '1.9'
-  'rprojroot'   '1.2'
-  'rstudioapi'  '0.7'
-  'splines' '3.4.2'
-  'stats'   '3.4.2'
-  'stringi' '1.2.3'
-  'stringr' '1.3.1'
-  'tools'   '3.4.2'
-  'utils'   '3.4.2'
-  'whisker' '0.3-2'
-  'withr'   '2.1.2'
-  'writexl' '0.2'
-  'yaml'    '2.1.15'
-  'tidyverse' '1.2.1'
-  'ggsignif' '0.4.0'
-  'ggrepel' '0.8.0'
-  'ggsci' '2.9'
-  'polynom' '1.3-9'
-  'ggpubr' '0.2'&quot;
+  col.names = c(&quot;package&quot;, &quot;version&quot;), 
+  text = '&quot;acepack&quot; &quot;1.4.1&quot;
+  &quot;assertthat&quot;  &quot;0.2.0&quot;
+  &quot;backports&quot;   &quot;1.1.1&quot;
+  &quot;base64enc&quot;   &quot;0.1-3&quot;
+  &quot;BH&quot;  &quot;1.66.0-1&quot;
+  &quot;bindr&quot;   &quot;0.1.1&quot;
+  &quot;plogr&quot;   &quot;0.2.0&quot;
+  &quot;bindrcpp&quot;    &quot;0.2.2&quot;
+  &quot;bitops&quot;  &quot;1.0-6&quot;
+  &quot;brew&quot;    &quot;1.0-6&quot;
+  &quot;foreign&quot; &quot;0.8-69&quot;
+  &quot;mnormt&quot;  &quot;1.5-5&quot;
+  &quot;lattice&quot; &quot;0.20-35&quot;
+  &quot;nlme&quot;    &quot;3.1-131&quot;
+  &quot;psych&quot;   &quot;1.7.8&quot;
+  &quot;plyr&quot;    &quot;1.8.4&quot;
+  &quot;pkgconfig&quot;   &quot;2.0.1&quot;
+  &quot;utf8&quot;    &quot;1.1.3&quot;
+  &quot;pillar&quot;  &quot;1.2.2&quot;
+  &quot;tibble&quot;  &quot;1.4.2&quot;
+  &quot;purrr&quot;   &quot;0.2.4&quot;
+  &quot;tidyselect&quot;  &quot;0.2.4&quot;
+  &quot;dplyr&quot;   &quot;0.7.5&quot;
+  &quot;reshape2&quot;    &quot;1.4.3&quot;
+  &quot;tidyr&quot;   &quot;0.8.1&quot;
+  &quot;broom&quot;   &quot;0.4.4&quot;
+  &quot;callr&quot;   &quot;1.0.0&quot;
+  &quot;rematch&quot; &quot;1.0.1&quot;
+  &quot;cellranger&quot;  &quot;1.1.0&quot;
+  &quot;checkmate&quot;   &quot;1.8.5&quot;
+  &quot;cli&quot; &quot;1.0.0&quot;
+  &quot;cluster&quot; &quot;2.0.6&quot;
+  &quot;colorspace&quot;  &quot;1.3-2&quot;
+  &quot;compiler&quot;    &quot;3.4.2&quot;
+  &quot;RColorBrewer&quot;    &quot;1.1-2&quot;
+  &quot;dichromat&quot;   &quot;2.0-0&quot;
+  &quot;munsell&quot; &quot;0.4.3&quot;
+  &quot;labeling&quot;    &quot;0.3&quot;
+  &quot;viridisLite&quot; &quot;0.3.0&quot;
+  &quot;scales&quot;  &quot;0.5.0&quot;
+  &quot;gtable&quot;  &quot;0.2.0&quot;
+  &quot;lazyeval&quot;    &quot;0.2.1&quot;
+  &quot;ggplot2&quot; &quot;2.2.1&quot;
+  &quot;cowplot&quot; &quot;0.9.1&quot;
+  &quot;crayon&quot;  &quot;1.3.4&quot;
+  &quot;curl&quot;    &quot;3.0&quot;
+  &quot;data.table&quot;  &quot;1.10.4-3&quot;
+  &quot;downloader&quot;  &quot;0.4&quot;
+  &quot;htmlwidgets&quot; &quot;0.9&quot;
+  &quot;Matrix&quot;  &quot;1.2-12&quot;
+  &quot;irlba&quot;   &quot;2.3.1&quot;
+  &quot;igraph&quot;  &quot;1.1.2&quot;
+  &quot;influenceR&quot;  &quot;0.1.0&quot;
+  &quot;Rook&quot;    &quot;1.1-1&quot;
+  &quot;XML&quot; &quot;3.98-1.9&quot;
+  &quot;rgexf&quot;   &quot;0.15.3&quot;
+  &quot;gridExtra&quot;   &quot;2.3&quot;
+  &quot;viridis&quot; &quot;0.5.1&quot;
+  &quot;visNetwork&quot;  &quot;2.0.1&quot;
+  &quot;hms&quot; &quot;0.4.2&quot;
+  &quot;readr&quot;   &quot;1.1.1&quot;
+  &quot;DiagrammeR&quot;  &quot;0.9.2&quot;
+  &quot;data.tree&quot;   &quot;0.7.4&quot;
+  &quot;DBI&quot; &quot;0.7&quot;
+  &quot;dbplyr&quot;  &quot;1.2.1&quot;
+  &quot;devtools&quot;    &quot;1.13.5&quot;
+  &quot;digest&quot;  &quot;0.6.15&quot;
+  &quot;evaluate&quot;    &quot;0.10.1&quot;
+  &quot;forcats&quot; &quot;0.3.0&quot;
+  &quot;Formula&quot; &quot;1.2-2&quot;
+  &quot;git2r&quot;   &quot;0.19.0&quot;
+  &quot;glue&quot;    &quot;1.2.0&quot;
+  &quot;graphics&quot;    &quot;3.4.2&quot;
+  &quot;grDevices&quot;   &quot;3.4.2&quot;
+  &quot;grid&quot;    &quot;3.4.2&quot;
+  &quot;haven&quot;   &quot;1.1.1&quot;
+  &quot;highr&quot;   &quot;0.6&quot;
+  &quot;rpart&quot;   &quot;4.1-11&quot;
+  &quot;latticeExtra&quot;    &quot;0.6-28&quot;
+  &quot;survival&quot;    &quot;2.41-3&quot;
+  &quot;nnet&quot;    &quot;7.3-12&quot;
+  &quot;htmlTable&quot;   &quot;1.11.0&quot;
+  &quot;Hmisc&quot;   &quot;4.1-1&quot;
+  &quot;htmltools&quot;   &quot;0.3.6&quot;
+  &quot;httr&quot;    &quot;1.3.1&quot;
+  &quot;jsonlite&quot;    &quot;1.5&quot;
+  &quot;xml2&quot;    &quot;1.2.0&quot;
+  &quot;selectr&quot; &quot;0.3-1&quot;
+  &quot;rvest&quot;   &quot;0.3.2&quot;
+  &quot;kableExtra&quot;  &quot;0.6.1&quot;
+  &quot;knitr&quot;   &quot;1.20&quot;
+  &quot;minqa&quot;   &quot;1.2.4&quot;
+  &quot;nloptr&quot;  &quot;1.0.4&quot;
+  &quot;RcppEigen&quot;   &quot;0.3.3.3.1&quot;
+  &quot;lme4&quot;    &quot;1.1-14&quot;
+  &quot;numDeriv&quot;    &quot;2016.8-1&quot;
+  &quot;lmerTest&quot;    &quot;3.0-1&quot;
+  &quot;lubridate&quot;   &quot;1.7.4&quot;
+  &quot;magrittr&quot;    &quot;1.5&quot;
+  &quot;markdown&quot;    &quot;0.8&quot;
+  &quot;MASS&quot;    &quot;7.3-47&quot;
+  &quot;memoise&quot; &quot;1.1.0&quot;
+  &quot;methods&quot; &quot;3.4.2&quot;
+  &quot;mgcv&quot;    &quot;1.8-22&quot;
+  &quot;mime&quot;    &quot;0.5&quot;
+  &quot;modelr&quot;  &quot;0.1.1&quot;
+  &quot;openssl&quot; &quot;0.9.9&quot;
+  &quot;parallel&quot;    &quot;3.4.2&quot;
+  &quot;R6&quot;  &quot;2.2.2&quot;
+  &quot;Rcpp&quot;    &quot;0.12.17&quot;
+  &quot;RCurl&quot;   &quot;1.95-4.8&quot;
+  &quot;readxl&quot;  &quot;1.1.0&quot;
+  &quot;reprex&quot;  &quot;0.1.2&quot;
+  &quot;rjson&quot;   &quot;0.2.15&quot;
+  &quot;rlang&quot;   &quot;0.2.1&quot;
+  &quot;rmarkdown&quot;   &quot;1.9&quot;
+  &quot;rprojroot&quot;   &quot;1.2&quot;
+  &quot;rstudioapi&quot;  &quot;0.7&quot;
+  &quot;splines&quot; &quot;3.4.2&quot;
+  &quot;stats&quot;   &quot;3.4.2&quot;
+  &quot;stringi&quot; &quot;1.2.3&quot;
+  &quot;stringr&quot; &quot;1.3.1&quot;
+  &quot;tools&quot;   &quot;3.4.2&quot;
+  &quot;utils&quot;   &quot;3.4.2&quot;
+  &quot;whisker&quot; &quot;0.3-2&quot;
+  &quot;withr&quot;   &quot;2.1.2&quot;
+  &quot;writexl&quot; &quot;0.2&quot;
+  &quot;yaml&quot;    &quot;2.1.15&quot;
+  &quot;tidyverse&quot; &quot;1.2.1&quot;
+  &quot;ggsignif&quot; &quot;0.4.0&quot;
+  &quot;ggrepel&quot; &quot;0.8.0&quot;
+  &quot;ggsci&quot; &quot;2.9&quot;
+  &quot;polynom&quot; &quot;1.3-9&quot;
+  &quot;ggpubr&quot; &quot;0.2&quot;'
 )
-list_packages[, 'local_version'] &lt;- sapply(list_packages[, 'package'], utils::packageDescription, fields = 'Version')
-list_packages[, 'local_version'] &lt;- ifelse(is.na(list_packages[, 'local_version']), '', list_packages[, 'local_version'])
-list_packages &lt;- list_packages[list_packages[, 'local_version']!=list_packages[, 'version'], ]</code></pre></li>
+list_packages[, &quot;local_version&quot;] &lt;- sapply(list_packages[, &quot;package&quot;], utils::packageDescription, fields = &quot;Version&quot;)
+list_packages[, &quot;local_version&quot;] &lt;- ifelse(is.na(list_packages[, &quot;local_version&quot;]), &quot;&quot;, list_packages[, &quot;local_version&quot;])
+list_packages &lt;- list_packages[list_packages[, &quot;local_version&quot;]!=list_packages[, &quot;version&quot;], ]</code></pre></li>
 </ul>
 </div>
 <div id="vcftools-version" class="section level4">
 <h4><span class="header-section-number">1.1.2.2</span> VCFtools version</h4>
 <p>If VCFtools is not available on your machine, please install it following the instructions on <a href="https://vcftools.github.io/" class="uri">https://vcftools.github.io/</a>.<br />
-<strong>For reproducibily:</strong></p>
+<strong>For reproducibility:</strong></p>
 <ul>
 <li>The default version is <strong>VCFtools (0.1.17)</strong>.</li>
 </ul>
@@ -1490,9 +1489,8 @@ sudo git -C /home/rhapsody/WP3/scripts/utils pull origin master</code></pre>
 ## 10                  ¦--howto.html                  
 ## 11                  ¦--howto.Rmd                   
 ## 12                  ¦--Install_Rpackages.R         
-## 13                  ¦--README.Rmd                  
-## 14                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
-## 15                  °--RunAnalysis.R</code></pre>
+## 13                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
+## 14                  °--RunAnalysis.R</code></pre>
 </div>
 <div id="description-1" class="section level4">
 <h4><span class="header-section-number">1.2.4.2</span> Description</h4>
@@ -1711,9 +1709,8 @@ sudo git -C /home/rhapsody/WP3/scripts/utils pull origin master</code></pre>
 ## 10                  ¦--howto.html                  
 ## 11                  ¦--howto.Rmd                   
 ## 12                  ¦--Install_Rpackages.R         
-## 13                  ¦--README.Rmd                  
-## 14                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
-## 15                  °--RunAnalysis.R</code></pre>
+## 13                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
+## 14                  °--RunAnalysis.R</code></pre>
 </div>
 <div id="description-2" class="section level4">
 <h4><span class="header-section-number">1.3.2.2</span> Description</h4>
