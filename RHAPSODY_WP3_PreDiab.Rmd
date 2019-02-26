@@ -16,6 +16,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
+  debug: FALSE
 title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.3)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
