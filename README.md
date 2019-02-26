@@ -1,7 +1,7 @@
 RHAPSODY
 ========
 
-Latest version: `VERSION=1.2.0`
+Latest version: `VERSION=1.2.1`
 
 ## Merge all Gist into one repository
 
@@ -83,31 +83,22 @@ git push --tags
 
 ## Docker
 
-### Build image
-
-```
+``` sh
+VERSION=1.2.1
+## Build image
 docker build \
-  --tag umr8199/rhapsody:VERSION \
+  --tag umr8199/rhapsody:$VERSION \
   --compress \
   --file /media/Project/RHAPSODY/Scripts/docker/Dockerfile_update \
   /media/Project/RHAPSODY/Scripts/docker/
-```
 
-### Tag image with name and version
+## Tag image with name and version
+docker tag umr8199/rhapsody:$VERSION umr8199/rhapsody:latest
 
-```
-docker tag umr8199/rhapsody:VERSION umr8199/rhapsody:latest
-```
-
-### Push image to Docker Hub
-
-```
-docker push umr8199/rhapsody:VERSION
+## Push image to Docker Hub
+docker push umr8199/rhapsody:$VERSION
 docker push umr8199/rhapsody:latest
-```
 
-### Clean temporary image
-
-```
+## Clean temporary image
 docker system prune --all
 ```
