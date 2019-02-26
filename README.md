@@ -3,7 +3,7 @@ RHAPSODY
 
 Latest version: 
 ``` sh
-VERSION=1.2.1
+VERSION=1.2.2
 ```
 
 ## Merge all Gist into one repository
