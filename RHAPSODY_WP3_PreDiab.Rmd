@@ -368,7 +368,7 @@ convert_hba1c <- function(x, unitFrom = "%") {
         20.8, 21, 21.2
       )
     ), .Names = c("V1", "V2"), class = "data.frame", row.names = c(NA, -100L))
-    hba1c_model <- stats::coef(stats::lm(V1~V2, data = hba1c_unit_table))
+    hba1c_model <- coef(lm(V1~V2, data = hba1c_unit_table))
     x <- sapply(x, function(y) round(sum(hba1c_model * c(1, y))))
   }
   x
@@ -570,9 +570,9 @@ get_residuals_outliers <- function(x) {
   dplyr::filter( 
     .data = dplyr::mutate(
       .data = x@frame,
-      residuals = stats::residuals(x),
-      r_iqr = 3 * stats::IQR(residuals),
-      r_median = stats::median(residuals),
+      residuals = residuals(x),
+      r_iqr = 3 * IQR(residuals),
+      r_median = median(residuals),
       left = r_median-r_iqr,
       right = r_median+r_iqr
     ),
@@ -585,7 +585,7 @@ compute_mean_sd <- function(x, digits = 2) {
   paste0(
     round(mean(x, na.rm = TRUE), digits = digits),
     " (",
-    round(stats::sd(x, na.rm = TRUE), digits = digits),
+    round(sd(x, na.rm = TRUE), digits = digits),
     ")"
   )
 }
@@ -1231,13 +1231,13 @@ for (ivariable in variables_names) {
     cat("\n##### Residuals plot\n\n")
     p0 <- cowplot::plot_grid(
       ggplot2::ggplot(
-        data = data.frame(x = stats::fitted(fit), y = stats::residuals(fit)), 
+        data = data.frame(x = fitted(fit), y = residuals(fit)), 
         mapping = ggplot2::aes(x = x, y = y)
       ) +
         ggplot2::geom_point(shape = 21, colour = viridis::viridis_pal()(1)) +
         ggplot2::labs(x = "Fitted", y = "Residuals"),
       ggplot2::ggplot(
-        data = data.frame(y = stats::residuals(fit), x = "x"), 
+        data = data.frame(y = residuals(fit), x = "x"), 
         mapping = ggplot2::aes(x = x, y = y)
       ) +
         ggplot2::geom_boxplot(
@@ -1246,12 +1246,12 @@ for (ivariable in variables_names) {
           outlier.shape = 21
         ) +
         ggplot2::geom_hline(
-          yintercept = stats::median(stats::residuals(fit)) + 3 * stats::IQR(stats::residuals(fit)),
+          yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
           linetype = 2,
           colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
         ) +
         ggplot2::geom_hline(
-          yintercept = stats::median(stats::residuals(fit)) - 3 * stats::IQR(stats::residuals(fit)),
+          yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
           linetype = 2,
           colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
         ) +
@@ -1270,8 +1270,8 @@ for (ivariable in variables_names) {
     cat("\n##### Random effect\n\n")
     if (nTimePoints > 2) {
       # Compare model with or without random slope (anova)
-      fit_random <- stats::anova(
-        stats::update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+      fit_random <- anova(
+        update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
         fit, refit = FALSE
       ) 
       fit_random <- as.data.frame(
@@ -1379,13 +1379,13 @@ for (ivariable in variables_names) {
     cat("\n##### Residuals plot\n\n")
     p0 <- cowplot::plot_grid(
       ggplot2::ggplot(
-        data = data.frame(x = stats::fitted(fit), y = stats::residuals(fit)), 
+        data = data.frame(x = fitted(fit), y = residuals(fit)), 
         mapping = ggplot2::aes(x = x, y = y)
       ) +
         ggplot2::geom_point(shape = 21, colour = viridis::viridis_pal()(1)) +
         ggplot2::labs(x = "Fitted", y = "Residuals"),
       ggplot2::ggplot(
-        data = data.frame(y = stats::residuals(fit), x = "x"), 
+        data = data.frame(y = residuals(fit), x = "x"), 
         mapping = ggplot2::aes(x = x, y = y)
       ) +
         ggplot2::geom_boxplot(
@@ -1394,12 +1394,12 @@ for (ivariable in variables_names) {
           outlier.shape = 21
         ) +
         ggplot2::geom_hline(
-          yintercept = stats::median(stats::residuals(fit)) + 3 * stats::IQR(stats::residuals(fit)),
+          yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
           linetype = 2,
           colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
         ) +
         ggplot2::geom_hline(
-          yintercept = stats::median(stats::residuals(fit)) - 3 * stats::IQR(stats::residuals(fit)),
+          yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
           linetype = 2,
           colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
         ) +
@@ -1415,8 +1415,8 @@ for (ivariable in variables_names) {
     cat("\n##### Random effect\n\n")
     if (nTimePoints > 2) {
       # Compare model with or without random slope (anova)
-      fit_random <- stats::anova(
-        stats::update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+      fit_random <- anova(
+        update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
         fit, 
         refit = FALSE
       ) 
