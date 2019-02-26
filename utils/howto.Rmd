@@ -1,8 +1,8 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes"
-subtitle: "(Version 1.2.0)"
+subtitle: "(Version 1.2.1)"
 author: "Mickaël Canouil, Ph.D."
-date: '`r format(Sys.Date(), "%d %B %Y")`'
+date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: 
   html_document:
     keep_md: false
@@ -123,7 +123,7 @@ cat(paste(sapply(capture.output(outout_tree_structure)[-1], paste0, '\n'), colla
 #### R and R packages version
 
 Before runing anything, you can check the current settings of your cluster/grid/computer/laptop.  
-**For reproducibily:**
+**For reproducibility:**
 
 * The default R version is **`r R.version.string`**.
 * The default R packages are listed below.
@@ -305,7 +305,7 @@ x %>%
 #### VCFtools version
 
 If VCFtools is not available on your machine, please install it following the instructions on [https://vcftools.github.io/](https://vcftools.github.io/).  
-**For reproducibily:**
+**For reproducibility:**
 
 * The default version is **`r system(command = "vcftools --version", intern = TRUE)`**.
 
