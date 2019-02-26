@@ -16,7 +16,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.1)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.2)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -61,15 +61,15 @@ options(stringsAsFactors = FALSE)
 
 if (params$install_packages) {
   # Install R packages and load them
-  if (!all(c('udunits2', 'units', 'devtools', 'caTools')%in%rownames(installed.packages()))) {
+  if (!all(c('udunits2', 'units', 'devtools', 'caTools')%in%rownames(utils::installed.packages()))) {
     utils::install.packages(
-      pkgs = setdiff(c('udunits2', 'units', 'devtools', 'caTools'), rownames(installed.packages())),
+      pkgs = setdiff(c('udunits2', 'units', 'devtools', 'caTools'), rownames(utils::installed.packages())),
       configure.args = '--with-udunits2-lib=/usr/local/lib',
       quiet = TRUE,
       repos = c('http://cran.us.r-project.org', 'https://cran.rstudio.com/')
     )
   }
-  if (!all(c('opal')%in%rownames(installed.packages()))) {
+  if (!all(c('opal')%in%rownames(utils::installed.packages()))) {
     utils::install.packages(
       pkgs = 'opal', 
       repos = c('https://cran.obiba.org', 'https://cran.rstudio.com/'), 
@@ -77,7 +77,7 @@ if (params$install_packages) {
       quiet = TRUE
     )
   }
-  list_packages <- read.table(
+  list_packages <- utils::read.table(
     col.names = c('package', 'version'), 
     text = "'acepack'	'1.4.1'
     'assertthat'	'0.2.0'
@@ -253,7 +253,7 @@ check_steps <- function(params, max) {
 }
 params_steps <- check_steps(params)
 
-opts_chunk$set(
+knitr::opts_chunk$set(
   cache = FALSE,
   echo = params$echo,
   warning = params$warning,
@@ -283,7 +283,7 @@ if (knitr:::is_latex_output()) {
   })
 }
 
-theme_set(theme_light(base_size = 12))
+ggplot2::theme_set(ggplot2::theme_light(base_size = 12))
 ```
 
 ```{r check_parameters, echo = FALSE}
@@ -318,11 +318,11 @@ pretty_kable <- function(
       digits = format.args$digits
     )
   }
-  colnames(data) <- capitalize(colnames(data))
+  colnames(data) <- Hmisc::capitalize(colnames(data))
   if (knitr:::is_latex_output()) {
     options(knitr.table.format = "latex")
-    kable(x = data, booktabs = TRUE, format.args = format.args, col.names = col.names, ...) %>%
-      kable_styling(
+    knitr::kable(x = data, booktabs = TRUE, format.args = format.args, col.names = col.names, ...) %>%
+      kableExtra::kable_styling(
         latex_options = c("hold_position"),
         full_width = FALSE,
         position = "center",
@@ -330,8 +330,8 @@ pretty_kable <- function(
       )
   } else {
     options(knitr.table.format = "html")
-    kable(x = data, format.args = format.args, col.names = col.names, ...) %>%
-      kable_styling(
+    kableExtra::kable(x = data, format.args = format.args, col.names = col.names, ...) %>%
+      kableExtra::kable_styling(
         bootstrap_options = c("striped", "hover", "condensed", "responsive"),
         full_width = TRUE,
         position = "center",
@@ -368,7 +368,7 @@ convert_hba1c <- function(x, unitFrom = "%") {
         20.8, 21, 21.2
       )
     ), .Names = c("V1", "V2"), class = "data.frame", row.names = c(NA, -100L))
-    hba1c_model <- coef(lm(V1~V2, data = hba1c_unit_table))
+    hba1c_model <- stats::coef(stats::lm(V1~V2, data = hba1c_unit_table))
     x <- sapply(x, function(y) round(sum(hba1c_model * c(1, y))))
   }
   x
@@ -386,41 +386,41 @@ convert_2mmoll <- function(x, from = "g/l") {
 
 # function to convert "Vital Signs" (VS) OPAL table (CDISC) to "long format"
 format_vs <- function(data) {
-  data <- mutate(
+  data <- dplyr::mutate(
     .data = data,
     KEY_FACTOR = paste(DOMAIN, STUDYID, SUBJID, VISIT, sep = "_")
   )
   rownames(data) <- NULL
   
-  descriptive_data <- distinct(.data = select(.data = data, DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD))
+  descriptive_data <- dplyr::distinct(.data = dplyr::select(.data = data, DOMAIN, STUDYID, VSORRESU, VSTEST, VSTESTCD))
   
   if (!"VSTPTNUM"%in%colnames(data)) {
-    data <- mutate(.data = data, VSTPTNUM = NA)
+    data <- dplyr::mutate(.data = data, VSTPTNUM = NA)
   }
   if (!"VSTPT"%in%colnames(data)) {
-    data <- mutate(.data = data, VSTPT = NA)
+    data <- dplyr::mutate(.data = data, VSTPT = NA)
   }
   
-  data_values <- full_join(
-    x = full_join(
+  data_values <- dplyr::full_join(
+    x = dplyr::full_join(
       x = data %>%
         subset(is.na(VSTPTNUM)) %>%
-        select(KEY_FACTOR, VSORRES, VSTESTCD) %>%
-        spread(key = "VSTESTCD", value = "VSORRES"),
+        dplyr::select(KEY_FACTOR, VSORRES, VSTESTCD) %>%
+        tidyr::spread(key = "VSTESTCD", value = "VSORRES"),
       y = data %>%
         subset(!is.na(VSTPTNUM)) %>%
-        select(KEY_FACTOR, VSORRES, VSTESTCD, VSTPTNUM) %>%
-        mutate(KEY_MEASURES = paste(VSTESTCD, VSTPTNUM, sep = "_")) %>%
-        select(KEY_FACTOR, KEY_MEASURES, VSORRES) %>%
-        spread(key = "KEY_MEASURES", value = "VSORRES"),
+        dplyr::select(KEY_FACTOR, VSORRES, VSTESTCD, VSTPTNUM) %>%
+        dplyr::mutate(KEY_MEASURES = paste(VSTESTCD, VSTPTNUM, sep = "_")) %>%
+        dplyr::select(KEY_FACTOR, KEY_MEASURES, VSORRES) %>%
+        tidyr::spread(key = "KEY_MEASURES", value = "VSORRES"),
       by = c("KEY_FACTOR" = "KEY_FACTOR")
     ),
     y = data %>%
-      select(-c(VSORRES, VSTPT, VSTPTNUM, VSORRESU, VSTEST, VSTESTCD)) %>%
-      distinct(),
+      dplyr::select(-c(VSORRES, VSTPT, VSTPTNUM, VSORRESU, VSTEST, VSTESTCD)) %>%
+      dplyr::distinct(),
     by = c("KEY_FACTOR" = "KEY_FACTOR")
   ) %>%
-    mutate(
+    dplyr::mutate(
       VISIT = factor(
         x = VISIT,
         levels = c(
@@ -430,9 +430,9 @@ format_vs <- function(data) {
         )
       )
     ) %>%
-    group_by(DOMAIN, STUDYID, SUBJID) %>%
-    arrange(VISIT) %>%
-    select(-KEY_FACTOR) %>%
+    dplyr::group_by(DOMAIN, STUDYID, SUBJID) %>%
+    dplyr::arrange(VISIT) %>%
+    dplyr::select(-KEY_FACTOR) %>%
     data.frame()
   
   list(data = data_values, annotation = descriptive_data)
@@ -441,24 +441,24 @@ format_vs <- function(data) {
 # function to convert "Laboratory Measurements" (LB) OPAL table (CDISC) to "long format"
 format_lb <- function(data) {
   check_multiple_hba1c <- data %>% 
-    select(LBTESTCD, LBORRESU) %>% 
-    filter(LBTESTCD=="HBA1C") %>% 
-    distinct()
+    dplyr::select(LBTESTCD, LBORRESU) %>% 
+    dplyr::filter(LBTESTCD=="HBA1C") %>% 
+    dplyr::distinct()
   if (nrow(check_multiple_hba1c)>1) {
     if (any(grepl("%", check_multiple_hba1c[["LBORRESU"]]))) {
       data <- data %>% 
-        filter(
+        dplyr::filter(
           !(LBTESTCD=="HBA1C" & LBORRESU %in% setdiff(check_multiple_hba1c[["LBORRESU"]], "%"))
         )
     } else {
        data <- data %>% 
-        filter(
+        dplyr::filter(
           !(LBTESTCD=="HBA1C" & LBORRESU %in% setdiff(check_multiple_hba1c[["LBORRESU"]], "mmol/mol"))
         )
     }
   }
   
-  data <- mutate(
+  data <- dplyr::filter(
     .data = data,
     LBFAST = if ("LBFAST" %in% colnames(data)) LBFAST else NA,
     LBTPTNUM = if ("LBTPTNUM" %in% colnames(data)) LBTPTNUM else NA,
@@ -473,26 +473,26 @@ format_lb <- function(data) {
   )
   
   descriptive_data <- data %>%
-    select(intersect(c("DOMAIN", "STUDYID", !!descriptive_variables), colnames(.))) %>%
-    distinct() %>%
-    mutate(
+    dplyr::select(intersect(c("DOMAIN", "STUDYID", !!descriptive_variables), colnames(.))) %>%
+    dplyr::distinct() %>%
+    dplyr::mutate(
       KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
     )
 
-  data_values <- full_join(
+  data_values <- dplyr::full_join(
     x = (data %>%
-      select(KEY_FACTOR, LBORRES, LBTESTCD, LBSPEC, LBCAT, LBTPTNUM) %>%
-      mutate(
+      dplyr::select(KEY_FACTOR, LBORRES, LBTESTCD, LBSPEC, LBCAT, LBTPTNUM) %>%
+      dplyr::mutate(
         KEY_MEASURES = paste(LBTESTCD, LBSPEC, LBCAT, LBTPTNUM, sep = "_")
       ) %>%
-      select(KEY_FACTOR, KEY_MEASURES, LBORRES) %>%
-      spread(key = "KEY_MEASURES", value = "LBORRES")),
+      dplyr::select(KEY_FACTOR, KEY_MEASURES, LBORRES) %>%
+      tidyr::spread(key = "KEY_MEASURES", value = "LBORRES")),
     y = (data %>%
-      select(LBDTC, SUBJID, VISIT, DOMAIN, STUDYID, LBFAST, KEY_FACTOR) %>%
-      distinct()),
+      dplyr::select(LBDTC, SUBJID, VISIT, DOMAIN, STUDYID, LBFAST, KEY_FACTOR) %>%
+      dplyr::distinct()),
     by = c("KEY_FACTOR" = "KEY_FACTOR")
   ) %>%
-    mutate(
+    dplyr::mutate(
       VISIT = factor(
         x = VISIT,
         levels = c(
@@ -502,9 +502,9 @@ format_lb <- function(data) {
         )
       )
     ) %>%
-    group_by(DOMAIN, STUDYID, SUBJID) %>%
-    arrange(VISIT) %>%
-    select(-KEY_FACTOR) %>%
+    dplyr::group_by(DOMAIN, STUDYID, SUBJID) %>%
+    dplyr::arrange(VISIT) %>%
+    dplyr::select(-KEY_FACTOR) %>%
     data.frame()
 
   list(data = data_values, annotation = descriptive_data)
@@ -514,8 +514,8 @@ format_lb <- function(data) {
 compute_bmi <- function(data) {
   if (!"BMI"%in%data$annotation[["VSTESTCD"]]) {
     weight_unit <- data$annotation %>% 
-      filter(VSTESTCD == "WEIGHT") %>% 
-      select(VSORRESU) %>% 
+      dplyr::filter(VSTESTCD == "WEIGHT") %>% 
+      dplyr::select(VSORRESU) %>% 
       unlist()
     convert_weight_unit <- switch(
       EXPR = weight_unit,
@@ -524,8 +524,8 @@ compute_bmi <- function(data) {
     )
     
     height_unit <- data$annotation %>% 
-      filter(VSTESTCD=="HEIGHT") %>% 
-      select(VSORRESU) %>% 
+      dplyr::filter(VSTESTCD=="HEIGHT") %>% 
+      dplyr::select(VSORRESU) %>% 
       unlist()
     convert_height_unit <- switch(
       EXPR = height_unit,
@@ -534,7 +534,7 @@ compute_bmi <- function(data) {
       "in" = {function(x) (x * 2.54) / 100}
     )
     
-    data$data <- mutate(
+    data$data <- dplyr::mutate(
       .data = data$data,
       BMI = convert_weight_unit(WEIGHT) / convert_height_unit(HEIGHT)
     )
@@ -550,7 +550,7 @@ compute_bmi <- function(data) {
       row.names = 1L, 
       class = "data.frame"
     )
-    data$annotation <- bind_rows(data$annotation, default_CDISC_BMI)
+    data$annotation <- dplyr::bind_rows(data$annotation, default_CDISC_BMI)
   }
   data
 }
@@ -560,19 +560,19 @@ tidy_lmer <- function(x) {
   res <- data.frame(coefficients(summary(x)), check.names = FALSE, stringsAsFactors = FALSE)
   colnames(res) <- c("ESTIMATE", "SE", "DF", "STAT", "PVALUE")
   res[, "Term"] <- gsub(".*Intercept.*", "Intercept", rownames(res))
-  res <- gather(data = res, key = "Variable", value = "Value", -"Term")
+  res <- tidyr::gather(data = res, key = "Variable", value = "Value", -"Term")
   rownames(res) <- paste(res[, "Term"], res[, "Variable"], sep = "_")
   data.frame(t(res[, "Value", drop = FALSE]), check.names = FALSE, stringsAsFactors = FALSE)
 }
 
 # extract residuals from mixed model and list samples with median plus/minus 3*IQR
 get_residuals_outliers <- function(x) {
-  filter( 
-    .data = mutate(
+  dplyr::filter( 
+    .data = dplyr::mutate(
       .data = x@frame,
-      residuals = residuals(x),
-      r_iqr = 3 * IQR(residuals),
-      r_median = median(residuals),
+      residuals = stats::residuals(x),
+      r_iqr = 3 * stats::IQR(residuals),
+      r_median = stats::median(residuals),
       left = r_median-r_iqr,
       right = r_median+r_iqr
     ),
@@ -585,7 +585,7 @@ compute_mean_sd <- function(x, digits = 2) {
   paste0(
     round(mean(x, na.rm = TRUE), digits = digits),
     " (",
-    round(sd(x, na.rm = TRUE), digits = digits),
+    round(stats::sd(x, na.rm = TRUE), digits = digits),
     ")"
   )
 }
@@ -673,14 +673,14 @@ cat("\n# Load data from OPAL node\n\n")
 cat("\n## Open connection to OPAL node\n\n")
 
 opal_credentials <- as.data.frame(t(
-  read.table(
+  utils::read.table(
     file = params$opal_credentials, 
     stringsAsFactors = FALSE, 
     row.names = c("opal_server", "opal_login", "opal_password")
   )
 ), stringsAsFactors = FALSE)
 
-o <- opal.login(
+o <- opal::opal.login(
   username = opal_credentials$opal_login,
   password = opal_credentials$opal_password,
   url = opal_credentials$opal_server
@@ -688,11 +688,11 @@ o <- opal.login(
 
 cat("\n## Import table from OPAL node to local R session\n\n")
 # Available tables in OPAL (Check RHAPSODY/CDISC documentation for details)
-available_tables <- intersect(opal.datasources(opal = o)[[1]]$table, c("DM", "VS", "LB", "MH", "CM"))
+available_tables <- intersect(opal::opal.datasources(opal = o)[[1]]$table, c("DM", "VS", "LB", "MH", "CM"))
 
 for (itable in available_tables) {
-  opal.assign(opal = o, symbol = itable, value = paste0("rhapsody.", itable))
-  assign(x = itable, value = opal.execute(o, itable))
+  opal::opal.assign(opal = o, symbol = itable, value = paste0("rhapsody.", itable))
+  assign(x = itable, value = opal::opal.execute(o, itable))
 }
 
 cat("\n## Close connection to OPAL node and clean workspace\n\n")
@@ -710,16 +710,16 @@ lb_tidy <- format_lb(data = LB)
 #   nrow(lb_tidy$data) == nrow(vs_tidy$data)
 # )
 
-DMVSLB <- full_join(
-  x = select(.data = mutate(.data = DM, VISIT = "BASELINE"), -DOMAIN),
-  y = full_join(
-    x = select(.data = mutate(.data = vs_tidy$data, VISIT = as.character(VISIT)), -DOMAIN),
-    y = select(.data = mutate(.data = lb_tidy$data, VISIT = as.character(VISIT)), -DOMAIN),
+DMVSLB <- dplyr::full_join(
+  x = dplyr::select(.data = dplyr::mutate(.data = DM, VISIT = "BASELINE"), -DOMAIN),
+  y = dplyr::full_join(
+    x = dplyr::select(.data = dplyr::mutate(.data = vs_tidy$data, VISIT = as.character(VISIT)), -DOMAIN),
+    y = dplyr::select(.data = dplyr::mutate(.data = lb_tidy$data, VISIT = as.character(VISIT)), -DOMAIN),
     by = c("STUDYID", "SUBJID", "VISIT")
   ),
   by = c("STUDYID", "SUBJID", "VISIT")
 ) %>%
-  mutate(
+  dplyr::mutate(
     VISIT = factor(
       x = VISIT,
       levels = c(
@@ -729,12 +729,12 @@ DMVSLB <- full_join(
       )
     )
   ) %>% 
-  group_by(STUDYID, SUBJID) %>%
-  filter(
+  dplyr::group_by(STUDYID, SUBJID) %>%
+  dplyr::filter(
     (VISIT=="BASELINE" & !is.na(AGE) & !is.na(SEX)) | VISIT!="BASELINE"
   ) %>% 
-  arrange(VISIT) %>% 
-  mutate(
+  dplyr::arrange(VISIT) %>% 
+  dplyr::mutate(
     AGE0 = AGE[1],
     BMI0 = BMI[1],
     SEX0 = as.numeric(SEX=="M")[1]
@@ -745,12 +745,12 @@ DMVSLB <- full_join(
 ### To check if all individuals have the same number of visits before convert
 if (
   DMVSLB %>%
-    group_by(SUBJID) %>%
-    summarise(n = n()) %>%
-    select(n) %>%
+    dplyr::group_by(SUBJID) %>%
+    dplyr::summarise(n = dplyr::n()) %>%
+    dplyr::select(n) %>%
     all()
 ) {
-  DMVSLB <- mutate(
+  DMVSLB <- dplyr::mutate(
     .data = DMVSLB,
     VISIT_YEARS = as.numeric(
       difftime(as.Date(VSDTC), min(as.Date(VSDTC), na.rm = TRUE), unit = "weeks") / 52.25
@@ -803,7 +803,7 @@ pretty_kable(vs_tidy$annotation)
 
 ```{r check_units_needs_convert, eval = params_steps$step_2}
 lb_tidy$annotation <- lb_tidy$annotation %>%
-  mutate(
+  dplyr::mutate(
     CONVERT_TO =
       ifelse(
         tolower(LBORRESU)%in%c("g/l", "mg/l"),
@@ -824,8 +824,8 @@ cat(
     paste0(
       "  * ",
       lb_tidy$annotation %>%
-        filter(!is.na(CONVERT_TO)) %>%
-        select(LBTEST, LBTESTCD) %>%
+        dplyr::filter(!is.na(CONVERT_TO)) %>%
+        dplyr::select(LBTEST, LBTESTCD) %>%
         (function(.data) {
           paste0(.data[, "LBTEST"], " (`", .data[, "LBTESTCD"], "`)")
         }),
@@ -843,30 +843,30 @@ pretty_kable(lb_tidy$annotation[, -c(ncol(lb_tidy$annotation), ncol(lb_tidy$anno
 ```
 
 ```{r convert_biomarker_units, eval = params_steps$step_2, include = FALSE}
-variables_gl_to_convert <- filter(
+variables_gl_to_convert <- dplyr::filter(
   .data = lb_tidy$annotation, !is.na(CONVERT_TO) & tolower(LBORRESU)%in%"g/l"
 )[["KEY_MEASURES"]]
 
-variables_mgl_to_convert <- filter(
+variables_mgl_to_convert <- dplyr::filter(
   .data = lb_tidy$annotation, !is.na(CONVERT_TO) & tolower(LBORRESU)%in%"mg/l"
 )[["KEY_MEASURES"]]
 
-variables_percent_to_convert <- filter(
+variables_percent_to_convert <- dplyr::filter(
   .data = lb_tidy$annotation, !is.na(CONVERT_TO) & LBORRESU%in%"%"
 )[["KEY_MEASURES"]]
 
 DMVSLB <- DMVSLB %>%
-  mutate_at(
-    .vars = vars(!!!variables_gl_to_convert),
-    .funs = funs(convert_2mmoll(., from = "g/l"))
+  dplyr::mutate_at(
+    .vars = dplyr::vars(!!!variables_gl_to_convert),
+    .funs = dplyr::funs(convert_2mmoll(., from = "g/l"))
   ) %>%
-  mutate_at(
-    .vars = vars(!!!variables_mgl_to_convert),
-    .funs = funs(convert_2mmoll(., from = "mg/l"))
+  dplyr::mutate_at(
+    .vars = dplyr::vars(!!!variables_mgl_to_convert),
+    .funs = dplyr::funs(convert_2mmoll(., from = "mg/l"))
   ) %>%
-  mutate_at(
-    .vars = vars(variables_percent_to_convert),
-    .funs = funs(convert_hba1c(., unitFrom = "%"))
+  dplyr::mutate_at(
+    .vars = dplyr::vars(variables_percent_to_convert),
+    .funs = dplyr::funs(convert_hba1c(., unitFrom = "%"))
   )
 
 varNamesGLUC <- grep("^GLUC.*_0$", colnames(DMVSLB), value = TRUE)
@@ -911,7 +911,7 @@ variables_names <- c(varNamesGLUC_new, varNamesGLUC2H_new, varNamesHBA1C_new)
 ### Blood to Plasma measure conversion for ADDITION cohort
 if (params$cohort_name == "ADDITION") {
   convert_blood_to_plasma <- function(data) {
-    mutate(.data = data,
+    dplyr::mutate(.data = data,
       GLUC_P = ifelse(VISIT=="BASELINE", 0.64 + 1.05 * GLUC_B, GLUC_P),
       GLUC2H_P = ifelse(VISIT=="BASELINE", -0.30 + 0.97 * GLUC2H_B, GLUC2H_P)
     )
@@ -934,24 +934,24 @@ if (all(is.na(DMVSLB[, "LBFAST"]))) {
   DMVSLB_QC0 <- DMVSLB
 } else {
   non_fasted_samples <- DMVSLB %>%
-    group_by(STUDYID, SUBJID) %>%
-    filter(VISIT == "BASELINE") %>%
-    filter(!(LBFAST%in%"Y" | is.na(LBFAST))) %>%
-    select(STUDYID, SUBJID) %>%
-    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-    ungroup() %>%
+    dplyr::group_by(STUDYID, SUBJID) %>%
+    dplyr::filter(VISIT == "BASELINE") %>%
+    dplyr::filter(!(LBFAST%in%"Y" | is.na(LBFAST))) %>%
+    dplyr::select(STUDYID, SUBJID) %>%
+    dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+    dplyr::ungroup() %>%
     .[["ID"]]
 
   DMVSLB_QC0 <- DMVSLB %>%
-    mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-    filter(!ID%in%non_fasted_samples) %>%
-    select(-ID)
+    dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+    dplyr::filter(!ID%in%non_fasted_samples) %>%
+    dplyr::select(-ID)
 
   na_fasted_samples <- DMVSLB_QC0 %>%
-    group_by(STUDYID, SUBJID) %>%
-    filter(VISIT == "BASELINE" & is.na(LBFAST)) %>%
-    ungroup() %>%
-    count() %>%
+    dplyr::group_by(STUDYID, SUBJID) %>%
+    dplyr::filter(VISIT == "BASELINE" & is.na(LBFAST)) %>%
+    dplyr::ungroup() %>%
+    dplyr::count() %>%
     .[["n"]]
 
   cat(
@@ -965,7 +965,7 @@ if (all(is.na(DMVSLB[, "LBFAST"]))) {
 }
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC0 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC0 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ### Exclusion of participants with data available for only one time-point
 
@@ -973,27 +973,27 @@ Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC0 %>% 
 variables_names_available <- variables_names[!grepl("_NA", variables_names)]
 
 one_time_point_samples <- DMVSLB_QC0 %>%
-  group_by(STUDYID, SUBJID) %>%
-  summarise_at(
-    .vars = vars(!!variables_names_available),
+  dplyr::group_by(STUDYID, SUBJID) %>%
+  dplyr::summarise_at(
+    .vars = dplyr::vars(!!variables_names_available),
     .funs = (function(.x) {sum(!is.na(.x))})
   ) %>%
-  filter_at(
-    .vars = vars(!!!variables_names_available),
-    .vars_predicate = any_vars(. <= 1)
+  dplyr::filter_at(
+    .vars = dplyr::vars(!!!variables_names_available),
+    .vars_predicate = dplyr::any_vars(. <= 1)
   ) %>%
-  select(STUDYID, SUBJID) %>%
-  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  ungroup() %>%
+  dplyr::select(STUDYID, SUBJID) %>%
+  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::ungroup() %>%
   .[["ID"]]
 
 DMVSLB_QC1 <- DMVSLB_QC0 %>%
-  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  filter(!ID%in%one_time_point_samples) %>%
-  select(-ID)
+  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::filter(!ID%in%one_time_point_samples) %>%
+  dplyr::select(-ID)
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC1 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC1 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ### Exclusion of participants with diabetes at baseline
 
@@ -1003,97 +1003,97 @@ Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC1 %>% 
 
 ```{r check_diabetic_baseline, eval = params_steps$step_2}
 baseline_diabetes_samples <- DMVSLB_QC1 %>%
-  group_by(STUDYID, SUBJID) %>%
-  mutate_at(
-    .vars = vars(grep("GLUC_", variables_names, value = TRUE)), 
+  dplyr::group_by(STUDYID, SUBJID) %>%
+  dplyr::mutate_at(
+    .vars = dplyr::vars(grep("GLUC_", variables_names, value = TRUE)), 
     .funs = ~.>=7.0
   ) %>% 
-  mutate_at(
-    .vars = vars(grep("HBA1C_", variables_names, value = TRUE)), 
+  dplyr::mutate_at(
+    .vars = dplyr::vars(grep("HBA1C_", variables_names, value = TRUE)), 
     .funs = ~.>=48
   ) %>% 
-  filter(VISIT=="BASELINE") %>%
-  filter_at(
-    .vars = vars(
+  dplyr::filter(VISIT=="BASELINE") %>%
+  dplyr::filter_at(
+    .vars = dplyr::vars(
       grep("GLUC_", variables_names, value = TRUE), 
       grep("HBA1C_", variables_names, value = TRUE)
     ),
-    .vars_predicate = any_vars(.==TRUE)
+    .vars_predicate = dplyr::any_vars(.==TRUE)
   ) %>%
-  select(STUDYID, SUBJID) %>%
-  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  ungroup() %>%
+  dplyr::select(STUDYID, SUBJID) %>%
+  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::ungroup() %>%
   .[["ID"]]
 
 DMVSLB_QC2 <- DMVSLB_QC1 %>%
-  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  filter(!ID%in%baseline_diabetes_samples) %>%
-  select(-ID)
+  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::filter(!ID%in%baseline_diabetes_samples) %>%
+  dplyr::select(-ID)
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC2 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC2 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ### Exclusion of participants developing diabetes during the study time without informations about medication
 
 ```{r check_incident_diabetic_medication, eval = params_steps$step_2}
 # Get samples developing diabetes according to definition
 follow_up_diabetes_samples_def <- DMVSLB_QC2 %>%
-  group_by(STUDYID, SUBJID) %>%
-  mutate_at(
-    .vars = vars(grep("GLUC_", variables_names, value = TRUE)), 
+  dplyr::group_by(STUDYID, SUBJID) %>%
+  dplyr::mutate_at(
+    .vars = dplyr::vars(grep("GLUC_", variables_names, value = TRUE)), 
     .funs = ~.>=7.0
   ) %>% 
-  mutate_at(
-    .vars = vars(grep("HBA1C_", variables_names, value = TRUE)), 
+  dplyr::mutate_at(
+    .vars = dplyr::vars(grep("HBA1C_", variables_names, value = TRUE)), 
     .funs = ~.>=48
   ) %>% 
-  filter_at(
-    .vars = vars(
+  dplyr::filter_at(
+    .vars = dplyr::vars(
       grep("GLUC_", variables_names, value = TRUE), 
       grep("HBA1C_", variables_names, value = TRUE)
     ),
-    .vars_predicate = any_vars(.==TRUE)
+    .vars_predicate = dplyr::any_vars(.==TRUE)
   ) %>% 
-  select(STUDYID, SUBJID) %>%
-  distinct() %>%
-  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  ungroup() %>%
+  dplyr::select(STUDYID, SUBJID) %>%
+  dplyr::distinct() %>%
+  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::ungroup() %>%
   .[["ID"]]
 
 # Get samples diagnose diabetes during the follow-up
 follow_up_diabetes_samples_diag <- MH %>%
-  filter(
+  dplyr::filter(
     MHTERM%in%c("DIABETES", "TYPE 1 DIABETES", "TYPE 2 DIABETES") & MHOCCUR == "Y"
   ) %>%
-  select(STUDYID, SUBJID) %>%
-  distinct() %>%
-  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  ungroup() %>%
+  dplyr::select(STUDYID, SUBJID) %>%
+  dplyr::distinct() %>%
+  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::ungroup() %>%
   .[["ID"]]
 
 # Get medication information for all samples developing T2D based on definition and diagnostic
 check_medication <- CM %>%
-  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  filter(
+  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::filter(
     ID%in%c(follow_up_diabetes_samples_def, follow_up_diabetes_samples_diag)
   ) %>%
-  filter(
+  dplyr::filter(
     CMCAT%in%c("INSULINS AND ANALOGUES", "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS")
   ) %>%
-  group_by(ID, CMCAT) %>%
-  summarise(
+  dplyr::filter(ID, CMCAT) %>%
+  dplyr::summarise(
     CHOCCUR = any(CMOCCUR%in%"Y")
   ) %>%
-  ungroup() %>%
-  filter(CHOCCUR)
+  dplyr::ungroup() %>%
+  dplyr::filter(CHOCCUR)
 
 # List samples with 'INSULINS AND ANALOGUES' medication for later exclusion
-samples_with_insulin <- filter(.data = check_medication, CMCAT%in%"INSULINS AND ANALOGUES")[["ID"]]
+samples_with_insulin <- dplyr::filter(.data = check_medication, CMCAT%in%"INSULINS AND ANALOGUES")[["ID"]]
 
 # List incident diabetic samples with 'BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS'
 # and without 'INSULINS AND ANALOGUES' medication
 diabetic_samples_with_medication_info <- setdiff(
-  x = filter(
+  x = dplyr::filter(
     .data = check_medication, 
     CMCAT%in%"BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS"
   )[["ID"]],
@@ -1108,12 +1108,12 @@ FollowUpDiabetesSamples.ToExclude <- setdiff(
 
 # Exclude samples in 'FollowUpDiabetesSamples.ToExclude'
 DMVSLB_QC3 <- DMVSLB_QC2 %>%
-  mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  filter(!ID%in%FollowUpDiabetesSamples.ToExclude) %>%
-  select(-ID)
+  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::filter(!ID%in%FollowUpDiabetesSamples.ToExclude) %>%
+  dplyr::select(-ID)
 ```
 
-Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB_QC3 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`
+Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB_QC3 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`
 
 
 `r if (knitr:::is_latex_output()) {'\\clearpage'}`
@@ -1194,13 +1194,13 @@ for (ivariable in variables_names) {
   
   cat(paste0("\n\n#### ", big_names, " (`", ivariable, "`)\n"))
 
-  fit_data <- select(
+  fit_data <- dplyr::select(
     .data = DMVSLB_QC3, 
-    matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID
+    dplyr::matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID
   )
   
   if (!all(is.na(fit_data[, ivariable]))) {
-    fit <- lmer(
+    fit <- lmerTest::lmer(
       formula = eval(parse(
         text = paste0('update.formula(formula.rightPart, ', ivariable, '~.)')
       )),
@@ -1208,7 +1208,7 @@ for (ivariable in variables_names) {
     )
     
     cat("\n##### Trajectories\n\n")
-    pTraj <- mutate(.data = fit_data,
+    pTraj <- dplyr::mutate(.data = fit_data,
       ID = paste(STUDYID, SUBJID, sep = "_"),
       pT2D = ifelse(
         ID%in%diabetic_samples_with_medication_info,
@@ -1216,42 +1216,51 @@ for (ivariable in variables_names) {
         "Normo"
       )
     ) %>%
-      ggplot(data = ., aes_string(x = "VISIT_YEARS", y = ivariable, colour = "ID")) +
-        geom_line(na.rm = TRUE) +
-        guides(colour = "none") +
-        scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
-        facet_grid(.~pT2D)
+      ggplot2::ggplot(
+        data = ., 
+        mapping = ggplot2::aes_string(x = "VISIT_YEARS", y = ivariable, colour = "ID")
+      ) +
+        ggplot2::geom_line(na.rm = TRUE) +
+        ggplot2::guides(colour = "none") +
+        viridis::scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+        ggplot2::facet_grid(.~pT2D)
     print(pTraj)
     cat("\n")
     
     
     cat("\n##### Residuals plot\n\n")
-    p0 <- plot_grid(
-      ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
-        geom_point(shape = 21, colour = viridis_pal()(1)) +
-        labs(x = "Fitted", y = "Residuals"),
-      ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
-        geom_boxplot(
+    p0 <- cowplot::plot_grid(
+      ggplot2::ggplot(
+        data = data.frame(x = stats::fitted(fit), y = stats::residuals(fit)), 
+        mapping = ggplot2::aes(x = x, y = y)
+      ) +
+        ggplot2::geom_point(shape = 21, colour = viridis::viridis_pal()(1)) +
+        ggplot2::labs(x = "Fitted", y = "Residuals"),
+      ggplot2::ggplot(
+        data = data.frame(y = stats::residuals(fit), x = "x"), 
+        mapping = ggplot2::aes(x = x, y = y)
+      ) +
+        ggplot2::geom_boxplot(
           shape = 21,
-          colour = viridis_pal(begin = 0.5, end = 0.5)(1),
+          colour = viridis::viridis_pal(begin = 0.5, end = 0.5)(1),
           outlier.shape = 21
         ) +
-        geom_hline(
-          yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
+        ggplot2::geom_hline(
+          yintercept = stats::median(stats::residuals(fit)) + 3 * stats::IQR(stats::residuals(fit)),
           linetype = 2,
-          colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+          colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
         ) +
-        geom_hline(
-          yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
+        ggplot2::geom_hline(
+          yintercept = stats::median(stats::residuals(fit)) - 3 * stats::IQR(stats::residuals(fit)),
           linetype = 2,
-          colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+          colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
         ) +
-        labs(y = "Residuals", x = NULL) +
-        theme(axis.text.x = element_blank()),
+        ggplot2::labs(y = "Residuals", x = NULL) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank()),
       labels = LETTERS[c(1, 2)],
       align = "hv"
     )
-    print(p0)
+    viridis::viridis_pal(p0)
     cat("\n")
     
     
@@ -1261,13 +1270,13 @@ for (ivariable in variables_names) {
     cat("\n##### Random effect\n\n")
     if (nTimePoints > 2) {
       # Compare model with or without random slope (anova)
-      fit_random <- anova(
-        update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+      fit_random <- stats::anova(
+        stats::update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
         fit, refit = FALSE
       ) 
       fit_random <- as.data.frame(
-        column_to_rownames(
-          df = mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
+        tibble::column_to_rownames(
+          df = dplyr::mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
           var = "Mod"
         )
       )
@@ -1310,10 +1319,10 @@ for (ivariable in variables_names) {
 ### Second Run (after residuals check)
 
 ```{r preliminary_second_run_qc, eval = params_steps$step_3}
-DMVSLB_QC4 <- filter(.data = DMVSLB_QC3, !SUBJID%in%unique(unlist(residuals_outliers)))
+DMVSLB_QC4 <- dplyr::filter(.data = DMVSLB_QC3, !SUBJID%in%unique(unlist(residuals_outliers)))
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=3, DMVSLB_QC4 %>% select(STUDYID, SUBJID) %>% distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=3, DMVSLB_QC4 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ```{r preliminary_second_run, eval = params_steps$step_3}
 residuals_outliers <- as.list(rep_len(NA, length(variables_names)))
@@ -1332,13 +1341,13 @@ for (ivariable in variables_names) {
   
   cat(paste0("\n\n#### ", big_names, " (`", ivariable, "`)\n"))
 
-  fit_data <- select(
+  fit_data <- dplyr::select(
     .data = DMVSLB_QC4, 
-    matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID
+    dplyr::matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID
   )
   
   if (!all(is.na(fit_data[[ivariable]]))) {
-    fit <- lmer(
+    fit <- lmerTest::lmer(
       formula = eval(parse(
         text = paste0('update.formula(formula.rightPart, ', ivariable, '~.)')
       )),
@@ -1346,7 +1355,7 @@ for (ivariable in variables_names) {
     )
     
     cat("\n##### Trajectories\n\n")
-    pTraj <- mutate(
+    pTraj <- dplyr::mutate(
       .data = fit_data,
       ID = paste(STUDYID, SUBJID, sep = "_"),
       pT2D = ifelse(
@@ -1355,38 +1364,47 @@ for (ivariable in variables_names) {
         "Normo"
       )
     ) %>%
-      ggplot(data = ., aes_string(x = "VISIT_YEARS", y = ivariable, colour = "ID")) +
-        geom_line(na.rm = TRUE) +
-        guides(colour = "none") +
-        scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
-        facet_grid(.~pT2D)
+      ggplot2::ggplot(
+        data = ., 
+        mapping = ggplot2::aes_string(x = "VISIT_YEARS", y = ivariable, colour = "ID")
+      ) +
+        ggplot2::geom_line(na.rm = TRUE) +
+        ggplot2::guides(colour = "none") +
+        lmerTest::lmer(discrete = TRUE, begin = 0, end = 4 / 5) +
+        ggplot2::facet_grid(.~pT2D)
     print(pTraj)
     cat("\n")
     
     
     cat("\n##### Residuals plot\n\n")
-    p0 <- plot_grid(
-      ggplot(data = data.frame(x = fitted(fit), y = residuals(fit)), aes(x = x, y = y)) +
-        geom_point(shape = 21, colour = viridis_pal()(1)) +
-        labs(x = "Fitted", y = "Residuals"),
-      ggplot(data = data.frame(y = residuals(fit), x = "x"), aes(x = x, y = y)) +
-        geom_boxplot(
+    p0 <- cowplot::plot_grid(
+      ggplot2::ggplot(
+        data = data.frame(x = stats::fitted(fit), y = stats::residuals(fit)), 
+        mapping = ggplot2::aes(x = x, y = y)
+      ) +
+        ggplot2::geom_point(shape = 21, colour = viridis::viridis_pal()(1)) +
+        ggplot2::labs(x = "Fitted", y = "Residuals"),
+      ggplot2::ggplot(
+        data = data.frame(y = stats::residuals(fit), x = "x"), 
+        mapping = ggplot2::aes(x = x, y = y)
+      ) +
+        ggplot2::geom_boxplot(
           shape = 21,
-          colour = viridis_pal(begin = 0.5, end = 0.5)(1),
+          colour = viridis::viridis_pal(begin = 0.5, end = 0.5)(1),
           outlier.shape = 21
         ) +
-        geom_hline(
-          yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
+        ggplot2::geom_hline(
+          yintercept = stats::median(stats::residuals(fit)) + 3 * stats::IQR(stats::residuals(fit)),
           linetype = 2,
-          colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+          colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
         ) +
-        geom_hline(
-          yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
+        ggplot2::geom_hline(
+          yintercept = stats::median(stats::residuals(fit)) - 3 * stats::IQR(stats::residuals(fit)),
           linetype = 2,
-          colour = viridis_pal(begin = 0.25, end = 0.25)(1)
+          colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
         ) +
-        labs(y = "Residuals", x = NULL) +
-        theme(axis.text.x = element_blank()),
+        ggplot2::labs(y = "Residuals", x = NULL) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank()),
       labels = LETTERS[c(1, 2)],
       align = "hv"
     )
@@ -1397,14 +1415,14 @@ for (ivariable in variables_names) {
     cat("\n##### Random effect\n\n")
     if (nTimePoints > 2) {
       # Compare model with or without random slope (anova)
-      fit_random <- anova(
-        update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+      fit_random <- stats::anova(
+        stats::update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
         fit, 
         refit = FALSE
       ) 
       fit_random <- as.data.frame(
-        column_to_rownames(
-          df = mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
+        tibble::column_to_rownames(
+          df = dplyr::mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
           var = "Mod"
         )
       )
@@ -1449,23 +1467,23 @@ for (ivariable in variables_names) {
 
 ```{r display_descriptive_statistics, eval = params_steps$step_3}
 descriptive_table <- DMVSLB_QC4 %>%
-  group_by(STUDYID) %>%
-  mutate(
+  dplyr::group_by(STUDYID) %>%
+  dplyr::mutate(
     NumberParticipants = format(length(unique(SUBJID)), big.mark = ","),
     MalesPercent = round((sum(SEX0) / length(SEX0)) * 100, digits = 2)
   ) %>%
-  group_by(STUDYID, SUBJID) %>%
-  mutate(
+  dplyr::group_by(STUDYID, SUBJID) %>%
+  dplyr::mutate(
     NumberMeasures = length(unique(VISIT_YEARS)),
     FollowUpDuration = diff(range(VISIT_YEARS, na.rm = TRUE))
   ) %>%
-  filter(VISIT == "BASELINE") %>%
-  ungroup() %>%
-  group_by(STUDYID) %>%
+  dplyr::filter(VISIT == "BASELINE") %>%
+  dplyr::ungroup() %>%
+  dplyr::group_by(STUDYID) %>%
   (function(.data) {
-    full_join(
+    dplyr::full_join(
       x = .data %>% 
-        summarise(
+        dplyr::summarise(
           `Number of Participants` = unique(NumberParticipants),
           `Number of Measures` = compute_mean_sd(NumberMeasures, digits = 2),
           `Follow-Up Duration` = compute_mean_sd(FollowUpDuration, digits = 2),
@@ -1474,17 +1492,17 @@ descriptive_table <- DMVSLB_QC4 %>%
           `BMI (Baseline)` = compute_mean_sd(BMI0, digits = 2)
         ),
       y = .data %>% 
-        summarise_at(.vars = vars(variables_names), .funs = compute_mean_sd) %>% 
+        dplyr::summarise_at(.vars = dplyr::vars(variables_names), .funs = compute_mean_sd) %>% 
         `colnames<-`(c(colnames(.)[1], paste0(colnames(.)[-1], " (Baseline)"))),
       by = "STUDYID"
     )
   }) %>%
-  ungroup() %>%
-  select(
+  dplyr::ungroup() %>%
+  dplyr::select(
     STUDYID,
     `Number of Participants`, `Number of Measures`, `Follow-Up Duration`, `Males Percentage`,
     `Age (Baseline)`, `BMI (Baseline)`, 
-    everything()
+    dplyr::everything()
   ) %>%
   t() %>%
   `colnames<-`(.[1, ]) %>%
@@ -1703,7 +1721,7 @@ done
 #### Trajectories
 
 ```{r lmm_genotypes_plot, eval = params_steps$step_6}
-DMVSLB_QC5 <- filter(
+DMVSLB_QC5 <- dplyr::filter(
   .data = DMVSLB_QC4,
   SUBJID %in% (
     grep(
@@ -1714,16 +1732,16 @@ DMVSLB_QC5 <- filter(
       .[1] %>% 
       list.files(pattern = ".DS.gz$", full.names = TRUE) %>% 
       .[1] %>% 
-      read.table(header = TRUE, check.names = FALSE) %>% 
+      utils::read.table(header = TRUE, check.names = FALSE) %>% 
       colnames() %>% 
       .[-c(1, 2)]
   )
 ) 
 
 DMVSLB_QC5 %>%
-  select(!!unname(variables_names), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID) %>% 
-  gather(key = "Trait", value = "Measure", -c(AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID)) %>% 
-  mutate(
+  dplyr::select(!!unname(variables_names), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID) %>% 
+  tidyr::gather(key = "Trait", value = "Measure", -c(AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID)) %>% 
+  dplyr::mutate(
     ID = paste(STUDYID, SUBJID, sep = "_"),
     pT2D = ifelse(
       ID%in%diabetic_samples_with_medication_info,
@@ -1731,12 +1749,15 @@ DMVSLB_QC5 %>%
       "Normo"
     )
   ) %>%
-    ggplot(data = ., aes_string(x = "VISIT_YEARS", y = "Measure", colour = "ID")) +
-      geom_line(na.rm = TRUE) +
-      guides(colour = "none") +
-      scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
-      facet_grid(Trait~pT2D, scales = "free_y") +
-      labs(y = "Measure (SI)")
+    ggplot2::ggplot(
+      data = ., 
+      mapping = ggplot2::aes_string(x = "VISIT_YEARS", y = "Measure", colour = "ID")
+    ) +
+      ggplot2::geom_line(na.rm = TRUE) +
+      ggplot2::guides(colour = "none") +
+      viridis::scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+      ggplot2::facet_grid(Trait~pT2D, scales = "free_y") +
+      ggplot2::labs(y = "Measure (SI)")
 
 cat("\n")
 ```
@@ -1745,23 +1766,23 @@ cat("\n")
 
 ```{r lmm_descriptive_statistics, eval = params_steps$step_6}
 descriptive_table <- DMVSLB_QC5 %>%
-  group_by(STUDYID) %>%
-  mutate(
+  dplyr::group_by(STUDYID) %>%
+  dplyr::mutate(
     NumberParticipants = format(length(unique(SUBJID)), big.mark = ","),
     MalesPercent = round((sum(SEX0) / length(SEX0)) * 100, digits = 2)
   ) %>%
-  group_by(STUDYID, SUBJID) %>%
-  mutate(
+  dplyr::group_by(STUDYID, SUBJID) %>%
+  dplyr::mutate(
     NumberMeasures = length(unique(VISIT_YEARS)),
     FollowUpDuration = diff(range(VISIT_YEARS, na.rm = TRUE))
   ) %>%
-  filter(VISIT == "BASELINE") %>%
-  ungroup() %>%
-  group_by(STUDYID) %>%
+  dplyr::filter(VISIT == "BASELINE") %>%
+  dplyr::ungroup() %>%
+  dplyr::group_by(STUDYID) %>%
   (function(.data) {
-    full_join(
+    dplyr::full_join(
       x = .data %>% 
-        summarise(
+        dplyr::summarise(
           `Number of Participants` = unique(NumberParticipants),
           `Number of Measures` = compute_mean_sd(NumberMeasures, digits = 2),
           `Follow-Up Duration` = compute_mean_sd(FollowUpDuration, digits = 2),
@@ -1770,17 +1791,17 @@ descriptive_table <- DMVSLB_QC5 %>%
           `BMI (Baseline)` = compute_mean_sd(BMI0, digits = 2)
         ),
       y = .data %>% 
-        summarise_at(.vars = vars(variables_names), .funs = compute_mean_sd) %>% 
+        dplyr::summarise_at(.vars = dplyr::vars(variables_names), .funs = compute_mean_sd) %>% 
         `colnames<-`(c(colnames(.)[1], paste0(colnames(.)[-1], " (Baseline)"))),
       by = "STUDYID"
     )
   }) %>%
-  ungroup() %>%
-  select(
+  dplyr::ungroup() %>%
+  dplyr::select(
     STUDYID,
     `Number of Participants`, `Number of Measures`, `Follow-Up Duration`, `Males Percentage`,
     `Age (Baseline)`, `BMI (Baseline)`, 
-    everything()
+    dplyr::everything()
   ) %>%
   t() %>%
   `colnames<-`(.[1, ]) %>%
@@ -1798,7 +1819,7 @@ list_chrom_directories <- grep(
   value = TRUE
 )
 
-trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
+trash <- purrr::map(.x = list_chrom_directories, .f = function(ichrdirectory) {
   message(ichrdirectory)
 
   # dir.create(gsub("extractVCF", "output_chunks_lmm", ichrdirectory), showWarnings = FALSE, mode = '0777')
@@ -1810,7 +1831,7 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
   list_dosage_file <- list.files(path = ichrdirectory, pattern = ".DS.gz$", full.names = TRUE)
   
   ## Parallelise on chunks
-  trash <- map(.x = list_dosage_file, .f = function(idosagefile) {
+  trash <- purrr::map(.x = list_dosage_file, .f = function(idosagefile) {
     message(idosagefile)
     log_file <- paste0(output_lmm_directory, "/", gsub(".*/([^.]*).*", "\\1", idosagefile), ".log")
     if (file.exists(log_file)) {
@@ -1820,7 +1841,7 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
       )
       return(NULL)
     }
-    dosage_file <- read.table(file = idosagefile, header = TRUE, check.names = FALSE)
+    dosage_file <- utils::read.table(file = idosagefile, header = TRUE, check.names = FALSE)
 
     ## Check intersect between phenotypes and genotypes data
     samplesWithPhenoGeno <- intersect(
@@ -1829,8 +1850,8 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
     )
 
     ## Format genotypes
-    dosage_file_tidy <- select(
-      .data = mutate(
+    dosage_file_tidy <- dplyr::select(
+      .data = dplyr::mutate(
         .data = dosage_file[, c("CHROM", "POS", samplesWithPhenoGeno)],
         SNP = paste(CHROM, POS, sep = "_")
       ),
@@ -1842,8 +1863,8 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
     
     dosage_file_tidy <- as.data.frame(
       t(
-        column_to_rownames(
-          df = filter(
+        tibble::column_to_rownames(
+          df = dplyr::filter(
             .data = as.data.frame(dosage_file_tidy), 
             !SNP%in%multi_allele_snps
           ),
@@ -1853,17 +1874,17 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
     )
 
     ## Combine phenotypes and genotypes
-    pheno_geno_data <- full_join(
+    pheno_geno_data <- dplyr::full_join(
       x = DMVSLB_QC5,
-      y = mutate(
-        .data = rownames_to_column(df = dosage_file_tidy, var = "SUBJID"), 
+      y = dplyr::mutate(
+        .data = tibble::rownames_to_column(df = dosage_file_tidy, var = "SUBJID"), 
         SUBJID = as.integer(SUBJID)
       ),
       by = c("SUBJID" = "SUBJID")
     )
 
     ## Run Mixed Model by SNP
-    results_lmm_snp <- mclapply(
+    results_lmm_snp <- parallel::mclapply(
       X = colnames(dosage_file_tidy),
       mc.cores = params$n_cpu,
       mc.allow.recursive = FALSE,
@@ -1871,14 +1892,14 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
       mc_variables_names = variables_names,
       mc_pheno_geno_data = pheno_geno_data,
       FUN = function(isnp, mc_variables_names, mc_pheno_geno_data) {
-        map_df(.x = mc_variables_names, .f = function(ivariable) {
+        purrr::map_df(.x = mc_variables_names, .f = function(ivariable) {
           if (!all(is.na(mc_pheno_geno_data[, ivariable]))) {
             local_formula <- eval(parse(text = paste0(
               "update.formula(formula.rightPart, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
             )))
             local_data <- mc_pheno_geno_data[, all.vars(local_formula)]
             
-            fit_lmm <- lmer(formula = local_formula, data = local_data)
+            fit_lmm <- lmerTest::lmer(formula = local_formula, data = local_data)
             out <- cbind.data.frame(
               TRAIT = ivariable, 
               SNP = isnp, 
@@ -1904,7 +1925,7 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
         })
       }
     )
-    list_errors <- sapply(results_lmm_snp, is, class2 = "try-error")
+    list_errors <- sapply(results_lmm_snp, methods::is, class2 = "try-error")
 
     cat(
       colnames(dosage_file_tidy)[list_errors],
@@ -1913,26 +1934,26 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
     )
     results_lmm_snp <- results_lmm_snp[!list_errors]
 
-    annotation_chunk <- full_join(
-      x = mutate(
-        .data = read_tsv(gsub(".DS.gz", ".frq", idosagefile)),
+    annotation_chunk <- dplyr::full_join(
+      x = dplyr::mutate(
+        .data = readr::read_tsv(gsub(".DS.gz", ".frq", idosagefile)),
         POS = as.character(POS)
       ),
-      y = mutate(
-        .data = read_tsv(gsub(".DS.gz", ".hwe", idosagefile)),
+      y = dplyr::mutate(
+        .data = readr::read_tsv(gsub(".DS.gz", ".hwe", idosagefile)),
         POS = as.character(POS)
       ), 
       by = c("CHROM" = "CHR", "POS" = "POS")
     )
-    annotation_chunk <- full_join(
+    annotation_chunk <- dplyr::full_join(
       x = annotation_chunk,
-      y = mutate(
-        .data = read_tsv(gsub(".DS.gz", ".INFO", idosagefile)),
+      y = dplyr::mutate(
+        .data = readr::read_tsv(gsub(".DS.gz", ".INFO", idosagefile)),
         POS = as.character(POS)
       ), 
       by = c("CHROM" = "CHROM", "POS" = "POS")
     ) %>%
-      mutate(SNP = paste(CHROM, POS, sep = "_"))
+      dplyr::mutate(SNP = paste(CHROM, POS, sep = "_"))
     
     # annotations_columns <- c(
     #   "SNP", "CHROM", "POS", "N_ALLELES", "N_CHR", "frq1", "frq2", 
@@ -1940,18 +1961,18 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
     #   "P_HET_DEFICIT", "P_HET_EXCESS", params$imputation_quality_tag, "TRAIT"
     # )
     
-    results_lmm_chunk <- full_join(
+    results_lmm_chunk <- dplyr::full_join(
       x = annotation_chunk,
-      y = bind_rows(results_lmm_snp),
+      y = dplyr::bind_rows(results_lmm_snp),
       by = "SNP"
     )
     
-    results_lmm_chunk_output <- rename(
+    results_lmm_chunk_output <- dplyr::rename(
       .data = results_lmm_chunk, 
       imputation_quality_INFO = !!params$imputation_quality_tag
     ) 
     cnames_output <- colnames(results_lmm_chunk_output)
-    results_lmm_chunk_output <- transmute(
+    results_lmm_chunk_output <- dplyr::transmute(
       .data = results_lmm_chunk_output,
       TRAIT = TRAIT,
       SNPID = SNP,
@@ -1983,7 +2004,7 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
     )
 
     ## Write results
-    trash <- map(.x = variables_names, .f = function(ivariable) {
+    trash <- purrr::map(.x = variables_names, .f = function(ivariable) {
       if (!grepl("_NA", ivariable)) {
         dir.create(paste0(output_lmm_directory, "/", ivariable), showWarnings = FALSE, mode = '0777')
         output_filename <- paste0(
@@ -1992,8 +2013,8 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
           gsub(".*/([^.]*).*", "\\1", idosagefile),
           ".csv"
         )
-        write_csv(
-          x = filter(results_lmm_chunk_output, TRAIT == ivariable),
+        readr::write_csv(
+          x = dplyr::filter(results_lmm_chunk_output, TRAIT == ivariable),
           path = output_filename,
           col_names = FALSE
         )
@@ -2026,7 +2047,7 @@ trash <- map(.x = list_chrom_directories, .f = function(ichrdirectory) {
 
 ```{r concatenate_chunks, eval = params_steps$step_6, include = params_steps$step_6}
 csv_header <- paste0(tempfile(), ".csv")
-write_csv(
+readr::write_csv(
   x = cbind.data.frame(
     "TRAIT", "SNPID", "chr", "position", "coded_all", "noncoded_all", 
     "strand_genome", "beta", "SE", "pval", 
@@ -2044,48 +2065,48 @@ dir.create(
   showWarnings = FALSE, 
   mode = '0777'
 )
-concatenate_chunks <- tibble(
+concatenate_chunks <- dplyr::tibble(
   output_directory = params$output_directory,
   output_lmm = paste0(output_directory, "/output_chunks_lmm")
 ) %>% 
-  mutate(
-    chr_directories = map(
+  dplyr::mutate(
+    chr_directories = purrr::map(
       .x = output_lmm, 
       .f = list.dirs, 
       recursive = FALSE, 
       full.names = FALSE
     )
   ) %>% 
-  unnest(chr_directories) %>% 
-  mutate(
-    trait_directories = map(
+  tidyr::unnest(chr_directories) %>% 
+  dplyr::mutate(
+    trait_directories = purrr::map(
       .x = paste0(output_lmm, "/", chr_directories), 
       .f = list.dirs, 
       recursive = FALSE, 
       full.names = FALSE
     )
   ) %>% 
-  unnest(trait_directories) %>% 
-  mutate(
-    chunk_file = map(
+  tidyr::unnest(trait_directories) %>% 
+  dplyr::mutate(
+    chunk_file = purrr::map(
       .x = paste0(output_lmm, "/", chr_directories, "/", trait_directories), 
       .f = list.files, 
       full.names = FALSE
     )
   ) %>% 
-  unnest(chunk_file) %>% 
-  mutate(
+  tidyr::unnest(chunk_file) %>% 
+  dplyr::mutate(
     trait = trait_directories,
     chr = gsub("[^0-9]*([0-9]+)[^0-9]*", "\\1", chr_directories),
     chr = ifelse(!is.na(as.numeric(chr)), sprintf("%02d", as.numeric(chr)), chr),
     results_filename = paste0(output_directory, "/results_to_send/", params$cohort_name, "_", chr, "_", trait_directories, ".csv.gz")
   ) %>% 
-  unite(col = file, output_lmm, chr_directories, trait_directories, chunk_file, sep = "/") %>% 
-  select(-output_directory) %>% 
-  group_by(trait, chr) %>% 
-  nest() %>% 
-  mutate(
-    concatenate = map(.x = data, .f = function(.data) {
+  tidyr::unite(col = file, output_lmm, chr_directories, trait_directories, chunk_file, sep = "/") %>% 
+  dplyr::select(-output_directory) %>% 
+  dplyr::group_by(trait, chr) %>% 
+  tidyr::nest() %>% 
+  dplyr::mutate(
+    concatenate = purrr::map(.x = data, .f = function(.data) {
       cmd <- paste(
         "cat",
         paste(c(csv_header, sort(.data[["file"]])), collapse = " "),
@@ -2099,12 +2120,12 @@ concatenate_chunks <- tibble(
 
 ```{r lmm_genotypes_ouput, eval = params_steps$step_6, include = params_steps$step_6}
 concatenate_chunks %>% 
-  unnest(data) %>% 
-  slice(1) %>% 
-  select(results_filename) %>% 
+  tidyr::unnest(data) %>% 
+  dplyr::slice(1) %>% 
+  dplyr::select(results_filename) %>% 
   .[[1]] %>% 
-  read_csv(file = ., col_names = TRUE, n_max = 20) %>% 
-  mutate_at(.vars = vars(contains("PVALUE")), .funs = funs(format_pval)) %>% 
+  readr::read_csv(file = ., col_names = TRUE, n_max = 20) %>% 
+  dplyr::mutate_at(.vars = dplyr::vars(dplyr::contains("PVALUE")), .funs = dplyr::funs(format_pval)) %>% 
   rmarkdown:::print.paged_df()
 ``` 
 
@@ -2116,46 +2137,46 @@ concatenate_chunks %>%
 
 ```{r qc_summary, eval = params_steps$step_7}
 count_samples <- function(data) { 
-  nrow(distinct(select(.data = data, STUDYID, SUBJID)))
+  nrow(dplyr::distinct(dplyr::select(.data = data, STUDYID, SUBJID)))
 }
 
-qc_steps <- bind_rows(
-  tibble(
+qc_steps <- dplyr::bind_rows(
+  dplyr::tibble(
     `QC Step` = 1, 
     `QC Step Description` = "Exclude participants that are not fasted at baseline", 
     `Samples Before QC` = count_samples(DMVSLB),
     `Samples After QC` = count_samples(DMVSLB_QC0),
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   ),
-  tibble(
+  dplyr::tibble(
     `QC Step` = 2, 
     `QC Step Description` = "Exclude participants with data available for one (or zero) time-point", 
     `Samples Before QC` = count_samples(DMVSLB_QC0),
     `Samples After QC` = count_samples(DMVSLB_QC1),
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   ),
-  tibble(
+  dplyr::tibble(
     `QC Step` = 3, 
     `QC Step Description` = "Exclude participants with diabetes at baseline", 
     `Samples Before QC` = count_samples(DMVSLB_QC1),
     `Samples After QC` = count_samples(DMVSLB_QC2),
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   ),
-  tibble(
+  dplyr::tibble(
     `QC Step` = 4, 
     `QC Step Description` = "Exclude participants developing diabetes during the study time without informations about medication", 
     `Samples Before QC` = count_samples(DMVSLB_QC2),
     `Samples After QC` = count_samples(DMVSLB_QC3),
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   ),
-  tibble(
+  dplyr::tibble(
     `QC Step` = 5, 
     `QC Step Description` = "Exclude participants defined as outliers based on residuals from the mixed model, with median plus/minus 3*IQR", 
     `Samples Before QC` = count_samples(DMVSLB_QC3),
     `Samples After QC` = count_samples(DMVSLB_QC4),
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   ),
-  tibble(
+  dplyr::tibble(
     `QC Step` = 6, 
     `QC Step Description` = "Exclude participants with no genotypes data available", 
     `Samples Before QC` = count_samples(DMVSLB_QC4),
@@ -2163,7 +2184,7 @@ qc_steps <- bind_rows(
     `Samples Excluded` = `Samples Before QC`-`Samples After QC`
   )
 ) %>% 
-  mutate_if(.predicate = is.numeric, .f = ~format(x = .x, big.mark = ","))
+  dplyr::mutate_if(.predicate = is.numeric, .f = ~format(x = .x, big.mark = ","))
 
 pretty_kable(data = qc_steps)
 ```
@@ -2221,11 +2242,11 @@ outout_tree_structure <- c(
   data.frame(pathString = .) %>%
   as.Node()
 
-cat(paste(sapply(capture.output(outout_tree_structure)[-1], paste0, "\n"), collapse = ""))
+cat(paste(sapply(utils::capture.output(outout_tree_structure)[-1], paste0, "\n"), collapse = ""))
 ```
 
 ```{r output_description, eval = params_steps$step_7}
-output_description <- tribble(
+output_description <- dplyr::tribble(
   ~"variable name", ~"description",
   "TRAIT", "trait used for the analysis (GLUC, GLUC2H or HBA1C)",
   "SNPID", "SNP ID as rs number",
