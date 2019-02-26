@@ -16,7 +16,7 @@ params:
   echo: FALSE
   warning: FALSE
   message: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.2)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.3)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -36,22 +36,6 @@ output:
     self_contained: true
     mathjax: default
     df_print: kable
-  pdf_document:
-    toc: true
-    toc_depth: 4
-    fig_width: 6.3
-    fig_height: 4.7
-    number_sections: true
-    df_print: kable
-    keep_tex: true
-    latex_engine: pdflatex
-  word_document:
-    toc: true
-    toc_depth: 4
-    fig_width: 6.3
-    fig_height: 4.7
-    df_print: kable
-    keep_md: false
 ---
 
 <!-- Author - Mickaël Canouil, Ph.D. -->
@@ -592,9 +576,6 @@ compute_mean_sd <- function(x, digits = 2) {
 ```
 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
-
-
 # Goal
 
 Combining two-point and multi-point longitudinal data from prediabetes cohorts to estimate the effects of genetic biomarkers on glycaemic trait rate change
@@ -616,57 +597,26 @@ Results from analyses from different cohorts will be combined in two meta-analys
 The latter analysis will yield a more precise estimation of longitudinal trajectories than when data from only two time-points are available. 
 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
+# Quality control of phenotype data
 
+## Summary
 
-# R commands to run the Rmarkdown script
+1.  Make sure measured biomarker data are in the same units across all the cohorts.  
+Fasting and 2-h plasma glucose in mmol/l and HbA1c in mmol/mol.
+2.  For fasting and 2-h glucose, ensure only those participants who are fasted for at least 8-h are included.
+3.  Exclusion of participants with data available for only one time-point.  
+Only individuals with at least 2 observations should be included in the analysis.
+4.  Exclusion of participants with diabetes at baseline.  
+As we will focus on prediabetes (and also include participants with normoglycemia), prevalent cases of diabetes at baseline using ADA diagnostic criteria must be excluded; this applies to participants with known diabetes as well as those with screen-detected diabetes at baseline.  
+Diagnostic criteria for diabetes ([ADA criteria; Diabetes Care 2015 Jan; 38, Supplement 1](http://care.diabetesjournals.org/content/suppl/2014/12/23/38.Supplement_1.DC1/January_Supplement_Combined_Final.6-99.pdf)):
+    * Fasting plasma glucose $\geq$ 7.0 mmol/l (126 mg/dl) or
+    * 2h plasma glucose $\geq$ 11.1 mmol/l (200 mg/dl) or
+    * HbA1c $\geq$ 48 mmol/mol (6.5%). 
+5.  Exclusion of participants developing diabetes during the study time:
+    * Individuals developing diabetes during the follow up and with no available information on medication  should be excluded.
+    * Individuals with Type I Diabetes or/and INSULIN and ANALOGUES treatment.
+6.  Additional exclusion based on model diagnostics (see preliminary modelling for details)
 
-```{r run_analysis, eval = FALSE, echo = TRUE}
-# set the output directory or leave as is; 
-# output will be generated where the Rmarkdown file is
-working_directory <- './' 
-
-analysis_step <- 7
-cohort_name <- 'Cohort_Name'
-author_name <- 'Firstname LASTNAME'
-opal_credentials <- 'opal_credentials.txt'
-vcf_directory <- '/media/.../vcf'
-imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be 'R2')
-
-
-# Run the analysis
-dir.create(path = working_directory, recursive = TRUE, showWarnings = FALSE, mode = '0777')
-rmarkdown::render(
-  input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
-  output_format = 'html_document', 
-  output_file = paste0(
-    'RHAPSODY_WP3_PreDiab_', 
-    cohort_name, '_step', 
-    analysis_step, '.html'
-  ), 
-  output_dir = working_directory,
-  params = list(
-    cohort_name = cohort_name, 
-    author_name = author_name, 
-    opal_credentials = opal_credentials,
-    vcf_input_directory = vcf_directory, 
-    imputation_quality_tag = imputation_quality_tag, 
-    vcftools_binary_path = '/usr/local/bin',
-    output_directory = working_directory,
-    analysis_step = analysis_step,
-    format_vcfs = TRUE,
-    variants_analysis = TRUE,
-    chunk_size = 1000,
-    n_cpu = 2,
-    echo = FALSE, # Should R code be printed in the report
-    warning = FALSE, # Should warnings be printed in the report
-    message = FALSE # Should messages be printed in the report
-  ),
-  encoding = 'UTF-8'
-)
-```
-
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 ```{r open_opal_connection, eval = params_steps$step_1, results = ifelse(params$echo, "asis", "hide")}
 cat("\n# Load data from OPAL node\n\n")
@@ -762,44 +712,15 @@ if (
 }
 ```
 
+## Make sure measured biomarker data are in the same units across all the cohorts
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
-
-
-# Quality control of phenotype data
-
-## Summary
-
-1.  Make sure measured biomarker data are in the same units across all the cohorts.  
-Fasting and 2-h plasma glucose in mmol/l and HbA1c in mmol/mol.
-2.  For fasting and 2-h glucose, ensure only those participants who are fasted for at least 8-h are included.
-3.  Exclusion of participants with data available for only one time-point.  
-Only individuals with at least 2 observations should be included in the analysis.
-4.  Exclusion of participants with diabetes at baseline.  
-As we will focus on prediabetes (and also include participants with normoglycemia), prevalent cases of diabetes at baseline using ADA diagnostic criteria must be excluded; this applies to participants with known diabetes as well as those with screen-detected diabetes at baseline.  
-Diagnostic criteria for diabetes ([ADA criteria; Diabetes Care 2015 Jan; 38, Supplement 1](http://care.diabetesjournals.org/content/suppl/2014/12/23/38.Supplement_1.DC1/January_Supplement_Combined_Final.6-99.pdf)):
-    * Fasting plasma glucose $\geq$ 7.0 mmol/l (126 mg/dl) or
-    * 2h plasma glucose $\geq$ 11.1 mmol/l (200 mg/dl) or
-    * HbA1c $\geq$ 48 mmol/mol (6.5%). 
-5.  Exclusion of participants developing diabetes during the study time:
-    * Individuals developing diabetes during the follow up and with no available information on medication  should be excluded.
-    * Individuals with Type I Diabetes or/and INSULIN and ANALOGUES treatment.
-6.  Additional exclusion based on model diagnostics (see preliminary modelling for details)
-
-
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
-
-## Code results
-
-### Make sure measured biomarker data are in the same units across all the cohorts
-
-#### Demographic variables
+### Demographic variables
 
 ```{r display_demographic_marker_description, eval = params_steps$step_2}
 pretty_kable(vs_tidy$annotation)
 ```
 
-#### Check if unit is the International Unit
+### Check if unit is the International Unit
 
 ```{r check_units_needs_convert, eval = params_steps$step_2}
 lb_tidy$annotation <- lb_tidy$annotation %>%
@@ -817,29 +738,33 @@ lb_tidy$annotation <- lb_tidy$annotation %>%
   )
 ```
 
-```{r display_biomarker_to_convert, eval = params_steps$step_2}
-cat(
-  paste0(
-    "The following variables have been converted to mmol/l:\n\n",
-    paste0(
-      "  * ",
-      lb_tidy$annotation %>%
-        dplyr::filter(!is.na(CONVERT_TO)) %>%
-        dplyr::select(LBTEST, LBTESTCD) %>%
-        (function(.data) {
-          paste0(.data[, "LBTEST"], " (`", .data[, "LBTESTCD"], "`)")
-        }),
-      collapse = "\n"
-    )
-  )
-)
-cat("\n")
+```{r display_biomarker_description, eval = params_steps$step_2}
+tmp <- lb_tidy$annotation %>%
+  dplyr::filter(grepl("GLUC", LBTESTCD) | grepl("HBA1C", LBTESTCD)) 
+pretty_kable(tmp[, -c(ncol(tmp), ncol(tmp)-1)])
 ```
 
-#### Display biomarkers and units
+```{r display_biomarker_to_convert, eval = params_steps$step_2}
+tmp <- lb_tidy$annotation %>%
+  dplyr::filter(!is.na(CONVERT_TO)) %>%
+  dplyr::filter(grepl("GLUC", LBTESTCD) | grepl("HBA1C", LBTESTCD)) %>% 
+  dplyr::select(LBTEST, LBTESTCD)
 
-```{r display_biomarker_description, eval = params_steps$step_2}
-pretty_kable(lb_tidy$annotation[, -c(ncol(lb_tidy$annotation), ncol(lb_tidy$annotation)-1)])
+if (nrow(tmp)==0) {
+  "All variables are in the International unit."
+} else {
+  cat(
+    paste0(
+      "The following variables have been converted to mmol/l:\n\n",
+      paste0(
+        "  * ",
+        paste0(tmp[, "LBTEST"], " (`", tmp[, "LBTESTCD"], "`)"),
+        collapse = "\n"
+      )
+    )
+  )
+}
+cat("\n")
 ```
 
 ```{r convert_biomarker_units, eval = params_steps$step_2, include = FALSE}
@@ -923,7 +848,7 @@ if (params$cohort_name == "ADDITION") {
 }
 ```
 
-### Keep only participants that are fasted at baseline
+## Keep only participants that are fasted at baseline
 
 ```{r fasted_samples, eval = params_steps$step_2}
 if (all(is.na(DMVSLB[, "LBFAST"]))) {
@@ -967,7 +892,7 @@ if (all(is.na(DMVSLB[, "LBFAST"]))) {
 
 Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC0 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
-### Exclusion of participants with data available for only one time-point
+## Exclusion of participants with data available for only one time-point
 
 ```{r check_samples_with_one_measure, eval = params_steps$step_2}
 variables_names_available <- variables_names[!grepl("_NA", variables_names)]
@@ -995,7 +920,7 @@ DMVSLB_QC1 <- DMVSLB_QC0 %>%
 
 Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC1 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
-### Exclusion of participants with diabetes at baseline
+## Exclusion of participants with diabetes at baseline
 
   * Fasting glucose $\geq$ 7.0 mmol/l (126 mg/dl; 1.26 g/l) => `GLUC`
   * 2–h glucose $\geq$ 11.1 mmol/l (200 mg/dl; 2 g/l) => `GLUC2H`
@@ -1033,7 +958,7 @@ DMVSLB_QC2 <- DMVSLB_QC1 %>%
 
 Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC2 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
-### Exclusion of participants developing diabetes during the study time without informations about medication
+## Exclusion of participants developing diabetes during the study time without informations about medication
 
 ```{r check_incident_diabetic_medication, eval = params_steps$step_2}
 # Get samples developing diabetes according to definition
@@ -1116,9 +1041,6 @@ DMVSLB_QC3 <- DMVSLB_QC2 %>%
 Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB_QC3 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`
 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
-
-
 # Preliminary modelling
 
 ## Summary
@@ -1136,19 +1058,11 @@ For cohorts with only two time-points, only a random intercept can be fitted; he
 
 For cohorts containing family data, the correlation between family members has to be taken into account. 
 
-> **Mickaël Canouil:** Not working (yet) on family data.
-
-
-## Code results
-
 Default covariates included in the model are `AGE0`, `SEX0` and `BMI0` (baseline values).  
 Additional covariates might be needed depending on the cohort.
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
-### First Run
-
-#### Check number of time points
+## First Run {.tabset}
 
 ```{r preliminary_first_run_check_number_measures, eval = params_steps$step_3}
 nTimePoints <- max(table(DMVSLB_QC3[["SUBJID"]]))
@@ -1192,7 +1106,7 @@ for (ivariable in variables_names) {
     big_names <- "HbA1c"
   }
   
-  cat(paste0("\n\n#### ", big_names, " (`", ivariable, "`)\n"))
+  cat(paste0("\n\n### ", big_names, " (`", ivariable, "`) {.tabset}\n"))
 
   fit_data <- dplyr::select(
     .data = DMVSLB_QC3, 
@@ -1207,7 +1121,7 @@ for (ivariable in variables_names) {
       data = fit_data
     )
     
-    cat("\n##### Trajectories\n\n")
+    cat("\n#### Trajectories {-}\n\n")
     pTraj <- dplyr::mutate(.data = fit_data,
       ID = paste(STUDYID, SUBJID, sep = "_"),
       pT2D = ifelse(
@@ -1228,155 +1142,7 @@ for (ivariable in variables_names) {
     cat("\n")
     
     
-    cat("\n##### Residuals plot\n\n")
-    p0 <- cowplot::plot_grid(
-      ggplot2::ggplot(
-        data = data.frame(x = fitted(fit), y = residuals(fit)), 
-        mapping = ggplot2::aes(x = x, y = y)
-      ) +
-        ggplot2::geom_point(shape = 21, colour = viridis::viridis_pal()(1)) +
-        ggplot2::labs(x = "Fitted", y = "Residuals"),
-      ggplot2::ggplot(
-        data = data.frame(y = residuals(fit), x = "x"), 
-        mapping = ggplot2::aes(x = x, y = y)
-      ) +
-        ggplot2::geom_boxplot(
-          shape = 21,
-          colour = viridis::viridis_pal(begin = 0.5, end = 0.5)(1),
-          outlier.shape = 21
-        ) +
-        ggplot2::geom_hline(
-          yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
-          linetype = 2,
-          colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
-        ) +
-        ggplot2::geom_hline(
-          yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
-          linetype = 2,
-          colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
-        ) +
-        ggplot2::labs(y = "Residuals", x = NULL) +
-        ggplot2::theme(axis.text.x = ggplot2::element_blank()),
-      labels = LETTERS[c(1, 2)],
-      align = "hv"
-    )
-    viridis::viridis_pal(p0)
-    cat("\n")
-    
-    
-    residuals_outliers[[ivariable]] <- get_residuals_outliers(fit)
-    
-    
-    cat("\n##### Random effect\n\n")
-    if (nTimePoints > 2) {
-      # Compare model with or without random slope (anova)
-      fit_random <- anova(
-        update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
-        fit, refit = FALSE
-      ) 
-      fit_random <- as.data.frame(
-        tibble::column_to_rownames(
-          df = dplyr::mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
-          var = "Mod"
-        )
-      )
-      print(
-        pretty_kable(
-          data = fit_random, 
-          pval_cols = grep("Pr(>Chisq)", colnames(fit_random), fixed = TRUE)
-        )
-      )
-    } else {
-      cat("Not enough time points to test a random slope term.")
-      cat("\n")
-    }
-    
-    
-    cat("\n##### Fixed effect\n\n")
-    coeff_fit <- as.data.frame(coefficients(summary(fit)))
-    
-    if (any(grepl("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE))) {
-      print(
-        pretty_kable(
-          data = coeff_fit, 
-          pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)
-        )
-      )
-    } else {
-      cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
-      cat("\n")
-    }
-  } else {
-    cat(paste0("`", ivariable, "` is not available."))
-    cat("\n")
-    residuals_outliers[[ivariable]] <- NULL
-  }
-  
-  if (knitr:::is_latex_output()) {cat('\\clearpage'); cat("\n")}
-}
-```
-
-### Second Run (after residuals check)
-
-```{r preliminary_second_run_qc, eval = params_steps$step_3}
-DMVSLB_QC4 <- dplyr::filter(.data = DMVSLB_QC3, !SUBJID%in%unique(unlist(residuals_outliers)))
-```
-
-Total individuals available : `r ifelse(params$analysis_step>=3, DMVSLB_QC4 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
-
-```{r preliminary_second_run, eval = params_steps$step_3}
-residuals_outliers <- as.list(rep_len(NA, length(variables_names)))
-names(residuals_outliers) <- variables_names
-
-for (ivariable in variables_names) {
-  if (grepl("GLUC_", ivariable)) {
-    big_names <- "Glucose"
-  }
-  if (grepl("GLUC2H_", ivariable)) {
-    big_names <- "2-Hour glucose"
-  }
-  if (grepl("HBA1C_", ivariable)) {
-    big_names <- "HbA1c"
-  }
-  
-  cat(paste0("\n\n#### ", big_names, " (`", ivariable, "`)\n"))
-
-  fit_data <- dplyr::select(
-    .data = DMVSLB_QC4, 
-    dplyr::matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID
-  )
-  
-  if (!all(is.na(fit_data[[ivariable]]))) {
-    fit <- lmerTest::lmer(
-      formula = eval(parse(
-        text = paste0('update.formula(formula.rightPart, ', ivariable, '~.)')
-      )),
-      data = fit_data
-    )
-    
-    cat("\n##### Trajectories\n\n")
-    pTraj <- dplyr::mutate(
-      .data = fit_data,
-      ID = paste(STUDYID, SUBJID, sep = "_"),
-      pT2D = ifelse(
-        ID%in%diabetic_samples_with_medication_info,
-        "PreDiab",
-        "Normo"
-      )
-    ) %>%
-      ggplot2::ggplot(
-        data = ., 
-        mapping = ggplot2::aes_string(x = "VISIT_YEARS", y = ivariable, colour = "ID")
-      ) +
-        ggplot2::geom_line(na.rm = TRUE) +
-        ggplot2::guides(colour = "none") +
-        lmerTest::lmer(discrete = TRUE, begin = 0, end = 4 / 5) +
-        ggplot2::facet_grid(.~pT2D)
-    print(pTraj)
-    cat("\n")
-    
-    
-    cat("\n##### Residuals plot\n\n")
+    cat("\n#### Residuals plot {-}\n\n")
     p0 <- cowplot::plot_grid(
       ggplot2::ggplot(
         data = data.frame(x = fitted(fit), y = residuals(fit)), 
@@ -1412,7 +1178,153 @@ for (ivariable in variables_names) {
     cat("\n")
     
     
-    cat("\n##### Random effect\n\n")
+    residuals_outliers[[ivariable]] <- get_residuals_outliers(fit)
+    
+    
+    cat("\n#### Random effect {-}\n\n")
+    if (nTimePoints > 2) {
+      # Compare model with or without random slope (anova)
+      fit_random <- anova(
+        update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+        fit, refit = FALSE
+      ) 
+      fit_random <- as.data.frame(
+        tibble::column_to_rownames(
+          df = dplyr::mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
+          var = "Mod"
+        )
+      )
+      print(
+        pretty_kable(
+          data = fit_random, 
+          pval_cols = grep("Pr(>Chisq)", colnames(fit_random), fixed = TRUE)
+        )
+      )
+    } else {
+      cat("Not enough time points to test a random slope term.")
+      cat("\n")
+    }
+    
+    
+    cat("\n#### Fixed effect {-}\n\n")
+    coeff_fit <- as.data.frame(coefficients(summary(fit)))
+    
+    if (any(grepl("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE))) {
+      print(
+        pretty_kable(
+          data = coeff_fit, 
+          pval_cols = grep("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE)
+        )
+      )
+    } else {
+      cat("Warning: p-values were not computed by lmerTest, probably due to computational error.")
+      cat("\n")
+    }
+  } else {
+    cat(paste0("`", ivariable, "` is not available."))
+    cat("\n")
+    residuals_outliers[[ivariable]] <- NULL
+  }
+}
+```
+
+## Second Run (after residuals check) {.tabset}
+
+```{r preliminary_second_run_qc, eval = params_steps$step_3}
+DMVSLB_QC4 <- dplyr::filter(.data = DMVSLB_QC3, !SUBJID%in%unique(unlist(residuals_outliers)))
+```
+
+Total individuals available : `r ifelse(params$analysis_step>=3, DMVSLB_QC4 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+
+```{r preliminary_second_run, eval = params_steps$step_3}
+residuals_outliers <- as.list(rep_len(NA, length(variables_names)))
+names(residuals_outliers) <- variables_names
+
+for (ivariable in variables_names) {
+  if (grepl("GLUC_", ivariable)) {
+    big_names <- "Glucose"
+  }
+  if (grepl("GLUC2H_", ivariable)) {
+    big_names <- "2-Hour glucose"
+  }
+  if (grepl("HBA1C_", ivariable)) {
+    big_names <- "HbA1c"
+  }
+  
+  cat(paste0("\n\n### ", big_names, " (`", ivariable, "`) {.tabset}\n"))
+
+  fit_data <- dplyr::select(
+    .data = DMVSLB_QC4, 
+    dplyr::matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID
+  )
+  
+  if (!all(is.na(fit_data[[ivariable]]))) {
+    fit <- lmerTest::lmer(
+      formula = eval(parse(
+        text = paste0('update.formula(formula.rightPart, ', ivariable, '~.)')
+      )),
+      data = fit_data
+    )
+    
+    cat("\n#### Trajectories {-}\n\n")
+    pTraj <- dplyr::mutate(
+      .data = fit_data,
+      ID = paste(STUDYID, SUBJID, sep = "_"),
+      pT2D = ifelse(
+        ID%in%diabetic_samples_with_medication_info,
+        "PreDiab",
+        "Normo"
+      )
+    ) %>%
+      ggplot2::ggplot(
+        data = ., 
+        mapping = ggplot2::aes_string(x = "VISIT_YEARS", y = ivariable, colour = "ID")
+      ) +
+        ggplot2::geom_line(na.rm = TRUE) +
+        ggplot2::guides(colour = "none") +
+        viridis::scale_colour_viridis(discrete = TRUE, begin = 0, end = 4 / 5) +
+        ggplot2::facet_grid(.~pT2D)
+    print(pTraj)
+    cat("\n")
+    
+    
+    cat("\n#### Residuals plot {-}\n\n")
+    p0 <- cowplot::plot_grid(
+      ggplot2::ggplot(
+        data = data.frame(x = fitted(fit), y = residuals(fit)), 
+        mapping = ggplot2::aes(x = x, y = y)
+      ) +
+        ggplot2::geom_point(shape = 21, colour = viridis::viridis_pal()(1)) +
+        ggplot2::labs(x = "Fitted", y = "Residuals"),
+      ggplot2::ggplot(
+        data = data.frame(y = residuals(fit), x = "x"), 
+        mapping = ggplot2::aes(x = x, y = y)
+      ) +
+        ggplot2::geom_boxplot(
+          shape = 21,
+          colour = viridis::viridis_pal(begin = 0.5, end = 0.5)(1),
+          outlier.shape = 21
+        ) +
+        ggplot2::geom_hline(
+          yintercept = median(residuals(fit)) + 3 * IQR(residuals(fit)),
+          linetype = 2,
+          colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
+        ) +
+        ggplot2::geom_hline(
+          yintercept = median(residuals(fit)) - 3 * IQR(residuals(fit)),
+          linetype = 2,
+          colour = viridis::viridis_pal(begin = 0.25, end = 0.25)(1)
+        ) +
+        ggplot2::labs(y = "Residuals", x = NULL) +
+        ggplot2::theme(axis.text.x = ggplot2::element_blank()),
+      labels = LETTERS[c(1, 2)],
+      align = "hv"
+    )
+    print(p0)
+    cat("\n")
+    
+    
+    cat("\n#### Random effect {-}\n\n")
     if (nTimePoints > 2) {
       # Compare model with or without random slope (anova)
       fit_random <- anova(
@@ -1439,7 +1351,7 @@ for (ivariable in variables_names) {
     }
     
     
-    cat("\n##### Fixed effect\n\n")
+    cat("\n#### Fixed effect {-}\n\n")
     coeff_fit <- as.data.frame(coefficients(summary(fit)))
     
     if (any(grepl("Pr(>|t|)", colnames(coeff_fit), fixed = TRUE))) {
@@ -1458,8 +1370,6 @@ for (ivariable in variables_names) {
     cat("\n")
     # residuals_outliers[[ivariable]] <- NULL
   }
-  
-  if (knitr:::is_latex_output()) {cat('\\clearpage'); cat("\n")}
 }
 ```
 
@@ -1512,21 +1422,14 @@ pretty_kable(descriptive_table[-1, , drop = FALSE])
 ```
 
 
-
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
-
-
 # Association and interaction analyses
 
 ## Summary
 
 To perform GWAS analysis, SNP main effect and SNP x time interaction term are included to the preliminary model above; these parameters are average linear effect of time and SNP effect on the rate change (SNP x time), respectively. 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
-## Code results
-
-### Check available VCF files
+## Check available VCF files
 
 Please, provide VCF files in dosage format and check the availability of the imputation quality tag used (e.g. `INFO`).
 
@@ -1543,13 +1446,10 @@ cat(
 cat("\n")
 ```
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
-
-### Prepare and format VCF files
-
-#### Export Rmarkdown parameters in system environment for bash use
+## Prepare and format VCF files
 
 ```{r export_rmarkdown_parameters, eval = params_steps$step_4}
+#### Export Rmarkdown parameters in system environment for bash use
 Sys.setenv(projectName = params$cohort_name)
 Sys.setenv(vcfin = params$vcf_input_directory)
 Sys.setenv(vcfout = params$output_directory)
@@ -1571,11 +1471,9 @@ cat(
 )
 ```
 
-#### Format and split VCF using bash and vcftools (needs to be installed)
-
-#### List all VCFs path in a file
-
 ```{r list_vcf, eval = params_steps$step_4}
+#### Format and split VCF using bash and vcftools (needs to be installed)
+#### List all VCFs path in a file
 list_files <- list.files(
   path = params$vcf_input_directory, 
   pattern = '.*.vcf.gz$', # '.*[2][12]+.*.vcf.gz$' part to be removed later
@@ -1585,11 +1483,11 @@ cat(list_files, sep = "\n", file = paste0(params$output_directory, "/vcffilespat
 cat(DMVSLB_QC4[["SUBJID"]], sep = "\n", file = paste0(params$output_directory, "/sample_qced.txt"))
 ```
 
-##### Manually format VCFs
+### Manually format VCFs
 
 Shell script can be run from your output directory (`` `r params$output_directory` ``) using the generated command line file (`` `r paste0("handleVCF_", params$cohort_name, ".sh")` ``) and shell script (`./utils/handleVCF.sh`, must be located in `` `r params$output_directory` ``).
 
-##### Automatically format VCFs
+### Automatically format VCFs
 
 ```{sh format_vcf, eval = params_steps$step_5 & params$format_vcfs, echo = params_steps$step_5 & params$format_vcfs, results = "hide"}
 ## Description:
@@ -1714,11 +1612,9 @@ done
 ```
 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
+## Run Mixed Model with imputed genotypes
 
-### Run Mixed Model with imputed genotypes
-
-#### Trajectories
+### Trajectories
 
 ```{r lmm_genotypes_plot, eval = params_steps$step_6}
 DMVSLB_QC5 <- dplyr::filter(
@@ -1762,7 +1658,7 @@ DMVSLB_QC5 %>%
 cat("\n")
 ```
 
-#### Descriptive statistics
+### Descriptive statistics
 
 ```{r lmm_descriptive_statistics, eval = params_steps$step_6}
 descriptive_table <- DMVSLB_QC5 %>%
@@ -1810,7 +1706,7 @@ descriptive_table <- DMVSLB_QC5 %>%
 pretty_kable(descriptive_table[-1, , drop = FALSE])
 ```
 
-#### Mixed Model results
+### Mixed Model results
 
 ```{r lmm_genotypes, eval = params_steps$step_6 & params$variants_analysis}
 list_chrom_directories <- grep(
@@ -1818,8 +1714,9 @@ list_chrom_directories <- grep(
   x = list.dirs(params$output_directory, full.names = TRUE),
   value = TRUE
 )
+if (params$debug) list_chrom_directories <- list_chrom_directories[1]
 
-trash <- purrr::map(.x = list_chrom_directories, .f = function(ichrdirectory) {
+trash <- purrr::map(.x = list_chrom_directories[c(1, 2)], .f = function(ichrdirectory) {
   message(ichrdirectory)
 
   # dir.create(gsub("extractVCF", "output_chunks_lmm", ichrdirectory), showWarnings = FALSE, mode = '0777')
@@ -1829,6 +1726,7 @@ trash <- purrr::map(.x = list_chrom_directories, .f = function(ichrdirectory) {
 
   ## Read imputed genotypes (dosage file)
   list_dosage_file <- list.files(path = ichrdirectory, pattern = ".DS.gz$", full.names = TRUE)
+  if (params$debug) list_dosage_file <- list_dosage_file[1]
   
   ## Parallelise on chunks
   trash <- purrr::map(.x = list_dosage_file, .f = function(idosagefile) {
@@ -1836,8 +1734,10 @@ trash <- purrr::map(.x = list_chrom_directories, .f = function(ichrdirectory) {
     log_file <- paste0(output_lmm_directory, "/", gsub(".*/([^.]*).*", "\\1", idosagefile), ".log")
     if (file.exists(log_file)) {
       message(
-        paste0('Chunk "', basename(idosagefile), '" from "', ichrfilename, '" was already analysed.', '\n'),
-        paste0('Chunk "', basename(idosagefile), ' is skipped.')
+        paste0(
+          'Chunk "', basename(idosagefile), '" from "', ichrfilename, '" was already analysed.', '\n',
+          'Chunk "', basename(idosagefile), ' is skipped.'
+        )
       )
       return(NULL)
     }
@@ -2041,7 +1941,8 @@ trash <- purrr::map(.x = list_chrom_directories, .f = function(ichrdirectory) {
       # "output_filename"
     )
   )
-  gc(verbose = FALSE, reset = TRUE, full = TRUE)
+  gc(verbose = FALSE, reset = TRUE)
+  return(NULL)
 })
 ```
 
@@ -2130,9 +2031,6 @@ concatenate_chunks %>%
 ``` 
 
 
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
-
-
 # Samples exclusion summary
 
 ```{r qc_summary, eval = params_steps$step_7}
@@ -2188,9 +2086,6 @@ qc_steps <- dplyr::bind_rows(
 
 pretty_kable(data = qc_steps)
 ```
-
-
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
 
 
 # Output tree structure
@@ -2275,14 +2170,8 @@ pretty_kable(data = output_description)
 ```
 
 
-
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
-
-
 # R session information
 
 ```{r session_info, results = "markup"}
 devtools::session_info()
 ```
-
-`r if (knitr:::is_latex_output()) {'\\clearpage'}`
