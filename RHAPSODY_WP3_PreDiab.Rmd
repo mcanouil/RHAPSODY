@@ -1080,7 +1080,7 @@ check_medication <- CM %>%
   dplyr::filter(
     CMCAT%in%c("INSULINS AND ANALOGUES", "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS")
   ) %>%
-  dplyr::filter(ID, CMCAT) %>%
+  dplyr::group_by(ID, CMCAT) %>%
   dplyr::summarise(
     CHOCCUR = any(CMOCCUR%in%"Y")
   ) %>%
