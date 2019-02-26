@@ -330,7 +330,7 @@ pretty_kable <- function(
       )
   } else {
     options(knitr.table.format = "html")
-    kableExtra::kable(x = data, format.args = format.args, col.names = col.names, ...) %>%
+    knitr::kable(x = data, format.args = format.args, col.names = col.names, ...) %>%
       kableExtra::kable_styling(
         bootstrap_options = c("striped", "hover", "condensed", "responsive"),
         full_width = TRUE,
