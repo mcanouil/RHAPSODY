@@ -101,3 +101,16 @@ docker push umr8199/rhapsody:latest
 ## Clean temporary image
 docker system prune --all
 ```
+ 
+``` sh
+docker run \
+--name stat-rhapsody \
+  --hostname stat-rhapsody \
+  --detach \
+  --volume /media/Data/InternalData/OmicData/SNPGenotypes/GWA/T2D_FrenchCaseControl/SangerImputationService/HRC/vcfs/DESIR:/media/vcf \
+  --volume /media/Project/RHAPSODY/Scripts/BuildScripts:/media/BuildScripts \
+  --volume /media/Project/RHAPSODY/Docs:/media/Docs \
+  --volume /media/Datatmp/RHAPSODY/DGDG2:/media/rhapsody_output \
+  --publish 9999:8787 \
+  umr8199/rhapsody:latest
+```
