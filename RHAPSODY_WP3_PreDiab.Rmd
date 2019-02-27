@@ -735,7 +735,7 @@ lb_tidy$annotation <- lb_tidy$annotation %>%
         "mmol/l",
         ifelse(
           LBORRESU%in%"%" & LBTESTCD == "HBA1C",
-          "mmol/l",
+          "mmol/mol",
           NA
         )
       )
@@ -759,7 +759,7 @@ if (nrow(tmp)==0) {
 } else {
   cat(
     paste0(
-      "The following variables have been converted to mmol/l:\n\n",
+      "The following variables have been converted to International Units (mmol/l or mmol/mol):\n\n",
       paste0(
         "  * ",
         paste0(tmp[, "LBTEST"], " (`", tmp[, "LBTESTCD"], "`)"),
