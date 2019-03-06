@@ -18,7 +18,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.3)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.4)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -837,18 +837,31 @@ if (length(varNamesHBA1C) == 0) {
 
 variables_names <- c(varNamesGLUC_new, varNamesGLUC2H_new, varNamesHBA1C_new)
 
-### Blood to Plasma measure conversion for ADDITION cohort
-if (params$cohort_name == "ADDITION") {
-  convert_blood_to_plasma <- function(data) {
-    dplyr::mutate(.data = data,
-      GLUC_P = ifelse(VISIT=="BASELINE", 0.64 + 1.05 * GLUC_B, GLUC_P),
-      GLUC2H_P = ifelse(VISIT=="BASELINE", -0.30 + 0.97 * GLUC2H_B, GLUC2H_P)
+### Blood to Plasma measure conversion for ADDITION/MDC/etc cohort
+if (sum(grepl("GLUC_", variables_names))==2) {
+  cat(
+    "`GLUC_B` (blood) measures have been converted to `GLUC_P` (plasma), 
+    using $\text{GLUC_P} = 0.64 + 1.05 \times \text{GLUC_B})$\n"
+  )
+  cat("\n")
+  DMVSLB <- DMVSLB %>% 
+    dplyr::mutate(
+      GLUC_P = ifelse(is.na(GLUC_P), 0.64 + 1.05 * GLUC_B, GLUC_P)
     )
-  }
- 
-  DMVSLB <- convert_blood_to_plasma(DMVSLB)
-  
-  variables_names <- setdiff(variables_names, c("GLUC_B", "GLUC2H_B"))
+  variables_names <- setdiff(variables_names, "GLUC_B")
+}
+
+if (sum(grepl("GLUC2H_", variables_names))==2) {
+  cat(
+    "`GLUC2H_B` (blood) measures have been converted to `GLUC2H_P` (plasma), 
+    using $\text{GLUC2H_P} = -0.30 + 0.97 \times \text{GLUC2H_B})$\n"
+  )
+  cat("\n")
+  DMVSLB <- DMVSLB %>% 
+    dplyr::mutate(
+      GLUC2H_P = ifelse(is.na(GLUC2H_P), -0.30 + 0.97 * GLUC2H_B, GLUC2H_P)
+    )
+  variables_names <- setdiff(variables_names, "GLUC2H_B")
 }
 ```
 
@@ -901,12 +914,27 @@ Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC0 %>% 
 ```{r check_samples_with_one_measure, eval = params_steps$step_2}
 variables_names_available <- variables_names[!grepl("_NA", variables_names)]
 
-one_time_point_samples <- DMVSLB_QC0 %>%
+n_variables <- DMVSLB_QC0 %>%
   dplyr::group_by(STUDYID, SUBJID) %>%
   dplyr::summarise_at(
     .vars = dplyr::vars(!!variables_names_available),
     .funs = (function(.x) {sum(!is.na(.x))})
-  ) %>%
+  ) 
+
+one_measure_variables <- colSums(n_variables[, variables_names_available]==1)==nrow(n_variables)
+if (any(one_measure_variables)) {
+  if (sum(one_measure_variables)>1) {
+    message_cat <- "The following variables have been discarded (only one measure for all samples:\n"
+  } else {
+    message_cat <- "The following variable has been discarded (only one measure for all samples:\n"
+  }
+  cat(message_cat)
+  cat(paste("  *", variables_names_available[one_measure_variables]), sep = "   \n")
+  cat("\n")
+}
+variables_names_available <-  variables_names_available[!one_measure_variables]
+
+one_time_point_samples <- n_variables %>%
   dplyr::filter_at(
     .vars = dplyr::vars(!!!variables_names_available),
     .vars_predicate = dplyr::any_vars(. <= 1)
@@ -1721,7 +1749,7 @@ list_chrom_directories <- grep(
 )
 if (params$debug) list_chrom_directories <- list_chrom_directories[1]
 
-trash <- purrr::map(.x = list_chrom_directories, .f = function(ichrdirectory) {
+for (ichrdirectory in list_chrom_directories) {
   message(ichrdirectory)
 
   # dir.create(gsub("extractVCF", "output_chunks_lmm", ichrdirectory), showWarnings = FALSE, mode = '0777')
@@ -1734,223 +1762,211 @@ trash <- purrr::map(.x = list_chrom_directories, .f = function(ichrdirectory) {
   if (params$debug) list_dosage_file <- list_dosage_file[1]
   
   ## Parallelise on chunks
-  trash <- purrr::map(.x = list_dosage_file, .f = function(idosagefile) {
-    message(idosagefile)
-    log_file <- paste0(output_lmm_directory, "/", gsub(".*/([^.]*).*", "\\1", idosagefile), ".log")
-    if (file.exists(log_file)) {
-      message(
-        paste0(
-          'Chunk "', basename(idosagefile), '" from "', ichrfilename, '" was already analysed.', '\n',
-          'Chunk "', basename(idosagefile), ' is skipped.'
+  trash <- parallel::mclapply(
+    X = list_dosage_file,
+    mc.cores = params$n_cpu,
+    mc.preschedule = FALSE,
+    DMVSLB_QC5 = DMVSLB_QC5,
+    output_lmm_directory = output_lmm_directory,
+    variables_names = variables_names, 
+    FUN = function(idosagefile, DMVSLB_QC5, output_lmm_directory, variables_names) {
+      message(idosagefile)
+      log_file <- paste0(output_lmm_directory, "/", gsub(".*/([^.]*).*", "\\1", idosagefile), ".log")
+      if (file.exists(log_file)) {
+        message(
+          paste0(
+            'Chunk "', basename(idosagefile), '" from "', ichrfilename, '" was already analysed.', '\n',
+            'Chunk "', basename(idosagefile), ' is skipped.'
+          )
         )
-      )
-      return(NULL)
-    }
-    dosage_file <- utils::read.table(file = idosagefile, header = TRUE, check.names = FALSE)
-
-    ## Check intersect between phenotypes and genotypes data
-    samplesWithPhenoGeno <- intersect(
-      unique(DMVSLB_QC5[, "SUBJID"]),
-      colnames(dosage_file)[-c(1, 2)]
-    )
-
-    ## Format genotypes
-    dosage_file_tidy <- dplyr::select(
-      .data = dplyr::mutate(
-        .data = dosage_file[, c("CHROM", "POS", samplesWithPhenoGeno)],
-        SNP = paste(CHROM, POS, sep = "_")
-      ),
-      -CHROM, -POS
-    )
-    
-    ## Remove multi-allele SNPs (duplicated chromosome:positition)
-    multi_allele_snps <- dosage_file_tidy[duplicated(dosage_file_tidy[, "SNP"]), "SNP"]
-    
-    dosage_file_tidy <- as.data.frame(
-      t(
-        tibble::column_to_rownames(
-          df = dplyr::filter(
-            .data = as.data.frame(dosage_file_tidy), 
-            !SNP%in%multi_allele_snps
-          ),
-          var = "SNP"
-        )
-      ) 
-    )
-
-    ## Combine phenotypes and genotypes
-    pheno_geno_data <- dplyr::full_join(
-      x = DMVSLB_QC5,
-      y = dplyr::mutate(
-        .data = tibble::rownames_to_column(df = dosage_file_tidy, var = "SUBJID"), 
-        SUBJID = as.integer(SUBJID)
-      ),
-      by = c("SUBJID" = "SUBJID")
-    )
-
-    ## Run Mixed Model by SNP
-    results_lmm_snp <- parallel::mclapply(
-      X = colnames(dosage_file_tidy),
-      mc.cores = params$n_cpu,
-      mc.allow.recursive = FALSE,
-      mc.preschedule = FALSE,
-      mc.cleanup = TRUE,
-      mc_variables_names = variables_names,
-      mc_pheno_geno_data = pheno_geno_data,
-      FUN = function(isnp, mc_variables_names, mc_pheno_geno_data) {
-        purrr::map_df(.x = mc_variables_names, .f = function(ivariable) {
-          local_formula <- eval(parse(text = paste0(
-            "update.formula(formula.rightPart, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
-          )))
-          local_data <- mc_pheno_geno_data[, all.vars(local_formula)]
-          if (!all(is.na(local_data[, ivariable]))) {
-            fit_lmm <- lmerTest::lmer(formula = local_formula, data = local_data)
-            out <- cbind.data.frame(
-              TRAIT = ivariable, 
-              SNP = isnp, 
-              N_TOTAL = length(unique(local_data[["SUBJID"]])),
-              tidy_lmer(fit_lmm), 
-              stringsAsFactors = FALSE
-            )
-            rownames(out) <- NULL
-            colnames(out) <- gsub(
-              pattern = paste0("`", isnp, "`"),
-              replacement = "SNP",
-              x = colnames(out),
-              fixed = TRUE
-            )
-          } else {
-            out <- data.frame(
-              TRAIT = ivariable, 
-              SNP = isnp, 
-              N_TOTAL = length(unique(local_data[["SUBJID"]])), 
-              stringsAsFactors = FALSE
-            )
-          }
-          
-          out
-        })
+        return(NULL)
       }
-    )
-    list_errors <- sapply(results_lmm_snp, methods::is, class2 = "try-error")
-
-    cat(
-      colnames(dosage_file_tidy)[list_errors],
-      sep = "\n",
-      file = log_file
-    )
-    results_lmm_snp <- results_lmm_snp[!list_errors]
-
-    annotation_chunk <- dplyr::full_join(
-      x = dplyr::mutate(
-        .data = readr::read_tsv(gsub(".DS.gz", ".frq", idosagefile)),
-        POS = as.character(POS)
-      ),
-      y = dplyr::mutate(
-        .data = readr::read_tsv(gsub(".DS.gz", ".hwe", idosagefile)),
-        POS = as.character(POS)
-      ), 
-      by = c("CHROM" = "CHR", "POS" = "POS")
-    )
-    annotation_chunk <- dplyr::full_join(
-      x = annotation_chunk,
-      y = dplyr::mutate(
-        .data = readr::read_tsv(gsub(".DS.gz", ".INFO", idosagefile)),
-        POS = as.character(POS)
-      ), 
-      by = c("CHROM" = "CHROM", "POS" = "POS")
-    ) %>%
-      dplyr::mutate(SNP = paste(CHROM, POS, sep = "_"))
-    
-    # annotations_columns <- c(
-    #   "SNP", "CHROM", "POS", "N_ALLELES", "N_CHR", "frq1", "frq2", 
-    #   "OBS(HOM1/HET/HOM2)", "E(HOM1/HET/HOM2)", "ChiSq_HWE", "P_HWE", 
-    #   "P_HET_DEFICIT", "P_HET_EXCESS", params$imputation_quality_tag, "TRAIT"
-    # )
-    
-    results_lmm_chunk <- dplyr::full_join(
-      x = annotation_chunk,
-      y = dplyr::bind_rows(results_lmm_snp),
-      by = "SNP"
-    )
-    
-    results_lmm_chunk_output <- dplyr::rename(
-      .data = results_lmm_chunk, 
-      imputation_quality_INFO = !!params$imputation_quality_tag
-    ) 
-    cnames_output <- colnames(results_lmm_chunk_output)
-    results_lmm_chunk_output <- dplyr::transmute(
-      .data = results_lmm_chunk_output,
-      TRAIT = TRAIT,
-      SNPID = SNP,
-      chr = as.integer(CHROM),
-      position = as.integer(POS),
-      coded_all = ALT,
-      noncoded_all = REF,
-      strand_genome = "+", # hardcoded strand, because when imputed, the forward strand is usually used
-      beta = SNP_ESTIMATE,
-      SE = SNP_SE,
-      pval = SNP_PVALUE,
-      beta_interaction = (
-        if ("VISIT_YEARS:SNP_ESTIMATE" %in% cnames_output) {`VISIT_YEARS:SNP_ESTIMATE`} else {NA}
-      ),
-      SE_interaction = (
-        if ("VISIT_YEARS:SNP_SE" %in% cnames_output) {`VISIT_YEARS:SNP_SE`} else {NA}
-      ),
-      pval_interaction = (
-        if ("VISIT_YEARS:SNP_PVALUE" %in% cnames_output) {`VISIT_YEARS:SNP_PVALUE`} else {NA}
-      ),
-      AF_coded_all = frq2,
-      HWE_pval = P_HWE, 
-      # callrate = NA, 
-      n_total = N_TOTAL, # N_CHR/N_ALLELES,
-      # n_alleles = n_alleles,
-      # imputed = as.numeric(imputation_quality_INFO!=1),
-      # used_for_imp = as.numeric(imputation_quality_INFO==1),
-      imputation_quality_INFO = imputation_quality_INFO
-    )
-
-    ## Write results
-    trash <- purrr::map(.x = variables_names, .f = function(ivariable) {
-      if (!grepl("_NA", ivariable)) {
-        dir.create(paste0(output_lmm_directory, "/", ivariable), showWarnings = FALSE, mode = '0777')
-        output_filename <- paste0(
-          paste0(output_lmm_directory, "/", ivariable),
-          "/", ivariable, "_",
-          gsub(".*/([^.]*).*", "\\1", idosagefile),
-          ".csv"
-        )
-        readr::write_csv(
-          x = dplyr::filter(results_lmm_chunk_output, TRAIT == ivariable),
-          path = output_filename,
-          col_names = FALSE
-        )
-      }
-    })
-  })
+      dosage_file <- utils::read.table(file = idosagefile, header = TRUE, check.names = FALSE)
   
-  # rm(
-  #   list = c(
-  #     # "ichrfilename",
-  #     # "output_lmm_directory",
-  #     # "list_dosage_file",
-  #     # "idosagefile",
-  #     "dosage_file",
-  #     # "samplesWithPhenoGeno",
-  #     "dosage_file_tidy",
-  #     # "multi_allele_snps",
-  #     "pheno_geno_data",
-  #     "results_lmm_snp",
-  #     # "list_errors",
-  #     "annotation_chunk",
-  #     "results_lmm_chunk_output"#,
-  #     # "cnames_output",
-  #     # "output_filename"
-  #   )
-  # )
+      ## Check intersect between phenotypes and genotypes data
+      samplesWithPhenoGeno <- intersect(
+        unique(DMVSLB_QC5[, "SUBJID"]),
+        colnames(dosage_file)[-c(1, 2)]
+      )
+  
+      ## Format genotypes
+      dosage_file_tidy <- dplyr::select(
+        .data = dplyr::mutate(
+          .data = dosage_file[, c("CHROM", "POS", samplesWithPhenoGeno)],
+          SNP = paste(CHROM, POS, sep = "_")
+        ),
+        -CHROM, -POS
+      )
+      
+      ## Remove multi-allele SNPs (duplicated chromosome:positition)
+      multi_allele_snps <- dosage_file_tidy[duplicated(dosage_file_tidy[, "SNP"]), "SNP"]
+      
+      dosage_file_tidy <- as.data.frame(
+        t(
+          tibble::column_to_rownames(
+            df = dplyr::filter(
+              .data = as.data.frame(dosage_file_tidy), 
+              !SNP%in%multi_allele_snps
+            ),
+            var = "SNP"
+          )
+        ) 
+      )
+  
+      ## Combine phenotypes and genotypes
+      pheno_geno_data <- dplyr::full_join(
+        x = DMVSLB_QC5,
+        y = dplyr::mutate(
+          .data = tibble::rownames_to_column(df = dosage_file_tidy, var = "SUBJID"), 
+          SUBJID = as.integer(SUBJID)
+        ),
+        by = c("SUBJID" = "SUBJID")
+      )
+  
+      ## Run Mixed Model by SNP
+      results_lmm_snp <- lapply(
+        X = colnames(dosage_file_tidy),
+        mc_variables_names = variables_names,
+        mc_pheno_geno_data = pheno_geno_data,
+        FUN = function(isnp, mc_variables_names, mc_pheno_geno_data) {
+          try({
+            purrr::map_df(.x = mc_variables_names, .f = function(ivariable) {
+              local_formula <- eval(parse(text = paste0(
+                "update.formula(formula.rightPart, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
+              )))
+              local_data <- mc_pheno_geno_data[, all.vars(local_formula)]
+              if (!all(is.na(local_data[, ivariable]))) {
+                fit_lmm <- lmerTest::lmer(formula = local_formula, data = local_data)
+                out <- cbind.data.frame(
+                  TRAIT = ivariable, 
+                  SNP = isnp, 
+                  N_TOTAL = length(unique(local_data[["SUBJID"]])),
+                  tidy_lmer(fit_lmm), 
+                  stringsAsFactors = FALSE
+                )
+                rownames(out) <- NULL
+                colnames(out) <- gsub(
+                  pattern = paste0("`", isnp, "`"),
+                  replacement = "SNP",
+                  x = colnames(out),
+                  fixed = TRUE
+                )
+              } else {
+                out <- data.frame(
+                  TRAIT = ivariable, 
+                  SNP = isnp, 
+                  N_TOTAL = length(unique(local_data[["SUBJID"]])), 
+                  stringsAsFactors = FALSE
+                )
+              }
+              
+              out
+            })
+          })
+        }
+      )
+      list_errors <- sapply(results_lmm_snp, methods::is, class2 = "try-error")
+  
+      cat(
+        colnames(dosage_file_tidy)[list_errors],
+        sep = "\n",
+        file = log_file
+      )
+      results_lmm_snp <- results_lmm_snp[!list_errors]
+  
+      annotation_chunk <- dplyr::full_join(
+        x = dplyr::mutate(
+          .data = readr::read_tsv(gsub(".DS.gz", ".frq", idosagefile)),
+          POS = as.character(POS)
+        ),
+        y = dplyr::mutate(
+          .data = readr::read_tsv(gsub(".DS.gz", ".hwe", idosagefile)),
+          POS = as.character(POS)
+        ), 
+        by = c("CHROM" = "CHR", "POS" = "POS")
+      )
+      annotation_chunk <- dplyr::full_join(
+        x = annotation_chunk,
+        y = dplyr::mutate(
+          .data = readr::read_tsv(gsub(".DS.gz", ".INFO", idosagefile)),
+          POS = as.character(POS)
+        ), 
+        by = c("CHROM" = "CHROM", "POS" = "POS")
+      ) %>%
+        dplyr::mutate(SNP = paste(CHROM, POS, sep = "_"))
+      
+      # annotations_columns <- c(
+      #   "SNP", "CHROM", "POS", "N_ALLELES", "N_CHR", "frq1", "frq2", 
+      #   "OBS(HOM1/HET/HOM2)", "E(HOM1/HET/HOM2)", "ChiSq_HWE", "P_HWE", 
+      #   "P_HET_DEFICIT", "P_HET_EXCESS", params$imputation_quality_tag, "TRAIT"
+      # )
+      
+      results_lmm_chunk <- dplyr::full_join(
+        x = annotation_chunk,
+        y = dplyr::bind_rows(results_lmm_snp),
+        by = "SNP"
+      )
+      
+      results_lmm_chunk_output <- dplyr::rename(
+        .data = results_lmm_chunk, 
+        imputation_quality_INFO = !!params$imputation_quality_tag
+      ) 
+      cnames_output <- colnames(results_lmm_chunk_output)
+      results_lmm_chunk_output <- dplyr::transmute(
+        .data = results_lmm_chunk_output,
+        TRAIT = TRAIT,
+        SNPID = SNP,
+        chr = as.integer(CHROM),
+        position = as.integer(POS),
+        coded_all = ALT,
+        noncoded_all = REF,
+        strand_genome = "+", # hardcoded strand, because when imputed, the forward strand is usually used
+        beta = SNP_ESTIMATE,
+        SE = SNP_SE,
+        pval = SNP_PVALUE,
+        beta_interaction = (
+          if ("VISIT_YEARS:SNP_ESTIMATE" %in% cnames_output) {`VISIT_YEARS:SNP_ESTIMATE`} else {NA}
+        ),
+        SE_interaction = (
+          if ("VISIT_YEARS:SNP_SE" %in% cnames_output) {`VISIT_YEARS:SNP_SE`} else {NA}
+        ),
+        pval_interaction = (
+          if ("VISIT_YEARS:SNP_PVALUE" %in% cnames_output) {`VISIT_YEARS:SNP_PVALUE`} else {NA}
+        ),
+        AF_coded_all = frq2,
+        HWE_pval = P_HWE, 
+        # callrate = NA, 
+        n_total = N_TOTAL, # N_CHR/N_ALLELES,
+        # n_alleles = n_alleles,
+        # imputed = as.numeric(imputation_quality_INFO!=1),
+        # used_for_imp = as.numeric(imputation_quality_INFO==1),
+        imputation_quality_INFO = imputation_quality_INFO
+      )
+  
+      ## Write results
+      trash <- lapply(X = variables_names, FUN = function(ivariable) {
+        if (!grepl("_NA", ivariable)) {
+          dir.create(paste0(output_lmm_directory, "/", ivariable), showWarnings = FALSE, mode = '0777')
+          output_filename <- paste0(
+            paste0(output_lmm_directory, "/", ivariable),
+            "/", ivariable, "_",
+            gsub(".*/([^.]*).*", "\\1", idosagefile),
+            ".csv"
+          )
+          readr::write_csv(
+            x = dplyr::filter(results_lmm_chunk_output, TRAIT == ivariable),
+            path = output_filename,
+            col_names = FALSE
+          )
+        }
+      })
+      # rm(
+      #   list = c("results_lmm_chunk_output", "results_lmm_chunk", "annotation_chunk", "results_lmm_snp", "dosage_file")
+      # )
+    }
+  )
   gc(verbose = FALSE, reset = TRUE)
-  return(NULL)
-})
+}
 ```
 
 ```{r concatenate_chunks, eval = params_steps$step_6, include = params_steps$step_6}
