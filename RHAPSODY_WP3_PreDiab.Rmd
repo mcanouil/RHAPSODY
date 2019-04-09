@@ -946,7 +946,7 @@ variables_names_available <-  variables_names_available[!one_measure_variables]
 one_time_point_samples <- n_variables %>%
   dplyr::filter_at(
     .vars = dplyr::vars(!!!variables_names_available),
-    .vars_predicate = dplyr::any_vars(. <= 1)
+    .vars_predicate = dplyr::all_vars(. <= 1)
   ) %>%
   dplyr::select(STUDYID, SUBJID) %>%
   dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
