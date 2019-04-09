@@ -1,6 +1,6 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes"
-subtitle: "(Version 1.2.4)"
+subtitle: "(Version 1.2.5)"
 author: "Mickaël Canouil, Ph.D."
 date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: 
@@ -55,7 +55,7 @@ library(kableExtra)
 #### Retrieve the latest version
 
 In order to retrieve the latest version of the main script `RHAPSODY_WP3_PreDiab.Rmd` and `utils/*` scripts, you can copy/paste the git commands below.  
-This will clone (*i.e.*, download) the scripts from two private **Gist** ([main script](https://gist.github.com/mcanouil/15362a96c1561bb51af98760b41c478e) and [utils scripts](https://gist.github.com/f3e2fdc59757fd8577abfe233854580a)) on **GitHub**.  
+This will clone (*i.e.*, download) the scripts from **GitHub**.  
 Scripts will be downloaded into your home directory within a directory named `WP3`.
 
 ```{sh, eval = TRUE, echo = FALSE, results = "hide"}
@@ -63,8 +63,7 @@ rm -Rf ~/WP3
 ```
 
 ```{sh, eval = TRUE, results = "hide"}
-git clone https://gist.github.com/15362a96c1561bb51af98760b41c478e.git ~/WP3/scripts
-git clone https://gist.github.com/f3e2fdc59757fd8577abfe233854580a.git ~/WP3/scripts/utils
+git clone https://github.com/mcanouil/RHAPSODY.git ~/WP3/scripts
 ```
 
 Once donwload is complete, you should get the following directory tree in your home (`` `cd ~` ``).
@@ -506,11 +505,10 @@ You will see an authentication box with `Username` and `Password`:
 #### Retrieve the latest version
 
 In order to retrieve the latest version of the main script `RHAPSODY_WP3_PreDiab.Rmd` and `utils/*` scripts, you can copy/paste the git commands below.  
-This will pull (*i.e.*, download) the scripts from two private **Gist** ([main script](https://gist.github.com/mcanouil/15362a96c1561bb51af98760b41c478e) and [utils scripts](https://gist.github.com/f3e2fdc59757fd8577abfe233854580a)) on **GitHub**.  
+This will pull (*i.e.*, download) the scripts from **GitHub**.  
 
 ```{sh, eval = FALSE}
 sudo git -C /home/rhapsody/WP3/scripts pull origin master
-sudo git -C /home/rhapsody/WP3/scripts/utils pull origin master
 ```
 
 Once donwload is complete, you should get the following directory tree in your home (`` `cd ~` ``).
@@ -712,11 +710,10 @@ If Docker is not installed on your cluster/grid/computer/laptop, you can install
 #### Retrieve the latest version
 
 In order to retrieve the latest version of the main script `RHAPSODY_WP3_PreDiab.Rmd` and `utils/*` scripts, you can copy/paste the git commands below.  
-This will pull (*i.e.*, download) the scripts from two private **Gist** ([main script](https://gist.github.com/mcanouil/15362a96c1561bb51af98760b41c478e) and [utils scripts](https://gist.github.com/f3e2fdc59757fd8577abfe233854580a)) on **GitHub**.  
+This will pull (*i.e.*, download) the scripts from **GitHub**.  
 
 ```{sh, eval = FALSE}
 sudo git -C /home/rhapsody/WP3/scripts pull origin master
-sudo git -C /home/rhapsody/WP3/scripts/utils pull origin master
 ```
 
 Once donwload is complete, you should get the following directory tree in your home (`` `cd ~` ``).
