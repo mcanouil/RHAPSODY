@@ -695,6 +695,15 @@ DMVSLB <- dplyr::full_join(
   ) %>% 
   as.data.frame()
 
+if ("FAMILYID" %in% colnames(APMH)) {
+  DMVSLB <- dplyr::left_join(
+    x = DMVSLB,
+    y = APMH %>% 
+      dplyr::select(FAMILYID, SUBJID, STUDYID) %>% 
+      dplyr::distinct(),
+    by = c("STUDYID", "SUBJID")
+  )
+}
 
 ### To check if all individuals have the same number of visits before convert
 if (
