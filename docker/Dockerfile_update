@@ -3,9 +3,7 @@ FROM umr8199/rhapsody:latest
 RUN rm -R /home/rhapsody/WP3 \
   && mkdir -p -m 777 /home/rhapsody/WP3 \
   && cd /home/rhapsody/WP3 \
-  && git clone https://github.com/mcanouil/RHAPSODY.git scripts
-
-RUN git -C /home/rhapsody/WP3/scripts pull origin master \
+  && git clone https://github.com/mcanouil/RHAPSODY.git scripts \
   && chown -R rhapsody:rhapsody /home/rhapsody/ \
   && chown -R rhapsody:rhapsody /home/rhapsody/WP3/scripts/.git \
   && chmod -R 777 /home/rhapsody/WP3/scripts/.git
