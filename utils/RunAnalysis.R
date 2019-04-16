@@ -17,6 +17,8 @@ format_vcfs <- TRUE
 analysis_step <- 7
 variants_analysis <- TRUE
 
+genomic_component <- NULL # A csv file with SUBJID as first column and PC01 to PCXX
+
 
 
 # Run the analysis
@@ -42,10 +44,13 @@ rmarkdown::render(
     format_vcfs = format_vcfs,
     variants_analysis = variants_analysis,
     chunk_size = 1000,
+    exclude_X = TRUE,
+    genomic_component = genomic_component,
     n_cpu = n_cpu,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
-    message = FALSE # Should messages be printed in the report
+    message = FALSE, # Should messages be printed in the report
+    debug = FALSE
   ),
   encoding = 'UTF-8'
 )

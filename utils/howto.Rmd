@@ -1,6 +1,6 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes"
-subtitle: "(Version 1.2.5)"
+subtitle: "(Version 1.2.6)"
 author: "Mickaël Canouil, Ph.D."
 date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: 
@@ -375,6 +375,9 @@ A template script (*i.e.*, `~/WP3/scripts/utils/RunAnalysis.R`) is available to 
 10. Define if genetic variants analyses should be performed.  
     ```{r, eval = FALSE, code = readLines('~/WP3/scripts/utils/RunAnalysis.R')[18]}
     ```
+11. Define if genetic components should be used.  
+    ```{r, eval = FALSE, code = readLines('~/WP3/scripts/utils/RunAnalysis.R')[20]}
+    ```
 
 Template: `~/WP3/scripts/utils/RunAnalysis.R`
 
@@ -466,7 +469,7 @@ To pull a particular version (*i.e.*, not the latest), you can add the tag versi
 Tags are listed in the repository [/r/umr8199/rhapsody/tags](https://hub.docker.com/r/umr8199/rhapsody/tags).
 
 ```{sh, eval = FALSE}
-docker pull umr8199/rhapsody:1.1.0
+docker pull umr8199/rhapsody:latest
 ```
 
 #### Run a container
@@ -627,6 +630,9 @@ A template script (*i.e.*, `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R`) is 
     ```
 10. Define if genetic variants analyses should be performed.  
     ```{r, eval = FALSE, code = readLines('/home/rhapsody/WP3/scripts/utils/RunAnalysis.R')[18]}
+    ```
+11. Define if genetic components should be used.  
+    ```{r, eval = FALSE, code = readLines('~/WP3/scripts/utils/RunAnalysis.R')[20]}
     ```
 
 Template: `~/WP3/scripts/utils/RunAnalysis.R`
@@ -833,6 +839,9 @@ A template script (*i.e.*, `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R`) is 
 10. Define if genetic variants analyses should be performed.  
     ```{r, eval = FALSE, code = readLines('/home/rhapsody/WP3/scripts/utils/RunAnalysis.R')[18]}
     ```
+11. Define if genetic components should be used.  
+    ```{r, eval = FALSE, code = readLines('~/WP3/scripts/utils/RunAnalysis.R')[20]}
+    ```
 
 Template: `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R`
 
@@ -879,6 +888,8 @@ format_vcfs <- TRUE
 analysis_step <- 7
 variants_analysis <- TRUE
 
+genomic_component <- NULL # A csv file with SUBJID as first column and PC01 to PCXX
+
 
 
 # Run the analysis
@@ -904,14 +915,16 @@ rmarkdown::render(
     format_vcfs = format_vcfs,
     variants_analysis = variants_analysis,
     chunk_size = 1000,
+    exclude_X = TRUE,
+    genomic_component = genomic_component,
     n_cpu = n_cpu,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
-    message = FALSE # Should messages be printed in the report
+    message = FALSE, # Should messages be printed in the report
+    debug = FALSE
   ),
   encoding = 'UTF-8'
 )
-
 ```
 
 ##### Non-standard use
@@ -959,6 +972,8 @@ In the case you want to format your VCF files before running the script.
     analysis_step <- 4
     variants_analysis <- FALSE
     
+    genomic_component <- NULL # A csv file with SUBJID as first column and PC01 to PCXX
+    
     
     
     # Run the analysis
@@ -984,13 +999,17 @@ In the case you want to format your VCF files before running the script.
         format_vcfs = format_vcfs,
         variants_analysis = variants_analysis,
         chunk_size = 1000,
+        exclude_X = TRUE,
+        genomic_component = genomic_component,
         n_cpu = n_cpu,
         echo = FALSE, # Should R code be printed in the report
         warning = FALSE, # Should warnings be printed in the report
-        message = FALSE # Should messages be printed in the report
+        message = FALSE, # Should messages be printed in the report
+        debug = FALSE
       ),
       encoding = 'UTF-8'
     )
+
     ```
     This will create (*i.e.*, in the output directory you set up):
     * `/media/rhapsody_output/RHAPSODY_WP3_PreDiab_Cohort_Name_step4.html`  
@@ -1061,10 +1080,12 @@ In the case you want to format your VCF files before running the script.
     vcf_directory <- '/media/vcf'
     imputation_quality_tag <- 'INFO' # To be set according to VCF (could also be 'R2')
     vcftools_binary_path <- '/usr/local/bin'
-    format_vcfs <- FALSE
     
+    format_vcfs <- FALSE # keep this to FALSE
     analysis_step <- 7
     variants_analysis <- TRUE
+    
+    genomic_component <- NULL # A csv file with SUBJID as first column and PC01 to PCXX
     
     
     
@@ -1091,10 +1112,13 @@ In the case you want to format your VCF files before running the script.
         format_vcfs = format_vcfs,
         variants_analysis = variants_analysis,
         chunk_size = 1000,
+        exclude_X = TRUE,
+        genomic_component = genomic_component,
         n_cpu = n_cpu,
         echo = FALSE, # Should R code be printed in the report
         warning = FALSE, # Should warnings be printed in the report
-        message = FALSE # Should messages be printed in the report
+        message = FALSE, # Should messages be printed in the report
+        debug = FALSE
       ),
       encoding = 'UTF-8'
     )

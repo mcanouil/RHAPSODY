@@ -11,7 +11,7 @@
 
 <meta name="author" content="Mickaël Canouil, Ph.D." />
 
-<meta name="date" content="2019-03-06" />
+<meta name="date" content="2019-04-16" />
 
 <title>RHAPSODY WP3 Pre-Diabetes</title>
 
@@ -120,9 +120,9 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">RHAPSODY WP3 Pre-Diabetes</h1>
-<h3 class="subtitle"><em>(Version 1.2.4)</em></h3>
+<h3 class="subtitle"><em>(Version 1.2.6)</em></h3>
 <h4 class="author"><em>Mickaël Canouil, Ph.D.</em></h4>
-<h4 class="date"><em>March 06, 2019</em></h4>
+<h4 class="date"><em>April 16, 2019</em></h4>
 
 </div>
 
@@ -137,25 +137,35 @@ $(document).ready(function () {
 <div id="retrieve-the-latest-version" class="section level4">
 <h4><span class="header-section-number">1.1.1.1</span> Retrieve the latest version</h4>
 <p>In order to retrieve the latest version of the main script <code>RHAPSODY_WP3_PreDiab.Rmd</code> and <code>utils/*</code> scripts, you can copy/paste the git commands below.<br />
-This will clone (<em>i.e.</em>, download) the scripts from two private <strong>Gist</strong> (<a href="https://gist.github.com/mcanouil/15362a96c1561bb51af98760b41c478e">main script</a> and <a href="https://gist.github.com/f3e2fdc59757fd8577abfe233854580a">utils scripts</a>) on <strong>GitHub</strong>.<br />
+This will clone (<em>i.e.</em>, download) the scripts from <strong>GitHub</strong>.<br />
 Scripts will be downloaded into your home directory within a directory named <code>WP3</code>.</p>
-<pre class="sh"><code>git clone https://gist.github.com/15362a96c1561bb51af98760b41c478e.git ~/WP3/scripts
-git clone https://gist.github.com/f3e2fdc59757fd8577abfe233854580a.git ~/WP3/scripts/utils</code></pre>
+<pre class="sh"><code>git clone https://github.com/mcanouil/RHAPSODY.git ~/WP3/scripts</code></pre>
 <p>Once donwload is complete, you should get the following directory tree in your home (<code>`cd ~`</code>).</p>
 <pre><code>## 1  home                                            
 ## 2   °--rhapsody                                    
 ## 3       °--WP3                                     
 ## 4           °--scripts                             
-## 5               ¦--opal_credentials.txt            
-## 6               ¦--RHAPSODY_WP3_PreDiab.Rmd        
-## 7               °--utils                           
-## 8                   ¦--check_analysis.Rmd          
-## 9                   ¦--handleVCF.sh                
-## 10                  ¦--howto.html                  
-## 11                  ¦--howto.Rmd                   
-## 12                  ¦--Install_Rpackages.R         
-## 13                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
-## 14                  °--RunAnalysis.R</code></pre>
+## 5               ¦--docker                          
+## 6               ¦   ¦--Dockerfile                  
+## 7               ¦   ¦--Dockerfile_update           
+## 8               ¦   ¦--login.html                  
+## 9               ¦   ¦--logo.png                    
+## 10              ¦   ¦--markdown_packages.R         
+## 11              ¦   °--r_packages.R                
+## 12              ¦--docker_analysis                 
+## 13              ¦   ¦--opal_credentials.txt        
+## 14              ¦   ¦--rhapsody.R                  
+## 15              ¦   °--rhapsody.sh                 
+## 16              ¦--opal_credentials.txt            
+## 17              ¦--README.md                       
+## 18              ¦--RHAPSODY_WP3_PreDiab.Rmd        
+## 19              °--utils                           
+## 20                  ¦--handleVCF.sh                
+## 21                  ¦--howto.html                  
+## 22                  ¦--howto.Rmd                   
+## 23                  ¦--Install_Rpackages.R         
+## 24                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
+## 25                  °--RunAnalysis.R</code></pre>
 </div>
 <div id="description" class="section level4">
 <h4><span class="header-section-number">1.1.1.2</span> Description</h4>
@@ -1329,6 +1339,7 @@ Default is to format and split the VCF files available within the script.</p>
 <pre class="r"><code>analysis_step &lt;- 7</code></pre></li>
 <li><p>Define if genetic variants analyses should be performed.</p>
 <pre class="r"><code>variants_analysis &lt;- TRUE</code></pre></li>
+<li><p>Define if genetic components should be used.</p></li>
 </ol>
 <p>Template: <code>~/WP3/scripts/utils/RunAnalysis.R</code></p>
 <pre class="r"><code># set the output directory or leave as is; 
@@ -1444,7 +1455,7 @@ variants_analysis &lt;- TRUE</code></pre>
 <pre class="sh"><code>docker pull umr8199/rhapsody</code></pre>
 <p>To pull a particular version (<em>i.e.</em>, not the latest), you can add the tag version.<br />
 Tags are listed in the repository <a href="https://hub.docker.com/r/umr8199/rhapsody/tags">/r/umr8199/rhapsody/tags</a>.</p>
-<pre class="sh"><code>docker pull umr8199/rhapsody:1.1.0</code></pre>
+<pre class="sh"><code>docker pull umr8199/rhapsody:latest</code></pre>
 </div>
 <div id="run-a-container" class="section level4">
 <h4><span class="header-section-number">1.2.2.2</span> Run a container</h4>
@@ -1473,24 +1484,34 @@ You will see an authentication box with <code>Username</code> and <code>Password
 <div id="retrieve-the-latest-version-1" class="section level4">
 <h4><span class="header-section-number">1.2.4.1</span> Retrieve the latest version</h4>
 <p>In order to retrieve the latest version of the main script <code>RHAPSODY_WP3_PreDiab.Rmd</code> and <code>utils/*</code> scripts, you can copy/paste the git commands below.<br />
-This will pull (<em>i.e.</em>, download) the scripts from two private <strong>Gist</strong> (<a href="https://gist.github.com/mcanouil/15362a96c1561bb51af98760b41c478e">main script</a> and <a href="https://gist.github.com/f3e2fdc59757fd8577abfe233854580a">utils scripts</a>) on <strong>GitHub</strong>.</p>
-<pre class="sh"><code>sudo git -C /home/rhapsody/WP3/scripts pull origin master
-sudo git -C /home/rhapsody/WP3/scripts/utils pull origin master</code></pre>
+This will pull (<em>i.e.</em>, download) the scripts from <strong>GitHub</strong>.</p>
+<pre class="sh"><code>sudo git -C /home/rhapsody/WP3/scripts pull origin master</code></pre>
 <p>Once donwload is complete, you should get the following directory tree in your home (<code>`cd ~`</code>).</p>
 <pre><code>## 1  home                                            
 ## 2   °--rhapsody                                    
 ## 3       °--WP3                                     
 ## 4           °--scripts                             
-## 5               ¦--opal_credentials.txt            
-## 6               ¦--RHAPSODY_WP3_PreDiab.Rmd        
-## 7               °--utils                           
-## 8                   ¦--check_analysis.Rmd          
-## 9                   ¦--handleVCF.sh                
-## 10                  ¦--howto.html                  
-## 11                  ¦--howto.Rmd                   
-## 12                  ¦--Install_Rpackages.R         
-## 13                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
-## 14                  °--RunAnalysis.R</code></pre>
+## 5               ¦--docker                          
+## 6               ¦   ¦--Dockerfile                  
+## 7               ¦   ¦--Dockerfile_update           
+## 8               ¦   ¦--login.html                  
+## 9               ¦   ¦--logo.png                    
+## 10              ¦   ¦--markdown_packages.R         
+## 11              ¦   °--r_packages.R                
+## 12              ¦--docker_analysis                 
+## 13              ¦   ¦--opal_credentials.txt        
+## 14              ¦   ¦--rhapsody.R                  
+## 15              ¦   °--rhapsody.sh                 
+## 16              ¦--opal_credentials.txt            
+## 17              ¦--README.md                       
+## 18              ¦--RHAPSODY_WP3_PreDiab.Rmd        
+## 19              °--utils                           
+## 20                  ¦--handleVCF.sh                
+## 21                  ¦--howto.html                  
+## 22                  ¦--howto.Rmd                   
+## 23                  ¦--Install_Rpackages.R         
+## 24                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
+## 25                  °--RunAnalysis.R</code></pre>
 </div>
 <div id="description-1" class="section level4">
 <h4><span class="header-section-number">1.2.4.2</span> Description</h4>
@@ -1581,6 +1602,7 @@ Default is to format and split the VCF files available within the script.</p>
 <pre class="r"><code>analysis_step &lt;- 7</code></pre></li>
 <li><p>Define if genetic variants analyses should be performed.</p>
 <pre class="r"><code>variants_analysis &lt;- TRUE</code></pre></li>
+<li><p>Define if genetic components should be used.</p></li>
 </ol>
 <p>Template: <code>~/WP3/scripts/utils/RunAnalysis.R</code></p>
 <pre class="r"><code># set the output directory or leave as is; 
@@ -1693,24 +1715,34 @@ variants_analysis &lt;- TRUE</code></pre>
 <div id="retrieve-the-latest-version-2" class="section level4">
 <h4><span class="header-section-number">1.3.2.1</span> Retrieve the latest version</h4>
 <p>In order to retrieve the latest version of the main script <code>RHAPSODY_WP3_PreDiab.Rmd</code> and <code>utils/*</code> scripts, you can copy/paste the git commands below.<br />
-This will pull (<em>i.e.</em>, download) the scripts from two private <strong>Gist</strong> (<a href="https://gist.github.com/mcanouil/15362a96c1561bb51af98760b41c478e">main script</a> and <a href="https://gist.github.com/f3e2fdc59757fd8577abfe233854580a">utils scripts</a>) on <strong>GitHub</strong>.</p>
-<pre class="sh"><code>sudo git -C /home/rhapsody/WP3/scripts pull origin master
-sudo git -C /home/rhapsody/WP3/scripts/utils pull origin master</code></pre>
+This will pull (<em>i.e.</em>, download) the scripts from <strong>GitHub</strong>.</p>
+<pre class="sh"><code>sudo git -C /home/rhapsody/WP3/scripts pull origin master</code></pre>
 <p>Once donwload is complete, you should get the following directory tree in your home (<code>`cd ~`</code>).</p>
 <pre><code>## 1  home                                            
 ## 2   °--rhapsody                                    
 ## 3       °--WP3                                     
 ## 4           °--scripts                             
-## 5               ¦--opal_credentials.txt            
-## 6               ¦--RHAPSODY_WP3_PreDiab.Rmd        
-## 7               °--utils                           
-## 8                   ¦--check_analysis.Rmd          
-## 9                   ¦--handleVCF.sh                
-## 10                  ¦--howto.html                  
-## 11                  ¦--howto.Rmd                   
-## 12                  ¦--Install_Rpackages.R         
-## 13                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
-## 14                  °--RunAnalysis.R</code></pre>
+## 5               ¦--docker                          
+## 6               ¦   ¦--Dockerfile                  
+## 7               ¦   ¦--Dockerfile_update           
+## 8               ¦   ¦--login.html                  
+## 9               ¦   ¦--logo.png                    
+## 10              ¦   ¦--markdown_packages.R         
+## 11              ¦   °--r_packages.R                
+## 12              ¦--docker_analysis                 
+## 13              ¦   ¦--opal_credentials.txt        
+## 14              ¦   ¦--rhapsody.R                  
+## 15              ¦   °--rhapsody.sh                 
+## 16              ¦--opal_credentials.txt            
+## 17              ¦--README.md                       
+## 18              ¦--RHAPSODY_WP3_PreDiab.Rmd        
+## 19              °--utils                           
+## 20                  ¦--handleVCF.sh                
+## 21                  ¦--howto.html                  
+## 22                  ¦--howto.Rmd                   
+## 23                  ¦--Install_Rpackages.R         
+## 24                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R
+## 25                  °--RunAnalysis.R</code></pre>
 </div>
 <div id="description-2" class="section level4">
 <h4><span class="header-section-number">1.3.2.2</span> Description</h4>
@@ -1801,6 +1833,7 @@ Default is to format and split the VCF files available within the script.</p>
 <pre class="r"><code>analysis_step &lt;- 7</code></pre></li>
 <li><p>Define if genetic variants analyses should be performed.</p>
 <pre class="r"><code>variants_analysis &lt;- TRUE</code></pre></li>
+<li><p>Define if genetic components should be used.</p></li>
 </ol>
 <p>Template: <code>/home/rhapsody/WP3/scripts/utils/RunAnalysis.R</code></p>
 <pre class="r"><code># set the output directory or leave as is; 
@@ -1889,6 +1922,8 @@ format_vcfs &lt;- TRUE
 analysis_step &lt;- 7
 variants_analysis &lt;- TRUE
 
+genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 to PCXX
+
 
 
 # Run the analysis
@@ -1914,10 +1949,13 @@ rmarkdown::render(
     format_vcfs = format_vcfs,
     variants_analysis = variants_analysis,
     chunk_size = 1000,
+    exclude_X = TRUE,
+    genomic_component = genomic_component,
     n_cpu = n_cpu,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
-    message = FALSE # Should messages be printed in the report
+    message = FALSE, # Should messages be printed in the report
+    debug = FALSE
   ),
   encoding = 'UTF-8'
 )</code></pre>
@@ -1960,6 +1998,8 @@ format_vcfs &lt;- FALSE
 analysis_step &lt;- 4
 variants_analysis &lt;- FALSE
 
+genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 to PCXX
+
 
 
 # Run the analysis
@@ -1985,10 +2025,13 @@ rmarkdown::render(
     format_vcfs = format_vcfs,
     variants_analysis = variants_analysis,
     chunk_size = 1000,
+    exclude_X = TRUE,
+    genomic_component = genomic_component,
     n_cpu = n_cpu,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
-    message = FALSE # Should messages be printed in the report
+    message = FALSE, # Should messages be printed in the report
+    debug = FALSE
   ),
   encoding = 'UTF-8'
 )</code></pre>
@@ -2048,10 +2091,12 @@ opal_credentials &lt;- '/media/credentials/opal_credentials.txt'
 vcf_directory &lt;- '/media/vcf'
 imputation_quality_tag &lt;- 'INFO' # To be set according to VCF (could also be 'R2')
 vcftools_binary_path &lt;- '/usr/local/bin'
-format_vcfs &lt;- FALSE
 
+format_vcfs &lt;- FALSE # keep this to FALSE
 analysis_step &lt;- 7
 variants_analysis &lt;- TRUE
+
+genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 to PCXX
 
 
 
@@ -2078,10 +2123,13 @@ rmarkdown::render(
     format_vcfs = format_vcfs,
     variants_analysis = variants_analysis,
     chunk_size = 1000,
+    exclude_X = TRUE,
+    genomic_component = genomic_component,
     n_cpu = n_cpu,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
-    message = FALSE # Should messages be printed in the report
+    message = FALSE, # Should messages be printed in the report
+    debug = FALSE
   ),
   encoding = 'UTF-8'
 )</code></pre></li>
