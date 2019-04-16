@@ -1339,7 +1339,8 @@ Default is to format and split the VCF files available within the script.</p>
 <pre class="r"><code>analysis_step &lt;- 7</code></pre></li>
 <li><p>Define if genetic variants analyses should be performed.</p>
 <pre class="r"><code>variants_analysis &lt;- TRUE</code></pre></li>
-<li><p>Define if genetic components should be used.</p></li>
+<li><p>Define if genetic components should be used.</p>
+<pre class="r"><code>genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 to PCXX</code></pre></li>
 </ol>
 <p>Template: <code>~/WP3/scripts/utils/RunAnalysis.R</code></p>
 <pre class="r"><code># set the output directory or leave as is; 
@@ -1360,6 +1361,8 @@ vcftools_binary_path &lt;- '/usr/local/bin'
 format_vcfs &lt;- TRUE
 analysis_step &lt;- 7
 variants_analysis &lt;- TRUE
+
+genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 to PCXX
 
 
 
@@ -1386,10 +1389,13 @@ rmarkdown::render(
     format_vcfs = format_vcfs,
     variants_analysis = variants_analysis,
     chunk_size = 1000,
+    exclude_X = TRUE,
+    genomic_component = genomic_component,
     n_cpu = n_cpu,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
-    message = FALSE # Should messages be printed in the report
+    message = FALSE, # Should messages be printed in the report
+    debug = FALSE
   ),
   encoding = 'UTF-8'
 )</code></pre>
@@ -1602,7 +1608,8 @@ Default is to format and split the VCF files available within the script.</p>
 <pre class="r"><code>analysis_step &lt;- 7</code></pre></li>
 <li><p>Define if genetic variants analyses should be performed.</p>
 <pre class="r"><code>variants_analysis &lt;- TRUE</code></pre></li>
-<li><p>Define if genetic components should be used.</p></li>
+<li><p>Define if genetic components should be used.</p>
+<pre class="r"><code>genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 to PCXX</code></pre></li>
 </ol>
 <p>Template: <code>~/WP3/scripts/utils/RunAnalysis.R</code></p>
 <pre class="r"><code># set the output directory or leave as is; 
@@ -1623,6 +1630,8 @@ vcftools_binary_path &lt;- '/usr/local/bin'
 format_vcfs &lt;- TRUE
 analysis_step &lt;- 7
 variants_analysis &lt;- TRUE
+
+genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 to PCXX
 
 
 
@@ -1649,10 +1658,13 @@ rmarkdown::render(
     format_vcfs = format_vcfs,
     variants_analysis = variants_analysis,
     chunk_size = 1000,
+    exclude_X = TRUE,
+    genomic_component = genomic_component,
     n_cpu = n_cpu,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
-    message = FALSE # Should messages be printed in the report
+    message = FALSE, # Should messages be printed in the report
+    debug = FALSE
   ),
   encoding = 'UTF-8'
 )</code></pre>
@@ -1833,7 +1845,8 @@ Default is to format and split the VCF files available within the script.</p>
 <pre class="r"><code>analysis_step &lt;- 7</code></pre></li>
 <li><p>Define if genetic variants analyses should be performed.</p>
 <pre class="r"><code>variants_analysis &lt;- TRUE</code></pre></li>
-<li><p>Define if genetic components should be used.</p></li>
+<li><p>Define if genetic components should be used.</p>
+<pre class="r"><code>genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 to PCXX</code></pre></li>
 </ol>
 <p>Template: <code>/home/rhapsody/WP3/scripts/utils/RunAnalysis.R</code></p>
 <pre class="r"><code># set the output directory or leave as is; 
@@ -1854,6 +1867,8 @@ vcftools_binary_path &lt;- '/usr/local/bin'
 format_vcfs &lt;- TRUE
 analysis_step &lt;- 7
 variants_analysis &lt;- TRUE
+
+genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 to PCXX
 
 
 
@@ -1880,10 +1895,13 @@ rmarkdown::render(
     format_vcfs = format_vcfs,
     variants_analysis = variants_analysis,
     chunk_size = 1000,
+    exclude_X = TRUE,
+    genomic_component = genomic_component,
     n_cpu = n_cpu,
     echo = FALSE, # Should R code be printed in the report
     warning = FALSE, # Should warnings be printed in the report
-    message = FALSE # Should messages be printed in the report
+    message = FALSE, # Should messages be printed in the report
+    debug = FALSE
   ),
   encoding = 'UTF-8'
 )</code></pre>
