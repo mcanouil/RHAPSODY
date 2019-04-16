@@ -3,7 +3,7 @@ RHAPSODY
 
 Latest version: 
 ``` sh
-VERSION=1.2.5
+VERSION=1.2.6
 ```
 
 ## Docker
