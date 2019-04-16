@@ -12,13 +12,14 @@ params:
   variants_analysis: TRUE
   chunk_size: 1000
   exclude_X: TRUE
+  genomic_component: NULL
   n_cpu: 2
   install_packages: FALSE
   echo: FALSE
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.5)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.6)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -1154,7 +1155,7 @@ for (ivariable in variables_names) {
     dplyr::matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID
   )
   
-  if (!all(is.na(fit_data[, ivariable]))) {
+  if (!all(is.na(fit_data[[ivariable]]))) {
     fit <- lmerTest::lmer(
       formula = eval(parse(
         text = paste0('update.formula(formula.rightPart, ', ivariable, '~.)')
@@ -1163,7 +1164,8 @@ for (ivariable in variables_names) {
     )
     
     cat("\n#### Trajectories {-}\n\n")
-    pTraj <- dplyr::mutate(.data = fit_data,
+    pTraj <- dplyr::mutate(
+      .data = fit_data,
       ID = paste(STUDYID, SUBJID, sep = "_"),
       pT2D = ifelse(
         ID%in%diabetic_samples_with_medication_info,
@@ -1674,7 +1676,7 @@ DMVSLB_QC5 <- dplyr::filter(
       colnames() %>% 
       .[-c(1, 2)]
   )
-) 
+)
 
 DMVSLB_QC5 %>%
   dplyr::select(!!unname(variables_names), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID) %>% 
@@ -1750,6 +1752,25 @@ pretty_kable(descriptive_table[-1, , drop = FALSE])
 
 ### Mixed Model results
 
+```{r genomic_component, eval = params_steps$step_6 & params$variants_analysis}
+if (!is.null(params$genomic_component)) {
+  genomic_component <- read.csv(file = params$genomic_component, header = TRUE)
+  colnames(genomic_component) <- c("SUBJID", sprintf("PC%02d", seq(ncol(genomic_component) - 1)))
+  
+  DMVSLB_QC5 <- DMVSLB_QC5 %>% 
+    dplyr::left_join(
+      y = genomic_component,
+      by = "SUBJID"
+    )
+  formula.rightPart <- update.formula(formula.rightPart, ~ . + PC01 + PC02)
+}
+cat(
+  "The following model is used for each trait:\n", 
+  as.character(update.formula(formula.rightPart, ~ . + SNP * VISIT_YEARS))
+)
+cat("\n")
+```
+
 ```{r lmm_genotypes, eval = params_steps$step_6 & params$variants_analysis}
 list_chrom_directories <- grep(
   pattern = "extractVCF",
@@ -1778,7 +1799,8 @@ for (ichrdirectory in list_chrom_directories) {
     DMVSLB_QC5 = DMVSLB_QC5,
     output_lmm_directory = output_lmm_directory,
     variables_names = variables_names, 
-    FUN = function(idosagefile, DMVSLB_QC5, output_lmm_directory, variables_names) {
+    formula_right_part = formula.rightPart,
+    FUN = function(idosagefile, DMVSLB_QC5, output_lmm_directory, variables_names, formula_right_part) {
       message(idosagefile)
       log_file <- paste0(output_lmm_directory, "/", gsub(".*/([^.]*).*", "\\1", idosagefile), ".log")
       if (file.exists(log_file)) {
@@ -1837,11 +1859,12 @@ for (ichrdirectory in list_chrom_directories) {
         X = colnames(dosage_file_tidy),
         mc_variables_names = variables_names,
         mc_pheno_geno_data = pheno_geno_data,
-        FUN = function(isnp, mc_variables_names, mc_pheno_geno_data) {
+        mc_formula_right = formula_right_part,
+        FUN = function(isnp, mc_variables_names, mc_pheno_geno_data, mc_formula_right) {
           try({
             purrr::map_df(.x = mc_variables_names, .f = function(ivariable) {
               local_formula <- eval(parse(text = paste0(
-                "update.formula(formula.rightPart, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
+                "update.formula(mc_formula_right, ", ivariable, "~.+`", isnp, "`*VISIT_YEARS)"
               )))
               local_data <- mc_pheno_geno_data[, all.vars(local_formula)]
               if (!all(is.na(local_data[, ivariable]))) {
