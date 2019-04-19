@@ -9,9 +9,8 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="Mickaël Canouil, Ph.D." />
 
-<meta name="date" content="2019-04-16" />
+<meta name="date" content="2019-04-19" />
 
 <title>RHAPSODY WP3 Pre-Diabetes</title>
 
@@ -122,7 +121,10 @@ $(document).ready(function () {
 <h1 class="title toc-ignore">RHAPSODY WP3 Pre-Diabetes</h1>
 <h3 class="subtitle"><em>(Version 1.2.6)</em></h3>
 <h4 class="author"><em>Mickaël Canouil, Ph.D.</em></h4>
-<h4 class="date"><em>April 16, 2019</em></h4>
+<address class="author_afil">
+Université de Lille, CNRS, Institut Pasteur de Lille, UMR 8199 - EGID, F-59000, Lille, France.<br><a class="author_email" href="mailto:#"><a href="mailto:mickael.canouil@cnrs.fr">mickael.canouil@cnrs.fr</a></a>
+</address>
+<h4 class="date"><em>April 19, 2019</em></h4>
 
 </div>
 
@@ -194,7 +196,7 @@ This bash/shell script is also included within the main script, but you can use 
 <li><code>~/WP3/scripts/utils/Install_Rpackages.R</code><br />
 a R script which install a predefined version of all R packages loaded in the Rmarkdown script, only if needed (also avaiable within the main script);</li>
 <li><code>~/WP3/scripts/utils/check_analysis.Rmd</code><br />
-a Rmarkdown script to ‘quickly’ check if the analyses went well (<em>i.e.</em>, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);</li>
+a Rmarkdown script to ‘’quickly’’ check if the analyses went well (<em>i.e.</em>, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);</li>
 <li><code>~/WP3/scripts/utils/README.Rmd</code><br />
 a Rmarkdown script to create <code>README.pdf</code>.</li>
 <li><code>~/WP3/scripts/utils/howto.Rmd</code><br />
@@ -1128,7 +1130,7 @@ ggpubr
 <li>To quickly check and install all R packages which are not installed or in a different version, you can source/run the script <code>~/WP3/scripts/utils/Install_Rpackages.R</code>.
 <ul>
 <li><p>Interactively using R</p>
-<pre class="r"><code>source('~/WP3/scripts/utils/Install_Rpackages.R')</code></pre></li>
+<pre class="r"><code>source(&quot;~/WP3/scripts/utils/Install_Rpackages.R&quot;)</code></pre></li>
 <li><p>Non-interactively using bash/shell</p>
 <pre class="sh"><code>Rscript ~/WP3/scripts/utils/Install_Rpackages.R</code></pre></li>
 </ul></li>
@@ -1308,21 +1310,21 @@ Depending on where (<em>i.e.</em>, locally, Sanger Imputation Server, Michigan I
 <ol style="list-style-type: decimal">
 <li><p>Set the output directory.<br />
 The default outputs will be generated in the current directory (<code>./</code>).</p>
-<pre class="r"><code>working_directory &lt;- '/media/rhapsody_output' </code></pre></li>
+<pre class="r"><code>working_directory &lt;- &quot;/media/rhapsody_output&quot; </code></pre></li>
 <li><p>Set a cohort name.<br />
 It’s a identifier for a cohort and array. For example, “DESIR_Metabochip” for the results from the Metabochip Array in the DESIR cohort.</p>
-<pre class="r"><code>author_name &lt;- 'Firstname LASTNAME'</code></pre></li>
+<pre class="r"><code>author_name &lt;- &quot;Firstname LASTNAME&quot;</code></pre></li>
 <li><p>Set the number of CPUs you are going to use to run the Linear Mixed Model. Just to know who performed the analysis, if there are questions at a later point.</p>
 <pre class="r"><code>n_cpu &lt;- 2</code></pre></li>
 <li><p>Set the path to your file <code>opal_credentials.txt</code>. For example, <code>~/WP3/scripts/opal_credentials.txt</code>, if you modified the default file (it is better to use absolute path, <em>i.e.</em>, without <code>~/</code>).</p>
-<pre class="r"><code>opal_credentials &lt;- '/media/credentials/opal_credentials.txt'</code></pre></li>
+<pre class="r"><code>opal_credentials &lt;- &quot;/media/credentials/opal_credentials.txt&quot;</code></pre></li>
 <li><p>Set the path to your (RAW) VCF files</p>
-<pre class="r"><code>vcf_directory &lt;- '/media/vcf'</code></pre></li>
+<pre class="r"><code>vcf_directory &lt;- &quot;/media/vcf&quot;</code></pre></li>
 <li><p>Set the imputation quality tag for your VCF</p>
-<pre class="r"><code>imputation_quality_tag &lt;- 'INFO' # To be set according to VCF (could also be 'R2')</code></pre></li>
+<pre class="r"><code>imputation_quality_tag &lt;- &quot;INFO&quot; # To be set according to VCF (could also be &quot;R2&quot;)</code></pre></li>
 <li><p>Set the path to VCFtools.<br />
 Default location of the software is usually <code>/usr/local/bin</code>.</p>
-<pre class="r"><code>vcftools_binary_path &lt;- '/usr/local/bin'</code></pre></li>
+<pre class="r"><code>vcftools_binary_path &lt;- &quot;/usr/local/bin&quot;</code></pre></li>
 <li><p>Define if you want to format/split the VCF files.<br />
 Default is to format and split the VCF files available within the script.</p>
 <pre class="r"><code>format_vcfs &lt;- TRUE</code></pre></li>
@@ -1345,18 +1347,18 @@ Default is to format and split the VCF files available within the script.</p>
 <p>Template: <code>~/WP3/scripts/utils/RunAnalysis.R</code></p>
 <pre class="r"><code># set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
-working_directory &lt;- '/media/rhapsody_output' 
+working_directory &lt;- &quot;/media/rhapsody_output&quot; 
 
-cohort_name &lt;- 'Cohort_Name'
-author_name &lt;- 'Firstname LASTNAME'
+cohort_name &lt;- &quot;Cohort_Name&quot;
+author_name &lt;- &quot;Firstname LASTNAME&quot;
 
 n_cpu &lt;- 2
 
-opal_credentials &lt;- '/media/credentials/opal_credentials.txt'
+opal_credentials &lt;- &quot;/media/credentials/opal_credentials.txt&quot;
 
-vcf_directory &lt;- '/media/vcf'
-imputation_quality_tag &lt;- 'INFO' # To be set according to VCF (could also be 'R2')
-vcftools_binary_path &lt;- '/usr/local/bin'
+vcf_directory &lt;- &quot;/media/vcf&quot;
+imputation_quality_tag &lt;- &quot;INFO&quot; # To be set according to VCF (could also be &quot;R2&quot;)
+vcftools_binary_path &lt;- &quot;/usr/local/bin&quot;
 
 format_vcfs &lt;- TRUE
 analysis_step &lt;- 7
@@ -1367,14 +1369,14 @@ genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 t
 
 
 # Run the analysis
-dir.create(path = working_directory, showWarnings = FALSE, mode = '0777')
+dir.create(path = working_directory, showWarnings = FALSE, mode = &quot;0777&quot;)
 rmarkdown::render(
-  input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
-  output_format = 'html_document', 
+  input = &quot;/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd&quot;, 
+  output_format = &quot;html_document&quot;, 
   output_file = paste0(
-    'RHAPSODY_WP3_PreDiab_', 
-    cohort_name, '_step', 
-    analysis_step, '.html'
+    &quot;RHAPSODY_WP3_PreDiab_&quot;, 
+    cohort_name, &quot;_step&quot;, 
+    analysis_step, &quot;.html&quot;
   ), 
   output_dir = working_directory,
   params = list(
@@ -1397,7 +1399,7 @@ rmarkdown::render(
     message = FALSE, # Should messages be printed in the report
     debug = FALSE
   ),
-  encoding = 'UTF-8'
+  encoding = &quot;UTF-8&quot;
 )</code></pre>
 </div>
 <div id="start-the-analysis" class="section level4">
@@ -1546,7 +1548,7 @@ This bash/shell script is also included within the main script, but you can use 
 <li><code>/home/rhapsody/WP3/scripts/utils/Install_Rpackages.R</code><br />
 a R script which install a predefined version of all R packages loaded in the Rmarkdown script, only if needed (also avaiable within the main script);</li>
 <li><code>/home/rhapsody/WP3/scripts/utils/check_analysis.Rmd</code><br />
-a Rmarkdown script to ‘quickly’ check if the analyses went well (<em>i.e.</em>, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);</li>
+a Rmarkdown script to ‘’quickly’’ check if the analyses went well (<em>i.e.</em>, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);</li>
 <li><code>/home/rhapsody/WP3/scripts/utils/README.Rmd</code><br />
 a Rmarkdown script to create <code>README.pdf</code>.</li>
 <li><code>/home/rhapsody/WP3/scripts/utils/howto.Rmd</code><br />
@@ -1577,21 +1579,21 @@ Depending on where (<em>i.e.</em>, locally, Sanger Imputation Server, Michigan I
 <ol style="list-style-type: decimal">
 <li><p>Set the output directory.<br />
 The default outputs will be generated in the current directory (<code>./</code>).</p>
-<pre class="r"><code>working_directory &lt;- '/media/rhapsody_output' </code></pre></li>
+<pre class="r"><code>working_directory &lt;- &quot;/media/rhapsody_output&quot; </code></pre></li>
 <li><p>Set a cohort name.<br />
 It’s a identifier for a cohort and array. For example, “DESIR_Metabochip” for the results from the Metabochip Array in the DESIR cohort.</p>
-<pre class="r"><code>author_name &lt;- 'Firstname LASTNAME'</code></pre></li>
+<pre class="r"><code>author_name &lt;- &quot;Firstname LASTNAME&quot;</code></pre></li>
 <li><p>Set the number of CPUs you are going to use to run the Linear Mixed Model. Just to know who performed the analysis, if there are questions at a later point.</p>
 <pre class="r"><code>n_cpu &lt;- 2</code></pre></li>
 <li><p>Set the path to your file <code>opal_credentials.txt</code>. For example, <code>~/WP3/scripts/opal_credentials.txt</code>, if you modified the default file (it is better to use absolute path, <em>i.e.</em>, without <code>~/</code>).</p>
-<pre class="r"><code>opal_credentials &lt;- '/media/credentials/opal_credentials.txt'</code></pre></li>
+<pre class="r"><code>opal_credentials &lt;- &quot;/media/credentials/opal_credentials.txt&quot;</code></pre></li>
 <li><p>Set the path to your (RAW) VCF files</p>
-<pre class="r"><code>vcf_directory &lt;- '/media/vcf'</code></pre></li>
+<pre class="r"><code>vcf_directory &lt;- &quot;/media/vcf&quot;</code></pre></li>
 <li><p>Set the imputation quality tag for your VCF</p>
-<pre class="r"><code>imputation_quality_tag &lt;- 'INFO' # To be set according to VCF (could also be 'R2')</code></pre></li>
+<pre class="r"><code>imputation_quality_tag &lt;- &quot;INFO&quot; # To be set according to VCF (could also be &quot;R2&quot;)</code></pre></li>
 <li><p>Set the path to VCFtools.<br />
 Default location of the software is usually <code>/usr/local/bin</code>.</p>
-<pre class="r"><code>vcftools_binary_path &lt;- '/usr/local/bin'</code></pre></li>
+<pre class="r"><code>vcftools_binary_path &lt;- &quot;/usr/local/bin&quot;</code></pre></li>
 <li><p>Define if you want to format/split the VCF files.<br />
 Default is to format and split the VCF files available within the script.</p>
 <pre class="r"><code>format_vcfs &lt;- TRUE</code></pre></li>
@@ -1614,18 +1616,18 @@ Default is to format and split the VCF files available within the script.</p>
 <p>Template: <code>~/WP3/scripts/utils/RunAnalysis.R</code></p>
 <pre class="r"><code># set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
-working_directory &lt;- '/media/rhapsody_output' 
+working_directory &lt;- &quot;/media/rhapsody_output&quot; 
 
-cohort_name &lt;- 'Cohort_Name'
-author_name &lt;- 'Firstname LASTNAME'
+cohort_name &lt;- &quot;Cohort_Name&quot;
+author_name &lt;- &quot;Firstname LASTNAME&quot;
 
 n_cpu &lt;- 2
 
-opal_credentials &lt;- '/media/credentials/opal_credentials.txt'
+opal_credentials &lt;- &quot;/media/credentials/opal_credentials.txt&quot;
 
-vcf_directory &lt;- '/media/vcf'
-imputation_quality_tag &lt;- 'INFO' # To be set according to VCF (could also be 'R2')
-vcftools_binary_path &lt;- '/usr/local/bin'
+vcf_directory &lt;- &quot;/media/vcf&quot;
+imputation_quality_tag &lt;- &quot;INFO&quot; # To be set according to VCF (could also be &quot;R2&quot;)
+vcftools_binary_path &lt;- &quot;/usr/local/bin&quot;
 
 format_vcfs &lt;- TRUE
 analysis_step &lt;- 7
@@ -1636,14 +1638,14 @@ genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 t
 
 
 # Run the analysis
-dir.create(path = working_directory, showWarnings = FALSE, mode = '0777')
+dir.create(path = working_directory, showWarnings = FALSE, mode = &quot;0777&quot;)
 rmarkdown::render(
-  input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
-  output_format = 'html_document', 
+  input = &quot;/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd&quot;, 
+  output_format = &quot;html_document&quot;, 
   output_file = paste0(
-    'RHAPSODY_WP3_PreDiab_', 
-    cohort_name, '_step', 
-    analysis_step, '.html'
+    &quot;RHAPSODY_WP3_PreDiab_&quot;, 
+    cohort_name, &quot;_step&quot;, 
+    analysis_step, &quot;.html&quot;
   ), 
   output_dir = working_directory,
   params = list(
@@ -1666,7 +1668,7 @@ rmarkdown::render(
     message = FALSE, # Should messages be printed in the report
     debug = FALSE
   ),
-  encoding = 'UTF-8'
+  encoding = &quot;UTF-8&quot;
 )</code></pre>
 </div>
 <div id="start-the-analysis-1" class="section level4">
@@ -1783,7 +1785,7 @@ This bash/shell script is also included within the main script, but you can use 
 <li><code>/home/rhapsody/WP3/scripts/utils/Install_Rpackages.R</code><br />
 a R script which install a predefined version of all R packages loaded in the Rmarkdown script, only if needed (also avaiable within the main script);</li>
 <li><code>/home/rhapsody/WP3/scripts/utils/check_analysis.Rmd</code><br />
-a Rmarkdown script to ‘quickly’ check if the analyses went well (<em>i.e.</em>, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);</li>
+a Rmarkdown script to ‘’quickly’’ check if the analyses went well (<em>i.e.</em>, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);</li>
 <li><code>/home/rhapsody/WP3/scripts/utils/README.Rmd</code><br />
 a Rmarkdown script to create <code>README.pdf</code>.</li>
 <li><code>/home/rhapsody/WP3/scripts/utils/howto.Rmd</code><br />
@@ -1814,21 +1816,21 @@ Depending on where (<em>i.e.</em>, locally, Sanger Imputation Server, Michigan I
 <ol style="list-style-type: decimal">
 <li><p>Set the output directory.<br />
 The default outputs will be generated in the current directory (<code>./</code>).</p>
-<pre class="r"><code>working_directory &lt;- '/media/rhapsody_output' </code></pre></li>
+<pre class="r"><code>working_directory &lt;- &quot;/media/rhapsody_output&quot; </code></pre></li>
 <li><p>Set a cohort name.<br />
 It’s a identifier for a cohort and array. For example, “DESIR_Metabochip” for the results from the Metabochip Array in the DESIR cohort.</p>
-<pre class="r"><code>author_name &lt;- 'Firstname LASTNAME'</code></pre></li>
+<pre class="r"><code>author_name &lt;- &quot;Firstname LASTNAME&quot;</code></pre></li>
 <li><p>Set the number of CPUs you are going to use to run the Linear Mixed Model. Just to know who performed the analysis, if there are questions at a later point.</p>
 <pre class="r"><code>n_cpu &lt;- 2</code></pre></li>
 <li><p>Set the path to your file <code>opal_credentials.txt</code>. For example, <code>/home/rhapsody/WP3/scripts/opal_credentials.txt</code>, if you modified the default file (it is better to use absolute path, <em>i.e.</em>, without <code>~/</code>).</p>
-<pre class="r"><code>opal_credentials &lt;- '/media/credentials/opal_credentials.txt'</code></pre></li>
+<pre class="r"><code>opal_credentials &lt;- &quot;/media/credentials/opal_credentials.txt&quot;</code></pre></li>
 <li><p>Set the path to your (RAW) VCF files</p>
-<pre class="r"><code>vcf_directory &lt;- '/media/vcf'</code></pre></li>
+<pre class="r"><code>vcf_directory &lt;- &quot;/media/vcf&quot;</code></pre></li>
 <li><p>Set the imputation quality tag for your VCF</p>
-<pre class="r"><code>imputation_quality_tag &lt;- 'INFO' # To be set according to VCF (could also be 'R2')</code></pre></li>
+<pre class="r"><code>imputation_quality_tag &lt;- &quot;INFO&quot; # To be set according to VCF (could also be &quot;R2&quot;)</code></pre></li>
 <li><p>Set the path to VCFtools.<br />
 Default location of the software is usually <code>/usr/local/bin</code>.</p>
-<pre class="r"><code>vcftools_binary_path &lt;- '/usr/local/bin'</code></pre></li>
+<pre class="r"><code>vcftools_binary_path &lt;- &quot;/usr/local/bin&quot;</code></pre></li>
 <li><p>Define if you want to format/split the VCF files.<br />
 Default is to format and split the VCF files available within the script.</p>
 <pre class="r"><code>format_vcfs &lt;- TRUE</code></pre></li>
@@ -1851,18 +1853,18 @@ Default is to format and split the VCF files available within the script.</p>
 <p>Template: <code>/home/rhapsody/WP3/scripts/utils/RunAnalysis.R</code></p>
 <pre class="r"><code># set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
-working_directory &lt;- '/media/rhapsody_output' 
+working_directory &lt;- &quot;/media/rhapsody_output&quot; 
 
-cohort_name &lt;- 'Cohort_Name'
-author_name &lt;- 'Firstname LASTNAME'
+cohort_name &lt;- &quot;Cohort_Name&quot;
+author_name &lt;- &quot;Firstname LASTNAME&quot;
 
 n_cpu &lt;- 2
 
-opal_credentials &lt;- '/media/credentials/opal_credentials.txt'
+opal_credentials &lt;- &quot;/media/credentials/opal_credentials.txt&quot;
 
-vcf_directory &lt;- '/media/vcf'
-imputation_quality_tag &lt;- 'INFO' # To be set according to VCF (could also be 'R2')
-vcftools_binary_path &lt;- '/usr/local/bin'
+vcf_directory &lt;- &quot;/media/vcf&quot;
+imputation_quality_tag &lt;- &quot;INFO&quot; # To be set according to VCF (could also be &quot;R2&quot;)
+vcftools_binary_path &lt;- &quot;/usr/local/bin&quot;
 
 format_vcfs &lt;- TRUE
 analysis_step &lt;- 7
@@ -1873,14 +1875,14 @@ genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 t
 
 
 # Run the analysis
-dir.create(path = working_directory, showWarnings = FALSE, mode = '0777')
+dir.create(path = working_directory, showWarnings = FALSE, mode = &quot;0777&quot;)
 rmarkdown::render(
-  input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
-  output_format = 'html_document', 
+  input = &quot;/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd&quot;, 
+  output_format = &quot;html_document&quot;, 
   output_file = paste0(
-    'RHAPSODY_WP3_PreDiab_', 
-    cohort_name, '_step', 
-    analysis_step, '.html'
+    &quot;RHAPSODY_WP3_PreDiab_&quot;, 
+    cohort_name, &quot;_step&quot;, 
+    analysis_step, &quot;.html&quot;
   ), 
   output_dir = working_directory,
   params = list(
@@ -1903,7 +1905,7 @@ rmarkdown::render(
     message = FALSE, # Should messages be printed in the report
     debug = FALSE
   ),
-  encoding = 'UTF-8'
+  encoding = &quot;UTF-8&quot;
 )</code></pre>
 </div>
 <div id="start-the-analysis-2" class="section level4">
@@ -1923,18 +1925,18 @@ rmarkdown::render(
 <p>In that configuration, the script <code>/home/rhapsody/WP3/scripts/utils/RunAnalysis.R</code> will be as follow:</p>
 <pre class="r"><code># set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
-working_directory &lt;- '/media/rhapsody_output' 
+working_directory &lt;- &quot;/media/rhapsody_output&quot; 
 
-cohort_name &lt;- 'Cohort_Name'
-author_name &lt;- 'Firstname LASTNAME'
+cohort_name &lt;- &quot;Cohort_Name&quot;
+author_name &lt;- &quot;Firstname LASTNAME&quot;
 
 n_cpu &lt;- 2
 
-opal_credentials &lt;- '/media/credentials/opal_credentials.txt'
+opal_credentials &lt;- &quot;/media/credentials/opal_credentials.txt&quot;
 
-vcf_directory &lt;- '/media/vcf'
-imputation_quality_tag &lt;- 'INFO' # To be set according to VCF (could also be 'R2')
-vcftools_binary_path &lt;- '/usr/local/bin'
+vcf_directory &lt;- &quot;/media/vcf&quot;
+imputation_quality_tag &lt;- &quot;INFO&quot; # To be set according to VCF (could also be &quot;R2&quot;)
+vcftools_binary_path &lt;- &quot;/usr/local/bin&quot;
 
 format_vcfs &lt;- TRUE
 analysis_step &lt;- 7
@@ -1945,14 +1947,14 @@ genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 t
 
 
 # Run the analysis
-dir.create(path = working_directory, showWarnings = FALSE, mode = '0777')
+dir.create(path = working_directory, showWarnings = FALSE, mode = &quot;0777&quot;)
 rmarkdown::render(
-  input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
-  output_format = 'html_document', 
+  input = &quot;/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd&quot;, 
+  output_format = &quot;html_document&quot;, 
   output_file = paste0(
-    'RHAPSODY_WP3_PreDiab_', 
-    cohort_name, '_step', 
-    analysis_step, '.html'
+    &quot;RHAPSODY_WP3_PreDiab_&quot;, 
+    cohort_name, &quot;_step&quot;, 
+    analysis_step, &quot;.html&quot;
   ), 
   output_dir = working_directory,
   params = list(
@@ -1975,7 +1977,7 @@ rmarkdown::render(
     message = FALSE, # Should messages be printed in the report
     debug = FALSE
   ),
-  encoding = 'UTF-8'
+  encoding = &quot;UTF-8&quot;
 )</code></pre>
 </div>
 <div id="non-standard-use-2" class="section level5">
@@ -1999,18 +2001,18 @@ variants_analysis &lt;- FALSE</code></pre></li>
 <p>In that configuration, the script <code>/home/rhapsody/WP3/scripts/utils/RunAnalysis.R</code> will be as follow:</p>
 <pre class="r"><code># set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
-working_directory &lt;- '/media/rhapsody_output' 
+working_directory &lt;- &quot;/media/rhapsody_output&quot; 
 
-cohort_name &lt;- 'Cohort_Name'
-author_name &lt;- 'Firstname LASTNAME'
+cohort_name &lt;- &quot;Cohort_Name&quot;
+author_name &lt;- &quot;Firstname LASTNAME&quot;
 
 n_cpu &lt;- 2
 
-opal_credentials &lt;- '/media/credentials/opal_credentials.txt'
+opal_credentials &lt;- &quot;/media/credentials/opal_credentials.txt&quot;
 
-vcf_directory &lt;- '/media/vcf'
-imputation_quality_tag &lt;- 'INFO' # To be set according to VCF (could also be 'R2')
-vcftools_binary_path &lt;- '/usr/local/bin'
+vcf_directory &lt;- &quot;/media/vcf&quot;
+imputation_quality_tag &lt;- &quot;INFO&quot; # To be set according to VCF (could also be &quot;R2&quot;)
+vcftools_binary_path &lt;- &quot;/usr/local/bin&quot;
 
 format_vcfs &lt;- FALSE
 analysis_step &lt;- 4
@@ -2021,14 +2023,14 @@ genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 t
 
 
 # Run the analysis
-dir.create(path = working_directory, showWarnings = FALSE, mode = '0777')
+dir.create(path = working_directory, showWarnings = FALSE, mode = &quot;0777&quot;)
 rmarkdown::render(
-  input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
-  output_format = 'html_document', 
+  input = &quot;/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd&quot;, 
+  output_format = &quot;html_document&quot;, 
   output_file = paste0(
-    'RHAPSODY_WP3_PreDiab_', 
-    cohort_name, '_step', 
-    analysis_step, '.html'
+    &quot;RHAPSODY_WP3_PreDiab_&quot;, 
+    cohort_name, &quot;_step&quot;, 
+    analysis_step, &quot;.html&quot;
   ), 
   output_dir = working_directory,
   params = list(
@@ -2051,7 +2053,7 @@ rmarkdown::render(
     message = FALSE, # Should messages be printed in the report
     debug = FALSE
   ),
-  encoding = 'UTF-8'
+  encoding = &quot;UTF-8&quot;
 )</code></pre>
 This will create (<em>i.e.</em>, in the output directory you set up):
 <ul>
@@ -2097,18 +2099,18 @@ variants_analysis &lt;- TRUE</code></pre>
 <p>In that configuration, the script <code>~/WP3/scripts/utils/RunAnalysis.R</code> will be as follow:</p>
 <pre class="r"><code># set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
-working_directory &lt;- '/media/rhapsody_output' 
+working_directory &lt;- &quot;/media/rhapsody_output&quot; 
 
-cohort_name &lt;- 'Cohort_Name'
-author_name &lt;- 'Firstname LASTNAME'
+cohort_name &lt;- &quot;Cohort_Name&quot;
+author_name &lt;- &quot;Firstname LASTNAME&quot;
 
 n_cpu &lt;- 2
 
-opal_credentials &lt;- '/media/credentials/opal_credentials.txt'
+opal_credentials &lt;- &quot;/media/credentials/opal_credentials.txt&quot;
 
-vcf_directory &lt;- '/media/vcf'
-imputation_quality_tag &lt;- 'INFO' # To be set according to VCF (could also be 'R2')
-vcftools_binary_path &lt;- '/usr/local/bin'
+vcf_directory &lt;- &quot;/media/vcf&quot;
+imputation_quality_tag &lt;- &quot;INFO&quot; # To be set according to VCF (could also be &quot;R2&quot;)
+vcftools_binary_path &lt;- &quot;/usr/local/bin&quot;
 
 format_vcfs &lt;- FALSE # keep this to FALSE
 analysis_step &lt;- 7
@@ -2119,14 +2121,14 @@ genomic_component &lt;- NULL # A csv file with SUBJID as first column and PC01 t
 
 
 # Run the analysis
-dir.create(path = working_directory, showWarnings = FALSE, mode = '0777')
+dir.create(path = working_directory, showWarnings = FALSE, mode = &quot;0777&quot;)
 rmarkdown::render(
-  input = '/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd', 
-  output_format = 'html_document', 
+  input = &quot;/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd&quot;, 
+  output_format = &quot;html_document&quot;, 
   output_file = paste0(
-    'RHAPSODY_WP3_PreDiab_', 
-    cohort_name, '_step', 
-    analysis_step, '.html'
+    &quot;RHAPSODY_WP3_PreDiab_&quot;, 
+    cohort_name, &quot;_step&quot;, 
+    analysis_step, &quot;.html&quot;
   ), 
   output_dir = working_directory,
   params = list(
@@ -2149,7 +2151,7 @@ rmarkdown::render(
     message = FALSE, # Should messages be printed in the report
     debug = FALSE
   ),
-  encoding = 'UTF-8'
+  encoding = &quot;UTF-8&quot;
 )</code></pre></li>
 </ol>
 </div>
