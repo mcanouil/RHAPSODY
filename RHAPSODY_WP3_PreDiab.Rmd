@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.6)'
+title: 'RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.7)'
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -1519,10 +1519,10 @@ cat(
 #### List all VCFs path in a file
 list_files <- list.files(
   path = params$vcf_input_directory, 
-  pattern = '.*.vcf.gz$', # '.*[2][12]+.*.vcf.gz$' part to be removed later
+  pattern = if (params$debug) ".*[2][12]+.*.vcf.gz$" else ".*.vcf.gz$",
   full.names = TRUE
 )
-if (params$exclude_X) list_files <- list_files[grepl("X", list_files) | grepl("23", list_files)]
+if (params$exclude_X) list_files <- list_files[!(grepl("X", list_files) | grepl("23", list_files))]
 cat(list_files, sep = "\n", file = paste0(params$output_directory, "/vcffilespath.txt"))
 cat(DMVSLB_QC4[["SUBJID"]], sep = "\n", file = paste0(params$output_directory, "/sample_qced.txt"))
 ```
