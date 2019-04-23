@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.8)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.9)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -1110,8 +1110,17 @@ Additional covariates might be needed depending on the cohort.
 nTimePoints <- max(table(DMVSLB_QC3[["SUBJID"]]))
 
 # Include random slope if more than two time points
+if ("FAMILYID" %in% colnames(DMVSLB)) {
+  random_term <- "SUBJID/FAMILYID"
+} else {
+  random_term <- "SUBJID"
+}
 if (nTimePoints > 2) {
-  formula.rightPart <- ~ 1 + AGE0 + SEX0 + BMI0 + VISIT_YEARS + (1 + VISIT_YEARS | SUBJID)
+  formula.rightPart <- as.formula(
+    paste0(
+      "~ 1 + AGE0 + SEX0 + BMI0 + VISIT_YEARS + (1 + VISIT_YEARS | ", random_term, ")"
+    )
+  )
   cat(
     paste0(
       "Random intercept and random slope are included in the model (up to ", 
@@ -1121,7 +1130,11 @@ if (nTimePoints > 2) {
   )
   cat("\n")
 } else {
-  formula.rightPart <- ~ 1 + AGE0 + SEX0 + BMI0 + VISIT_YEARS + (1 | SUBJID)
+  formula.rightPart <- as.formula(
+    paste0(
+      "~ 1 + AGE0 + SEX0 + BMI0 + VISIT_YEARS + (1 | ", random_term, ")"
+    )
+  )
   cat(
     paste0(
       "Only a random intercept is included in the model (up to ", 
