@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.11)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.12)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -2030,7 +2030,7 @@ for (ichrdirectory in list_chrom_directories) {
 ```
 
 ```{r concatenate_chunks, eval = params_steps$step_6, include = params_steps$step_6}
-csv_header <- paste0(tempfile(), ".csv")
+csv_header <- paste0(params$output_directory, "/csv_header.csv")
 readr::write_csv(
   x = cbind.data.frame(
     "TRAIT", "SNPID", "chr", "position", "coded_all", "noncoded_all", 
@@ -2085,7 +2085,7 @@ concatenate_chunks <- dplyr::tibble(
     chr = ifelse(!is.na(as.numeric(chr)), sprintf("%02d", as.numeric(chr)), chr),
     results_filename = paste0(output_directory, "/results_to_send/", params$cohort_name, "_", chr, "_", trait_directories, ".csv.gz")
   ) %>% 
-  tidyr::unite(col = file, output_lmm, chr_directories, trait_directories, chunk_file, sep = "/") %>% 
+  tidyr::unite(col = "file", c("output_lmm", "chr_directories", "trait_directories", "chunk_file"), sep = "/") %>% 
   dplyr::select(-output_directory) %>% 
   dplyr::group_by(trait, chr) %>% 
   tidyr::nest() %>% 
@@ -2100,6 +2100,7 @@ concatenate_chunks <- dplyr::tibble(
       system(command = cmd, intern = TRUE)
     })
   )
+unlink(csv_header)
 ```
 
 ```{r lmm_genotypes_ouput, eval = params_steps$step_6, include = params_steps$step_6}
