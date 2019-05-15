@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.9)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.10)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -562,11 +562,12 @@ get_residuals_outliers <- function(x) {
       residuals = residuals(x),
       r_iqr = 3 * IQR(residuals),
       r_median = median(residuals),
-      left = r_median-r_iqr,
-      right = r_median+r_iqr
+      left = r_median - r_iqr,
+      right = r_median + r_iqr
     ),
     residuals<left | residuals>right
-  )[["SUBJID"]]
+  ) %>% 
+    tidyr::unite(col = "ID", c("STUDYID", "FAMILYID", "SUBJID"), sep = "_")
 }
 
 # function to compute mean and sd, then paste results for output
@@ -704,12 +705,14 @@ if ("FAMILYID" %in% colnames(APMH)) {
       dplyr::distinct(),
     by = c("STUDYID", "SUBJID")
   )
+} else {
+  DMVSLB <- dplyr::mutate(.data = DMVSLB, FAMILYID = SUBJID)
 }
 
 ### To check if all individuals have the same number of visits before convert
 if (
   DMVSLB %>%
-    dplyr::group_by(SUBJID) %>%
+    dplyr::group_by(FAMILYID, SUBJID) %>%
     dplyr::summarise(n = dplyr::n()) %>%
     dplyr::select(n) %>%
     all()
@@ -886,21 +889,21 @@ if (all(is.na(DMVSLB[, "LBFAST"]))) {
   DMVSLB_QC0 <- DMVSLB
 } else {
   non_fasted_samples <- DMVSLB %>%
-    dplyr::group_by(STUDYID, SUBJID) %>%
+    dplyr::group_by(STUDYID, FAMILYID, SUBJID) %>%
     dplyr::filter(VISIT == "BASELINE") %>%
     dplyr::filter(!(LBFAST%in%"Y" | is.na(LBFAST))) %>%
-    dplyr::select(STUDYID, SUBJID) %>%
-    dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+    dplyr::select(STUDYID, FAMILYID, SUBJID) %>%
+    dplyr::mutate(ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")) %>%
     dplyr::ungroup() %>%
     .[["ID"]]
 
   DMVSLB_QC0 <- DMVSLB %>%
-    dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+    dplyr::mutate(ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")) %>%
     dplyr::filter(!ID%in%non_fasted_samples) %>%
     dplyr::select(-ID)
 
   na_fasted_samples <- DMVSLB_QC0 %>%
-    dplyr::group_by(STUDYID, SUBJID) %>%
+    dplyr::group_by(STUDYID, FAMILYID, SUBJID) %>%
     dplyr::filter(VISIT == "BASELINE" & is.na(LBFAST)) %>%
     dplyr::ungroup() %>%
     dplyr::count() %>%
@@ -917,7 +920,7 @@ if (all(is.na(DMVSLB[, "LBFAST"]))) {
 }
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC0 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC0 %>% dplyr::select(STUDYID, FAMILYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ## Exclusion of participants with data available for only one time-point
 
@@ -925,7 +928,7 @@ Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC0 %>% 
 variables_names_available <- variables_names[!grepl("_NA", variables_names)]
 
 n_variables <- DMVSLB_QC0 %>%
-  dplyr::group_by(STUDYID, SUBJID) %>%
+  dplyr::group_by(STUDYID, FAMILYID, SUBJID) %>%
   dplyr::summarise_at(
     .vars = dplyr::vars(!!variables_names_available),
     .funs = (function(.x) {sum(!is.na(.x))})
@@ -949,18 +952,18 @@ one_time_point_samples <- n_variables %>%
     .vars = dplyr::vars(!!!variables_names_available),
     .vars_predicate = dplyr::all_vars(. <= 1)
   ) %>%
-  dplyr::select(STUDYID, SUBJID) %>%
-  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::select(STUDYID, FAMILYID, SUBJID) %>%
+  dplyr::mutate(ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")) %>%
   dplyr::ungroup() %>%
   .[["ID"]]
 
 DMVSLB_QC1 <- DMVSLB_QC0 %>%
-  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::mutate(ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")) %>%
   dplyr::filter(!ID%in%one_time_point_samples) %>%
   dplyr::select(-ID)
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC1 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC1 %>% dplyr::select(STUDYID, FAMILYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ## Exclusion of participants with diabetes at baseline
 
@@ -970,7 +973,7 @@ Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC1 %>% 
 
 ```{r check_diabetic_baseline, eval = params_steps$step_2}
 baseline_diabetes_samples <- DMVSLB_QC1 %>%
-  dplyr::group_by(STUDYID, SUBJID) %>%
+  dplyr::group_by(STUDYID, FAMILYID, SUBJID) %>%
   dplyr::mutate_at(
     .vars = dplyr::vars(grep("GLUC_", variables_names, value = TRUE)), 
     .funs = ~.>=7.0
@@ -987,25 +990,25 @@ baseline_diabetes_samples <- DMVSLB_QC1 %>%
     ),
     .vars_predicate = dplyr::any_vars(.==TRUE)
   ) %>%
-  dplyr::select(STUDYID, SUBJID) %>%
-  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::select(STUDYID, FAMILYID, SUBJID) %>%
+  dplyr::mutate(ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")) %>%
   dplyr::ungroup() %>%
   .[["ID"]]
 
 DMVSLB_QC2 <- DMVSLB_QC1 %>%
-  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::mutate(ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")) %>%
   dplyr::filter(!ID%in%baseline_diabetes_samples) %>%
   dplyr::select(-ID)
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC2 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=2, DMVSLB_QC2 %>% dplyr::select(STUDYID, FAMILYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ## Exclusion of participants developing diabetes during the study time without informations about medication
 
 ```{r check_incident_diabetic_medication, eval = params_steps$step_2}
 # Get samples developing diabetes according to definition
 follow_up_diabetes_samples_def <- DMVSLB_QC2 %>%
-  dplyr::group_by(STUDYID, SUBJID) %>%
+  dplyr::group_by(STUDYID, FAMILYID, SUBJID) %>%
   dplyr::mutate_at(
     .vars = dplyr::vars(grep("GLUC_", variables_names, value = TRUE)), 
     .funs = ~.>=7.0
@@ -1021,9 +1024,9 @@ follow_up_diabetes_samples_def <- DMVSLB_QC2 %>%
     ),
     .vars_predicate = dplyr::any_vars(.==TRUE)
   ) %>% 
-  dplyr::select(STUDYID, SUBJID) %>%
+  dplyr::select(STUDYID, FAMILYID, SUBJID) %>%
   dplyr::distinct() %>%
-  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::mutate(ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")) %>%
   dplyr::ungroup() %>%
   .[["ID"]]
 
@@ -1032,15 +1035,15 @@ follow_up_diabetes_samples_diag <- MH %>%
   dplyr::filter(
     MHTERM%in%c("DIABETES", "TYPE 1 DIABETES", "TYPE 2 DIABETES") & MHOCCUR == "Y"
   ) %>%
-  dplyr::select(STUDYID, SUBJID) %>%
+  dplyr::select(STUDYID, FAMILYID, SUBJID) %>%
   dplyr::distinct() %>%
-  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::mutate(ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")) %>%
   dplyr::ungroup() %>%
   .[["ID"]]
 
 # Get medication information for all samples developing T2D based on definition and diagnostic
 check_medication <- CM %>%
-  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::mutate(ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")) %>%
   dplyr::filter(
     ID%in%c(follow_up_diabetes_samples_def, follow_up_diabetes_samples_diag)
   ) %>%
@@ -1075,12 +1078,12 @@ FollowUpDiabetesSamples.ToExclude <- setdiff(
 
 # Exclude samples in 'FollowUpDiabetesSamples.ToExclude'
 DMVSLB_QC3 <- DMVSLB_QC2 %>%
-  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+  dplyr::mutate(ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")) %>%
   dplyr::filter(!ID%in%FollowUpDiabetesSamples.ToExclude) %>%
   dplyr::select(-ID)
 ```
 
-Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB_QC3 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`
+Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB_QC3 %>% dplyr::select(STUDYID, FAMILYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`
 
 
 # Preliminary modelling
@@ -1107,7 +1110,7 @@ Additional covariates might be needed depending on the cohort.
 ## First Run {.tabset}
 
 ```{r preliminary_first_run_check_number_measures, eval = params_steps$step_3}
-nTimePoints <- max(table(DMVSLB_QC3[["SUBJID"]]))
+nTimePoints <- max(table(DMVSLB_QC3[c("FAMILYID", "SUBJID")]))
 
 # Include random slope if more than two time points
 if ("FAMILYID" %in% colnames(DMVSLB)) {
@@ -1165,7 +1168,7 @@ for (ivariable in variables_names) {
 
   fit_data <- dplyr::select(
     .data = DMVSLB_QC3, 
-    dplyr::matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID
+    dplyr::matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, FAMILYID, SUBJID, STUDYID
   )
   
   if (!all(is.na(fit_data[[ivariable]]))) {
@@ -1179,7 +1182,7 @@ for (ivariable in variables_names) {
     cat("\n#### Trajectories {-}\n\n")
     pTraj <- dplyr::mutate(
       .data = fit_data,
-      ID = paste(STUDYID, SUBJID, sep = "_"),
+      ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_"),
       pT2D = ifelse(
         ID%in%diabetic_samples_with_medication_info,
         "PreDiab",
@@ -1241,7 +1244,13 @@ for (ivariable in variables_names) {
     if (nTimePoints > 2) {
       # Compare model with or without random slope (anova)
       fit_random <- anova(
-        update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
+        eval(
+          parse(
+            text = paste0(
+              "update(fit, formula = .~. - (1 + VISIT_YEARS | ", random_term, ") + (1 | ", random_term, "))"
+            )
+          )
+        ),
         fit, refit = FALSE
       ) 
       fit_random <- as.data.frame(
@@ -1287,10 +1296,13 @@ for (ivariable in variables_names) {
 ## Second Run (after residuals check) {.tabset}
 
 ```{r preliminary_second_run_qc, eval = params_steps$step_3}
-DMVSLB_QC4 <- dplyr::filter(.data = DMVSLB_QC3, !SUBJID%in%unique(unlist(residuals_outliers)))
+DMVSLB_QC4 <- DMVSLB_QC3 %>% 
+  dplyr::mutate(ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")) %>%
+  dplyr::filter(!ID%in%unique(unlist(residuals_outliers))) %>%
+  dplyr::select(-ID)
 ```
 
-Total individuals available : `r ifelse(params$analysis_step>=3, DMVSLB_QC4 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
+Total individuals available : `r ifelse(params$analysis_step>=3, DMVSLB_QC4 %>% dplyr::select(STUDYID, FAMILYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 ```{r preliminary_second_run, eval = params_steps$step_3}
 residuals_outliers <- as.list(rep_len(NA, length(variables_names)))
@@ -1311,7 +1323,7 @@ for (ivariable in variables_names) {
 
   fit_data <- dplyr::select(
     .data = DMVSLB_QC4, 
-    dplyr::matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID
+    dplyr::matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, FAMILYID, SUBJID, STUDYID
   )
   
   if (!all(is.na(fit_data[[ivariable]]))) {
@@ -1325,7 +1337,7 @@ for (ivariable in variables_names) {
     cat("\n#### Trajectories {-}\n\n")
     pTraj <- dplyr::mutate(
       .data = fit_data,
-      ID = paste(STUDYID, SUBJID, sep = "_"),
+      ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_"),
       pT2D = ifelse(
         ID%in%diabetic_samples_with_medication_info,
         "PreDiab",
@@ -1384,10 +1396,15 @@ for (ivariable in variables_names) {
     if (nTimePoints > 2) {
       # Compare model with or without random slope (anova)
       fit_random <- anova(
-        update(fit, formula = .~. - (1 + VISIT_YEARS | SUBJID) + (1 | SUBJID)),
-        fit, 
-        refit = FALSE
-      ) 
+        eval(
+          parse(
+            text = paste0(
+              "update(fit, formula = .~. - (1 + VISIT_YEARS | ", random_term, ") + (1 | ", random_term, "))"
+            )
+          )
+        ),
+        fit, refit = FALSE
+      )
       fit_random <- as.data.frame(
         tibble::column_to_rownames(
           df = dplyr::mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
@@ -1433,12 +1450,15 @@ for (ivariable in variables_names) {
 
 ```{r display_descriptive_statistics, eval = params_steps$step_3}
 descriptive_table <- DMVSLB_QC4 %>%
+  dplyr::mutate(
+    ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")
+  ) %>% 
   dplyr::group_by(STUDYID) %>%
   dplyr::mutate(
-    NumberParticipants = format(length(unique(SUBJID)), big.mark = ","),
+    NumberParticipants = format(length(unique(ID)), big.mark = ","),
     MalesPercent = round((sum(SEX0) / length(SEX0)) * 100, digits = 2)
   ) %>%
-  dplyr::group_by(STUDYID, SUBJID) %>%
+  dplyr::group_by(STUDYID, FAMILYID, SUBJID) %>%
   dplyr::mutate(
     NumberMeasures = length(unique(VISIT_YEARS)),
     FollowUpDuration = diff(range(VISIT_YEARS, na.rm = TRUE))
@@ -1538,7 +1558,7 @@ list_files <- list.files(
 if (params$exclude_X) list_files <- list_files[!(grepl("X", list_files) | grepl("23", list_files))]
 if (params$debug) list_files <- list_files[grepl("21", list_files) | grepl("22", list_files)]
 cat(list_files, sep = "\n", file = paste0(params$output_directory, "/vcffilespath.txt"))
-cat(DMVSLB_QC4[["SUBJID"]], sep = "\n", file = paste0(params$output_directory, "/sample_qced.txt"))
+cat(unique(DMVSLB_QC4[["SUBJID"]]), sep = "\n", file = paste0(params$output_directory, "/sample_qced.txt"))
 ```
 
 ### Manually format VCFs
@@ -1693,10 +1713,10 @@ DMVSLB_QC5 <- dplyr::filter(
 )
 
 DMVSLB_QC5 %>%
-  dplyr::select(!!unname(variables_names), AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID) %>% 
-  tidyr::gather(key = "Trait", value = "Measure", -c(AGE0, SEX0, BMI0, VISIT_YEARS, SUBJID, STUDYID)) %>% 
+  dplyr::select(!!unname(variables_names), AGE0, SEX0, BMI0, VISIT_YEARS, FAMILYID, SUBJID, STUDYID) %>% 
+  tidyr::gather(key = "Trait", value = "Measure", -c(AGE0, SEX0, BMI0, VISIT_YEARS, FAMILYID, SUBJID, STUDYID)) %>% 
   dplyr::mutate(
-    ID = paste(STUDYID, SUBJID, sep = "_"),
+    ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_"),
     pT2D = ifelse(
       ID%in%diabetic_samples_with_medication_info,
       "PreDiab",
@@ -1720,12 +1740,15 @@ cat("\n")
 
 ```{r lmm_descriptive_statistics, eval = params_steps$step_6}
 descriptive_table <- DMVSLB_QC5 %>%
+    dplyr::mutate(
+    ID = paste(STUDYID, FAMILYID, SUBJID, sep = "_")
+  ) %>% 
   dplyr::group_by(STUDYID) %>%
   dplyr::mutate(
-    NumberParticipants = format(length(unique(SUBJID)), big.mark = ","),
+    NumberParticipants = format(length(unique(ID)), big.mark = ","),
     MalesPercent = round((sum(SEX0) / length(SEX0)) * 100, digits = 2)
   ) %>%
-  dplyr::group_by(STUDYID, SUBJID) %>%
+  dplyr::group_by(STUDYID, FAMILYID, SUBJID) %>%
   dplyr::mutate(
     NumberMeasures = length(unique(VISIT_YEARS)),
     FollowUpDuration = diff(range(VISIT_YEARS, na.rm = TRUE))
@@ -1830,7 +1853,7 @@ for (ichrdirectory in list_chrom_directories) {
   
       ## Check intersect between phenotypes and genotypes data
       samplesWithPhenoGeno <- intersect(
-        unique(DMVSLB_QC5[, "SUBJID"]),
+        unique(DMVSLB_QC5[["SUBJID"]]),
         colnames(dosage_file)[-c(1, 2)]
       )
   
@@ -1865,7 +1888,7 @@ for (ichrdirectory in list_chrom_directories) {
           .data = tibble::rownames_to_column(df = dosage_file_tidy, var = "SUBJID"), 
           SUBJID = as.integer(SUBJID)
         ),
-        by = c("SUBJID" = "SUBJID")
+        by = "SUBJID"
       )
   
       ## Run Mixed Model by SNP
@@ -2104,7 +2127,7 @@ concatenate_chunks %>%
 
 ```{r qc_summary, eval = params_steps$step_7}
 count_samples <- function(data) { 
-  nrow(dplyr::distinct(dplyr::select(.data = data, STUDYID, SUBJID)))
+  nrow(dplyr::distinct(dplyr::select(.data = data, STUDYID, FAMILYID, SUBJID)))
 }
 
 qc_steps <- dplyr::bind_rows(

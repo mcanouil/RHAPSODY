@@ -2,7 +2,7 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from "RHAPSODY_WP3_PreDiab.Rmd"
 # Author - Mickaël Canouil, Ph.D.
-# Version - 1.2.9
+# Version - 1.2.10
 #---------------------------------------------------------------------------------------------------
 options(stringsAsFactors = FALSE)
 
@@ -473,6 +473,8 @@ if ("FAMILYID" %in% colnames(APMH)) {
       dplyr::distinct(),
     by = c("STUDYID", "SUBJID")
   )
+} else {
+  DMVSLB <- dplyr::mutate(.data = DMVSLB, FAMILYID = SUBJID)
 }
 
 if (
@@ -489,8 +491,8 @@ if (
 
 if (
   DMVSLB %>%
-    dplyr::group_by(SUBJID) %>%
-    dplyr::summarise(n = n()) %>%
+    dplyr::group_by(FAMILYID, SUBJID) %>%
+    dplyr::summarise(n = dplyr::n()) %>%
     dplyr::select(n) %>%
     all()
 ) {
@@ -501,5 +503,6 @@ if (
     )
   )
 } else {
-  message("The number of visits per individuals differs!")
+  cat("The number of visits per individuals differs!")
+  cat("\n")
 }
