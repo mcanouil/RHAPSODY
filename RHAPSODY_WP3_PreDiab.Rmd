@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.12)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.13)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -2178,7 +2178,7 @@ pretty_kable(data = qc_steps)
 outout_tree_structure <- c(
   list.files(
     path = params$output_directory, 
-    pattern = "[^0-9]*22[^0-9]*",
+    pattern = "[^0-9]*21[^0-9]*",
     full.names = TRUE
   ) %>%
     list.files(full.names = TRUE) %>%
@@ -2188,7 +2188,7 @@ outout_tree_structure <- c(
     pattern = "output_chunks_lmm", 
     full.names = TRUE
   ) %>%
-    list.files(pattern = "22", full.names = TRUE) %>%
+    list.files(pattern = "21", full.names = TRUE) %>%
     list.files(full.names = TRUE) %>%
     gsub("small_pre.*.log", "small_pre*.log", .) %>% 
     unique() %>% 
@@ -2196,13 +2196,13 @@ outout_tree_structure <- c(
       tmp <- list.files(i, pattern = "preaa", full.names = TRUE)
       ifelse(length(tmp) != 0, tmp, i)
     }) %>% 
-    gsub("22", "CHR*", ., fixed = TRUE),
+    gsub("21", "CHR*", ., fixed = TRUE),
   list.files(
     path = params$output_directory, 
     pattern = "results_to_send", 
     full.names = TRUE
   ) %>%
-    list.files(pattern = "22", full.names = TRUE),
+    list.files(pattern = "21", full.names = TRUE),
   list.files(
     path = params$output_directory, 
     pattern = "vcffilespath.txt", 
@@ -2217,9 +2217,9 @@ outout_tree_structure <- c(
 ) %>%
   unlist() %>%
   gsub(params$output_directory, paste0("/", params$cohort_name), .) %>%
-  gsub("22", "CHR*", ., fixed = TRUE) %>%
+  gsub("21", "CHR*", ., fixed = TRUE) %>%
   data.frame(pathString = .) %>%
-  as.Node()
+  data.tree::as.Node()
 
 cat(paste(sapply(utils::capture.output(outout_tree_structure)[-1], paste0, "\n"), collapse = ""))
 ```
