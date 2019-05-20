@@ -1,14 +1,14 @@
 RHAPSODY
 ========
 
-Latest version: 
-``` sh
-VERSION=1.2.14
-```
-
 ## Docker
 
 ``` sh
+docker run --rm --volume /media/Project/RHAPSODY/Scripts/utils:/media/utils umr8199/rhapsody:latest Rscript -e 'rmarkdown::render("/media/utils/howto.Rmd", encoding = "UTF-8")'
+```
+
+``` sh
+VERSION=1.2.14
 ## Build image
 docker build \
   --tag umr8199/rhapsody:$VERSION \
