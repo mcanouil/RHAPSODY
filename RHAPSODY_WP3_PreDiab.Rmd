@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.14)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.15)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -1112,7 +1112,7 @@ Additional covariates might be needed depending on the cohort.
 nTimePoints <- max(table(DMVSLB_QC3[[ "SUBJID"]]))
 
 # Include random slope if more than two time points
-if (all.equal(DMVSLB_QC3[["FAMILYID"]], DMVSLB_QC3[["SUBJID"]])) {
+if (isTRUE(all.equal(DMVSLB_QC3[["FAMILYID"]], DMVSLB_QC3[["SUBJID"]]))) {
   random_term <- "SUBJID"
 } else {
   random_term <- "SUBJID/FAMILYID"
