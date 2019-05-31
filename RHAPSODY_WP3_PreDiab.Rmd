@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.15)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.16)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -933,7 +933,7 @@ n_variables <- DMVSLB_QC0 %>%
     .funs = (function(.x) {sum(!is.na(.x))})
   ) 
 
-one_measure_variables <- colSums(n_variables[, variables_names_available]==1)==nrow(n_variables)
+one_measure_variables <- colSums(n_variables[, variables_names_available]<=1)==nrow(n_variables)
 if (any(one_measure_variables)) {
   if (sum(one_measure_variables)>1) {
     message_cat <- "The following variables have been discarded (only one measure for all samples:\n"
@@ -1092,7 +1092,7 @@ Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB_
 The linear mixed model (LMM) is a suitably flexible approach, given that the intervals between data collection points is not uniform between cohorts; the LMM also permits the inclusion of different covariates, as well as unbalanced data within each cohort. 
 
 The LMM can be described as $y_{ij}=\alpha+\alpha_i+\beta t_{ij}+\beta_i t_{ij}+\epsilon_{ij}$, where $y_{ij}$ is a trait measurement for participant $i$ at time $j$ ($j=1,2,\dots$), $\alpha$ and $\beta$ are fixed effects for average intercept and time (slope), respectively.  
-$\alpha_i$ and $\beta_i$ are the individual (random) intercept and slope for participant $i$, assumed to be correlated and $\left(\alpha_i, \beta_i\right)\sim \mathcal{N}_2(0,\Sigma)$, i.e. coming from two-dimensional normal distribution. 
+$\alpha_i$ and $\beta_i$ are the individual (random) intercept and slope for participant $i$, assumed to be correlated and $\left(\alpha_i, \beta_i\right)\sim \mathcal{N}_2(0,\Sigma)$, *i.e.*, coming from two-dimensional normal distribution. 
 $\epsilon_{ij}\sim \mathcal{N}(0,\sigma^2)$ is a random error term.  
 Baseline time is set to zero; hence $t$ is the time since baseline.  
 To adjust for different covariates (both time invariant and those varying over time) additional parameters can be added to the model.  
@@ -1170,7 +1170,7 @@ for (ivariable in variables_names) {
     dplyr::matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, FAMILYID, SUBJID, STUDYID
   )
   
-  if (!all(is.na(fit_data[[ivariable]]))) {
+  if (ivariable %in% variables_names_available) {
     fit <- lmerTest::lmer(
       formula = eval(parse(
         text = paste0("update.formula(formula.rightPart, ", ivariable, "~.)")
@@ -1323,7 +1323,7 @@ for (ivariable in variables_names) {
     dplyr::matches(ivariable), AGE0, SEX0, BMI0, VISIT_YEARS, FAMILYID, SUBJID, STUDYID
   )
   
-  if (!all(is.na(fit_data[[ivariable]]))) {
+  if (ivariable %in% variables_names_available) {
     fit <- lmerTest::lmer(
       formula = eval(parse(
         text = paste0("update.formula(formula.rightPart, ", ivariable, "~.)")
@@ -1496,12 +1496,12 @@ pretty_kable(descriptive_table[-1, , drop = FALSE])
 
 ## Summary
 
-To perform GWAS analysis, SNP main effect and SNP x time interaction term are included to the preliminary model above; these parameters are average linear effect of time and SNP effect on the rate change (SNP x time), respectively. 
+To perform GWAS analysis, SNP main effect and $SNP \times time$ interaction term are included to the preliminary model above; these parameters are average linear effect of time and SNP effect on the rate change ($SNP \times time$), respectively. 
 
 
 ## Check available VCF files
 
-Please, provide VCF files in dosage format and check the availability of the imputation quality tag used (e.g. `INFO`).
+Please, provide VCF files in dosage format and check the availability of the imputation quality tag used (*e.g.*, `INFO`).
 
 ```{r check_available_vcf, eval = params_steps$step_4}
 list_vcf_files <- list.files(path = params$vcf_input_directory, pattern = ".vcf.gz$")
@@ -1800,6 +1800,8 @@ cat("\n")
 ```
 
 ```{r lmm_genotypes, eval = params_steps$step_6 & params$variants_analysis}
+variables_names <- variables_names[variables_names%in%variables_names_available]
+
 list_chrom_directories <- grep(
   pattern = "extractVCF",
   x = list.dirs(params$output_directory, full.names = TRUE),
