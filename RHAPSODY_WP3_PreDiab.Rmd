@@ -1254,7 +1254,7 @@ for (ivariable in variables_names) {
       ) 
       fit_random <- as.data.frame(
         tibble::column_to_rownames(
-          df = dplyr::mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
+          dplyr::mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
           var = "Mod"
         )
       )
@@ -1404,7 +1404,7 @@ for (ivariable in variables_names) {
       )
       fit_random <- as.data.frame(
         tibble::column_to_rownames(
-          df = dplyr::mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
+          dplyr::mutate(.data = fit_random, Mod = c("Mod0", "Mod1")),
           var = "Mod"
         )
       )
@@ -1865,7 +1865,7 @@ for (ichrdirectory in list_chrom_directories) {
       dosage_file_tidy <- as.data.frame(
         t(
           tibble::column_to_rownames(
-            df = dplyr::filter(
+            dplyr::filter(
               .data = as.data.frame(dosage_file_tidy), 
               !SNP%in%multi_allele_snps
             ),
@@ -1878,7 +1878,7 @@ for (ichrdirectory in list_chrom_directories) {
       pheno_geno_data <- dplyr::full_join(
         x = DMVSLB_QC5,
         y = dplyr::mutate(
-          .data = tibble::rownames_to_column(df = dosage_file_tidy, var = "SUBJID"), 
+          .data = tibble::rownames_to_column(dosage_file_tidy, var = "SUBJID"), 
           SUBJID = as.integer(SUBJID)
         ),
         by = "SUBJID"
