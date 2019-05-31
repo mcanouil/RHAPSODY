@@ -1,13 +1,11 @@
-# <img src="utils/RHAPSODY_Logo_WEB_Color.png" width="200" />
+# <img src="utils/RHAPSODY_Logo_WEB_Color.png" width="300" />
 
-## Docker
-
-### Render `howto.html`
+## Render `howto.html`
 ``` sh
 docker run --rm --volume /media/Project/RHAPSODY/Scripts/utils:/media/utils umr8199/rhapsody:latest Rscript -e 'rmarkdown::render("/media/utils/howto.Rmd", encoding = "UTF-8")'
 ```
 
-### Build image
+## Build image
 ``` sh
 VERSION=1.2.18
 
@@ -29,7 +27,7 @@ docker push umr8199/rhapsody:latest
 docker system prune --all
 ```
  
-### Build container
+## Build container
 ``` sh
 docker run \
   --name stat-rhapsody \
