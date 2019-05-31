@@ -1,4 +1,4 @@
-# RHAPSODY <img src="utils/RHAPSODY_Logo_WEB_Color.png" align="right" width="120" />
+# <img src="utils/RHAPSODY_Logo_WEB_Color.png" width="200" />
 
 ## Docker
 
@@ -9,7 +9,7 @@ docker run --rm --volume /media/Project/RHAPSODY/Scripts/utils:/media/utils umr8
 
 ### Build image
 ``` sh
-VERSION=1.2.17
+VERSION=1.2.18
 
 ## Build image
 docker build \
