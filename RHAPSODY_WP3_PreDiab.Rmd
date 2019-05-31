@@ -275,8 +275,6 @@ if (knitr:::is_latex_output()) {
 ggplot2::theme_set(ggplot2::theme_light(base_size = 12))
 ```
 
-<img src="utils/RHAPSODY_Logo_WEB_Color.png" style="position:absolute; top:0; right:0; padding:10px;"/>
-
 ```{r check_parameters, echo = FALSE}
 if (!file.exists(params$opal_credentials)) {
   stop(paste0('File "', params$opal_credentials, '" doesn\'t exist!\nPlease check the settings.'))
@@ -582,6 +580,9 @@ compute_mean_sd <- function(x, digits = 2) {
 }
 ```
 
+```{r logo, echo = FALSE, out.width = "300px"}
+knitr::include_graphics(path = "utils/RHAPSODY_Logo_WEB_Color.png")
+```
 
 # Goal
 
