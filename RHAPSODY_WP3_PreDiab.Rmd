@@ -275,13 +275,7 @@ if (knitr:::is_latex_output()) {
 ggplot2::theme_set(ggplot2::theme_light(base_size = 12))
 ```
 
-```{r logo, eval = file.exists("./utils/RHAPSODY_Logo_WEB_Color.png")}
-htmltools::img(
-  src = "./utils/RHAPSODY_Logo_WEB_Color.png", 
-  alt = "logo", 
-  style = "position:absolute; top:0; right:0; padding:10px;"
-)
-```
+<img src="utils/RHAPSODY_Logo_WEB_Color.png" style="position:absolute; top:0; right:0; padding:10px;"/>
 
 ```{r check_parameters, echo = FALSE}
 if (!file.exists(params$opal_credentials)) {
