@@ -1,6 +1,6 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes"
-subtitle: "(Version 1.2.17)"
+subtitle: "(Version 1.2.18)"
 author: 
 - name: "Mickaël Canouil, Ph.D."
   affiliation: "Université de Lille, CNRS, Institut Pasteur de Lille, UMR 8199 - EGID, F-59000, Lille, France."
@@ -46,6 +46,15 @@ library(tidyverse)
 library(data.tree)
 library(kableExtra)
 ```
+
+```{r logo}
+htmltools::img(
+  src = "RHAPSODY_Logo_WEB_Color.png", 
+  alt = "logo", 
+  style = "position:absolute; top:0; right:0; padding:10px;"
+)
+```
+
 
 # How-to {.tabset}
 

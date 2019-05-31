@@ -1,5 +1,4 @@
-RHAPSODY
-========
+# RHAPSODY <img src="utils/RHAPSODY_Logo_WEB_Color.png" align="right" width="120" />
 
 ## Docker
 

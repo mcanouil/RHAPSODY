@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.17)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.18)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -273,6 +273,14 @@ if (knitr:::is_latex_output()) {
 }
 
 ggplot2::theme_set(ggplot2::theme_light(base_size = 12))
+```
+
+```{r logo, eval = file.exists("./utils/RHAPSODY_Logo_WEB_Color.png")}
+htmltools::img(
+  src = "./utils/RHAPSODY_Logo_WEB_Color.png", 
+  alt = "logo", 
+  style = "position:absolute; top:0; right:0; padding:10px;"
+)
 ```
 
 ```{r check_parameters, echo = FALSE}
