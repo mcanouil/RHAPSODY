@@ -1,6 +1,6 @@
 # <img src="utils/RHAPSODY_Logo_WEB_Color.png" width="400" />
 
-## Render `howto.html`
+## Render `utils/howto.html`
 ``` sh
 docker run --rm --volume /media/Project/RHAPSODY/Scripts/utils:/media/utils umr8199/rhapsody:latest Rscript -e 'rmarkdown::render("/media/utils/howto.Rmd", encoding = "UTF-8")'
 ```
