@@ -1,4 +1,4 @@
-# <img src="utils/RHAPSODY_Logo_WEB_Color.png" width="300" />
+# <img src="utils/RHAPSODY_Logo_WEB_Color.png" align="center" width="400" />
 
 ## Render `howto.html`
 ``` sh
