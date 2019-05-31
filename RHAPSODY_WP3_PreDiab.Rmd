@@ -580,7 +580,7 @@ compute_mean_sd <- function(x, digits = 2) {
 }
 ```
 
-```{r logo, echo = FALSE, out.width = "300px"}
+```{r logo, echo = FALSE, out.width = "300px", eval = file.exists("utils/RHAPSODY_Logo_WEB_Color.png")}
 knitr::include_graphics(path = "utils/RHAPSODY_Logo_WEB_Color.png")
 ```
 
