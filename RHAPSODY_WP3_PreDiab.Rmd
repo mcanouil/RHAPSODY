@@ -615,7 +615,7 @@ Fasting and 2-h plasma glucose in mmol/l and HbA1c in mmol/mol.
 3.  Exclusion of participants with data available for only one time-point.  
 Only individuals with at least 2 observations should be included in the analysis.
 4.  Exclusion of participants with diabetes at baseline.  
-As we will focus on prediabetes (and also include participants with normoglycemia), prevalent cases of diabetes at baseline using ADA diagnostic criteria must be excluded; this applies to participants with known diabetes as well as those with screen-detected diabetes at baseline.  
+As we will focus on prediabetes (and also include participants with normoglycaemia), prevalent cases of diabetes at baseline using ADA diagnostic criteria must be excluded; this applies to participants with known diabetes as well as those with screen-detected diabetes at baseline.  
 Diagnostic criteria for diabetes ([ADA criteria; Diabetes Care 2015 Jan; 38, Supplement 1](http://care.diabetesjournals.org/content/suppl/2014/12/23/38.Supplement_1.DC1/January_Supplement_Combined_Final.6-99.pdf)):
     * Fasting plasma glucose $\geq$ 7.0 mmol/l (126 mg/dl) or
     * 2h plasma glucose $\geq$ 11.1 mmol/l (200 mg/dl) or
@@ -1187,8 +1187,8 @@ for (ivariable in variables_names) {
       ID = paste(STUDYID, SUBJID, sep = "_"),
       pT2D = ifelse(
         ID%in%diabetic_samples_with_medication_info,
-        "PreDiab",
-        "Normo"
+        "Pre-Diabetes",
+        "Normoglycaemia"
       )
     ) %>%
       ggplot2::ggplot(
