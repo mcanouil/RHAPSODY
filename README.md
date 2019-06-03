@@ -5,7 +5,7 @@
 docker run --rm --volume /media/Project/RHAPSODY/Scripts/utils:/media/utils umr8199/rhapsody:latest Rscript -e 'rmarkdown::render("/media/utils/howto.Rmd", encoding = "UTF-8")'
 ```
 
-## Build image
+## Build/Update Docker image
 ``` sh
 VERSION=1.2.19
 
@@ -27,7 +27,7 @@ docker push umr8199/rhapsody:latest
 docker system prune --all
 ```
  
-## Build container
+## Build Docker container
 ``` sh
 docker run \
   --name stat-rhapsody \
