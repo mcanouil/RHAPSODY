@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.19)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.20)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -619,7 +619,7 @@ As we will focus on prediabetes (and also include participants with normoglycaem
 Diagnostic criteria for diabetes ([ADA criteria; Diabetes Care 2015 Jan; 38, Supplement 1](http://care.diabetesjournals.org/content/suppl/2014/12/23/38.Supplement_1.DC1/January_Supplement_Combined_Final.6-99.pdf)):
     * Fasting plasma glucose $\geq$ 7.0 mmol/l (126 mg/dl) or
     * 2h plasma glucose $\geq$ 11.1 mmol/l (200 mg/dl) or
-    * HbA1c $\geq$ 48 mmol/mol (6.5%). 
+    * HbA1c $\geq$ 48 mmol/mol (6.5 %). 
 5.  Exclusion of participants developing diabetes during the study time:
     * Individuals developing diabetes during the follow up and with no available information on medication  should be excluded.
     * Individuals with Type I Diabetes or/and INSULIN and ANALOGUES treatment.
@@ -1085,7 +1085,7 @@ DMVSLB_QC3 <- DMVSLB_QC2 %>%
   dplyr::select(-ID)
 ```
 
-Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB_QC3 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`
+Total individuals available after QC: `r ifelse(params$analysis_step>=2, DMVSLB_QC3 %>% dplyr::select(STUDYID, SUBJID) %>% dplyr::distinct() %>% nrow() %>% format(., big.mark = ","), NA)`.
 
 
 # Preliminary modelling
@@ -1787,6 +1787,8 @@ pretty_kable(descriptive_table[-1, , drop = FALSE])
 if (!is.null(params$genomic_component)) {
   genomic_component <- read.csv(file = params$genomic_component, header = TRUE)
   colnames(genomic_component) <- c("SUBJID", sprintf("PC%02d", seq(ncol(genomic_component) - 1)))
+  genomic_component[["SUBJID"]] <- as.character(genomic_component[["SUBJID"]])
+  
   
   DMVSLB_QC5 <- DMVSLB_QC5 %>% 
     dplyr::left_join(
