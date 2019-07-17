@@ -1791,6 +1791,7 @@ if (!is.null(params$genomic_component)) {
   
   
   DMVSLB_QC5 <- DMVSLB_QC5 %>% 
+    dplyr::mutate(SUBJID = as.character(SUBJID)) %>% 
     dplyr::left_join(
       y = genomic_component,
       by = "SUBJID"
