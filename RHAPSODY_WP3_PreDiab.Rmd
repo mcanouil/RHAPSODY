@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.20)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.21)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -699,7 +699,7 @@ DMVSLB <- dplyr::full_join(
   ) %>% 
   as.data.frame()
 
-if ("FAMILYID" %in% colnames(APMH)) {
+if (exists("APMH") && "FAMILYID" %in% colnames(APMH)) {
   DMVSLB <- dplyr::left_join(
     x = DMVSLB,
     y = APMH %>% 

@@ -2,7 +2,7 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from "RHAPSODY_WP3_PreDiab.Rmd"
 # Author - Mickaël Canouil, Ph.D.
-# Version - 1.2.20
+# Version - 1.2.21
 #---------------------------------------------------------------------------------------------------
 options(stringsAsFactors = FALSE)
 
@@ -465,7 +465,7 @@ DMVSLB <- dplyr::full_join(
   as.data.frame()
 
 
-if ("FAMILYID" %in% colnames(APMH)) {
+if (exists("APMH") && "FAMILYID" %in% colnames(APMH)) {
   DMVSLB <- dplyr::left_join(
     x = DMVSLB,
     y = APMH %>% 
