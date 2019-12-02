@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.21)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.22)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -662,11 +662,21 @@ vs_tidy <- format_vs(data = VS)
 vs_tidy <- compute_bmi(data = vs_tidy)
 lb_tidy <- format_lb(data = LB)
 # To check if LB/VS are correctly formatted (should return TRUE)
-# all(
-#   nrow(lb_tidy$data) == length(unique(LB[["SUBJID"]]))*length(unique(LB[["VISIT"]])),
-#   nrow(vs_tidy$data) == length(unique(VS[["SUBJID"]]))*length(unique(VS[["VISIT"]])),
-#   nrow(lb_tidy$data) == nrow(vs_tidy$data)
-# )
+# n_LB <- LB %>% 
+#   dplyr::select(STUDYID, SUBJID, VISIT) %>% 
+#   dplyr::distinct() %>% 
+#   dplyr::count(STUDYID, SUBJID) %>% 
+#   dplyr::summarise(n = sum(n)) %>% 
+#   unlist()
+# 
+# n_VS <- VS %>% 
+#   dplyr::select(STUDYID, SUBJID, VISIT) %>% 
+#   dplyr::distinct() %>% 
+#   dplyr::count(STUDYID, SUBJID) %>% 
+#   dplyr::summarise(n = sum(n)) %>% 
+#   unlist() 
+# 
+# (all(c(nrow(lb_tidy$data), n_LB, nrow(vs_tidy$data), n_VS) == nrow(DMVSLB)))
 
 DMVSLB <- dplyr::full_join(
   x = dplyr::select(.data = dplyr::mutate(.data = DM, VISIT = "BASELINE"), -DOMAIN),
@@ -712,23 +722,12 @@ if (exists("APMH") && "FAMILYID" %in% colnames(APMH)) {
 }
 
 ### To check if all individuals have the same number of visits before convert
-if (
-  DMVSLB %>%
-    dplyr::group_by(SUBJID) %>%
-    dplyr::summarise(n = dplyr::n()) %>%
-    dplyr::select(n) %>%
-    all()
-) {
-  DMVSLB <- dplyr::mutate(
-    .data = DMVSLB,
-    VISIT_YEARS = as.numeric(
-      difftime(as.Date(VSDTC), min(as.Date(VSDTC), na.rm = TRUE), unit = "weeks") / 52.25
-    )
+DMVSLB <- dplyr::mutate(
+  .data = DMVSLB,
+  VISIT_YEARS = as.numeric(
+    difftime(as.Date(VSDTC), min(as.Date(VSDTC), na.rm = TRUE), unit = "weeks") / 52.25
   )
-} else {
-  cat("The number of visits per individuals differs!")
-  cat("\n")
-}
+)
 ```
 
 ## Make sure measured biomarker data are in the same units across all the cohorts

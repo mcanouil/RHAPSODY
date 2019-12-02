@@ -2,7 +2,7 @@
 # Name - RHAPSODY_WP3_PreDiab_DEBUG
 # Desc - Copy of R code from "RHAPSODY_WP3_PreDiab.Rmd"
 # Author - Mickaël Canouil, Ph.D.
-# Version - 1.2.21
+# Version - 1.2.22
 #---------------------------------------------------------------------------------------------------
 options(stringsAsFactors = FALSE)
 
@@ -477,32 +477,30 @@ if (exists("APMH") && "FAMILYID" %in% colnames(APMH)) {
   DMVSLB <- dplyr::mutate(.data = DMVSLB, FAMILYID = SUBJID)
 }
 
-if (
-  all(
-    nrow(lb_tidy$data) == length(unique(LB[["SUBJID"]]))*length(unique(LB[["VISIT"]])),
-    nrow(vs_tidy$data) == length(unique(VS[["SUBJID"]]))*length(unique(VS[["VISIT"]])),
-    nrow(lb_tidy$data) == nrow(vs_tidy$data)
-  )
-) {
+n_LB <- LB %>% 
+  dplyr::select(STUDYID, SUBJID, VISIT) %>% 
+  dplyr::distinct() %>% 
+  dplyr::count(STUDYID, SUBJID) %>% 
+  dplyr::summarise(n = sum(n)) %>% 
+  unlist()
+
+n_VS <- VS %>% 
+  dplyr::select(STUDYID, SUBJID, VISIT) %>% 
+  dplyr::distinct() %>% 
+  dplyr::count(STUDYID, SUBJID) %>% 
+  dplyr::summarise(n = sum(n)) %>% 
+  unlist() 
+
+if (all(c(nrow(lb_tidy$data), n_LB, nrow(vs_tidy$data), n_VS) == nrow(DMVSLB))) {
   message("Good to go! Try to run the whole script.")
 } else {
   stop("Something went wrong, test each of the condition above to locate where is the issue!")
 }
 
-if (
-  DMVSLB %>%
-    dplyr::group_by(FAMILYID, SUBJID) %>%
-    dplyr::summarise(n = dplyr::n()) %>%
-    dplyr::select(n) %>%
-    all()
-) {
-  DMVSLB <- dplyr::mutate(
-    .data = DMVSLB,
-    VISIT_YEARS = as.numeric(
-      difftime(as.Date(VSDTC), min(as.Date(VSDTC), na.rm = TRUE), unit = "weeks") / 52.25
-    )
+
+DMVSLB <- dplyr::mutate(
+  .data = DMVSLB,
+  VISIT_YEARS = as.numeric(
+    difftime(as.Date(VSDTC), min(as.Date(VSDTC), na.rm = TRUE), unit = "weeks") / 52.25
   )
-} else {
-  cat("The number of visits per individuals differs!")
-  cat("\n")
-}
+)
