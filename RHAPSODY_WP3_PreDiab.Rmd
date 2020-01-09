@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.22)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.23)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -1032,55 +1032,60 @@ follow_up_diabetes_samples_def <- DMVSLB_QC2 %>%
   .[["ID"]]
 
 # Get samples diagnose diabetes during the follow-up
-follow_up_diabetes_samples_diag <- MH %>%
-  dplyr::filter(
-    MHTERM%in%c("DIABETES", "TYPE 1 DIABETES", "TYPE 2 DIABETES") & MHOCCUR == "Y"
-  ) %>%
-  dplyr::select(STUDYID, SUBJID) %>%
-  dplyr::distinct() %>%
-  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  dplyr::ungroup() %>%
-  .[["ID"]]
+if (exists("MH")) {
+  follow_up_diabetes_samples_diag <- MH %>%
+    dplyr::filter(
+      MHTERM%in%c("DIABETES", "TYPE 1 DIABETES", "TYPE 2 DIABETES") & MHOCCUR == "Y"
+    ) %>%
+    dplyr::select(STUDYID, SUBJID) %>%
+    dplyr::distinct() %>%
+    dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+    dplyr::ungroup() %>%
+    .[["ID"]]
+  
+  incident_t2d_samples_list <- unique(c(follow_up_diabetes_samples_def, follow_up_diabetes_samples_diag))
+} else {
+  incident_t2d_samples_list <- unique(follow_up_diabetes_samples_def)
+}
 
 # Get medication information for all samples developing T2D based on definition and diagnostic
-check_medication <- CM %>%
-  dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  dplyr::filter(
-    ID%in%c(follow_up_diabetes_samples_def, follow_up_diabetes_samples_diag)
-  ) %>%
-  dplyr::filter(
-    CMCAT%in%c("INSULINS AND ANALOGUES", "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS")
-  ) %>%
-  dplyr::group_by(ID, CMCAT) %>%
-  dplyr::summarise(
-    CHOCCUR = any(CMOCCUR%in%"Y")
-  ) %>%
-  dplyr::ungroup() %>%
-  dplyr::filter(CHOCCUR)
+if (exists("CM")) {
+  check_medication <- CM %>%
+    dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
+    dplyr::filter(ID %in% !!incident_t2d_samples_list) %>%
+    dplyr::filter(
+      CMCAT %in% c("INSULINS AND ANALOGUES", "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS")
+    ) %>%
+    dplyr::group_by(ID, CMCAT) %>%
+    dplyr::summarise(
+      CHOCCUR = any(CMOCCUR%in%"Y")
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(CHOCCUR)
 
-# List samples with 'INSULINS AND ANALOGUES' medication for later exclusion
-samples_with_insulin <- dplyr::filter(.data = check_medication, CMCAT%in%"INSULINS AND ANALOGUES")[["ID"]]
-
-# List incident diabetic samples with 'BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS'
-# and without 'INSULINS AND ANALOGUES' medication
-diabetic_samples_with_medication_info <- setdiff(
-  x = dplyr::filter(
-    .data = check_medication, 
-    CMCAT%in%"BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS"
-  )[["ID"]],
-  y = samples_with_insulin
-)
-
-# List incident diabetic samples without medication information an/or 'INSULINS AND ANALOGUES'
-FollowUpDiabetesSamples.ToExclude <- setdiff(
-  x = unique(c(follow_up_diabetes_samples_def, follow_up_diabetes_samples_diag)),
-  y = diabetic_samples_with_medication_info
-)
+  # List samples with 'INSULINS AND ANALOGUES' medication for later exclusion
+  samples_with_insulin <- dplyr::filter(check_medication, CMCAT %in% "INSULINS AND ANALOGUES")[["ID"]]
+  
+  # List incident diabetic samples with 'BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS'
+  # and without 'INSULINS AND ANALOGUES' medication
+  diabetic_samples_with_medication_info <- setdiff(
+    x = dplyr::filter(check_medication, CMCAT %in% "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS")[["ID"]],
+    y = samples_with_insulin
+  )
+  
+  # List incident diabetic samples without medication information an/or 'INSULINS AND ANALOGUES'
+  FollowUpDiabetesSamples.ToExclude <- setdiff(
+    x = incident_t2d_samples_list,
+    y = diabetic_samples_with_medication_info
+  )
+} else {
+  FollowUpDiabetesSamples.ToExclude <- incident_t2d_samples_list
+}
 
 # Exclude samples in 'FollowUpDiabetesSamples.ToExclude'
 DMVSLB_QC3 <- DMVSLB_QC2 %>%
   dplyr::mutate(ID = paste(STUDYID, SUBJID, sep = "_")) %>%
-  dplyr::filter(!ID%in%FollowUpDiabetesSamples.ToExclude) %>%
+  dplyr::filter(!ID %in% FollowUpDiabetesSamples.ToExclude) %>%
   dplyr::select(-ID)
 ```
 
