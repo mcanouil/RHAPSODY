@@ -47,7 +47,7 @@ library(data.tree)
 library(kableExtra)
 ```
 
-```{r logo}
+```{r logo, echo = FALSE}
 htmltools::img(
   src = "RHAPSODY_Logo_WEB_Color.png", 
   alt = "logo", 
