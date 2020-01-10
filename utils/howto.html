@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2020-01-09" />
+<meta name="date" content="2020-01-10" />
 
 <title>RHAPSODY WP3 Pre-Diabetes</title>
 
@@ -119,12 +119,12 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">RHAPSODY WP3 Pre-Diabetes</h1>
-<h3 class="subtitle"><em>(Version 1.2.23)</em></h3>
+<h3 class="subtitle"><em>(Version 1.2.24)</em></h3>
 <h4 class="author"><em>Mickaël Canouil, Ph.D.</em></h4>
 <address class="author_afil">
-Université de Lille, CNRS, Institut Pasteur de Lille, UMR 8199 - EGID, F-59000, Lille, France.<br><a class="author_email" href="mailto:#"><a href="mailto:mickael.canouil@cnrs.fr">mickael.canouil@cnrs.fr</a></a>
+Université de Lille, CNRS, Institut Pasteur de Lille, UMR 1283 - EGID, F-59000, Lille, France.<br><a class="author_email" href="mailto:#"><a href="mailto:mickael.canouil@cnrs.fr">mickael.canouil@cnrs.fr</a></a>
 </address>
-<h4 class="date"><em>January 09, 2020</em></h4>
+<h4 class="date"><em>January 10, 2020</em></h4>
 
 </div>
 
@@ -1463,26 +1463,26 @@ variants_analysis &lt;- TRUE</code></pre>
 <h3><span class="header-section-number">1.2.2</span> Deploy an image within a container</h3>
 <div id="pull-the-image" class="section level4">
 <h4><span class="header-section-number">1.2.2.1</span> Pull the image</h4>
-<p>You can download the Docker image from Docker Hub: <a href="https://hub.docker.com/r/umr8199/rhapsody">/r/umr8199/rhapsody</a>.</p>
-<pre class="sh"><code>docker pull umr8199/rhapsody</code></pre>
+<p>You can download the Docker image from Docker Hub: <a href="https://hub.docker.com/r/umr1283/rhapsody">/r/umr1283/rhapsody</a>.</p>
+<pre class="sh"><code>docker pull umr1283/rhapsody</code></pre>
 <p>To pull a particular version (<em>i.e.</em>, not the latest), you can add the tag version.<br />
-Tags are listed in the repository <a href="https://hub.docker.com/r/umr8199/rhapsody/tags">/r/umr8199/rhapsody/tags</a>.</p>
-<pre class="sh"><code>docker pull umr8199/rhapsody:latest</code></pre>
+Tags are listed in the repository <a href="https://hub.docker.com/r/umr1283/rhapsody/tags">/r/umr1283/rhapsody/tags</a>.</p>
+<pre class="sh"><code>docker pull umr1283/rhapsody:latest</code></pre>
 </div>
 <div id="run-a-container" class="section level4">
 <h4><span class="header-section-number">1.2.2.2</span> Run a container</h4>
-<p>The easiest way to start a the Docker container using <code>umr8199/rhapsody</code> image is to run the following Docker command.</p>
+<p>The easiest way to start a the Docker container using <code>umr1283/rhapsody</code> image is to run the following Docker command.</p>
 <pre class="sh"><code>docker run \
   --name rhapsody \
   --detach \
-  umr8199/rhapsody:latest</code></pre>
+  umr1283/rhapsody:latest</code></pre>
 <p>With those settings, the Docker container will not have access to any data stored in your cluster/grid/computer/laptop.<br />
 In order to allow the Docker container to see some data, you have to use <code>--volume from:to</code> argument.</p>
 <pre class="sh"><code>docker run \
   --name rhapsody \
   --detach \
   --volume /path/to/vcf:/media/vcf \
-  umr8199/rhapsody:latest</code></pre>
+  umr1283/rhapsody:latest</code></pre>
 <p>If you want to more carefully set the Docker container, (, CPUs, memory, etc.), you can find all the parameters at the following address: <a href="https://docs.docker.com/engine/reference/commandline/run/" class="uri">https://docs.docker.com/engine/reference/commandline/run/</a></p>
 </div>
 </div>
@@ -1933,7 +1933,7 @@ rmarkdown::render(
   --volume /path/to/RunAnalysis:/media/RunAnalysis \
   --volume /path/to/rhapsody_output:/media/rhapsody_output \
   --rm \
-  umr8199/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R</code></pre>
+  umr1283/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R</code></pre>
 <p>In that configuration, the script <code>/home/rhapsody/WP3/scripts/utils/RunAnalysis.R</code> will be as follow:</p>
 <pre class="r"><code># set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
@@ -2009,7 +2009,7 @@ variants_analysis &lt;- FALSE</code></pre></li>
   --volume /path/to/RunAnalysis:/media/RunAnalysis \
   --volume /path/to/rhapsody_output:/media/rhapsody_output \
   --rm \
-  umr8199/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R</code></pre>
+  umr1283/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R</code></pre>
 <p>In that configuration, the script <code>/home/rhapsody/WP3/scripts/utils/RunAnalysis.R</code> will be as follow:</p>
 <pre class="r"><code># set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
@@ -2094,7 +2094,7 @@ The command (with the correct parameters) to format the VCF using <code>~/WP3/sc
   --volume /path/to/RunAnalysis:/media/RunAnalysis \
   --volume /path/to/rhapsody_output:/media/rhapsody_output \
   --rm \
-  umr8199/rhapsody:latest sh /media/rhapsody_output/handleVCF_Cohort_Name.sh</code></pre></li>
+  umr1283/rhapsody:latest sh /media/rhapsody_output/handleVCF_Cohort_Name.sh</code></pre></li>
 <li><p>Run the whole analysis with the proper parameter</p>
 <pre class="r"><code>format_vcfs &lt;- FALSE # keep this to FALSE
 analysis_step &lt;- 7
@@ -2107,7 +2107,7 @@ variants_analysis &lt;- TRUE</code></pre>
   --volume /path/to/RunAnalysis:/media/RunAnalysis \
   --volume /path/to/rhapsody_output:/media/rhapsody_output \
   --rm \
-  umr8199/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R</code></pre>
+  umr1283/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R</code></pre>
 <p>In that configuration, the script <code>~/WP3/scripts/utils/RunAnalysis.R</code> will be as follow:</p>
 <pre class="r"><code># set the output directory or leave as is; 
 # output will be generated where the Rmarkdown file is
