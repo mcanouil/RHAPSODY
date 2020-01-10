@@ -3,7 +3,7 @@ title: "RHAPSODY WP3 Pre-Diabetes"
 subtitle: "(Version 1.2.24)"
 author: 
 - name: "Mickaël Canouil, Ph.D."
-  affiliation: "Université de Lille, CNRS, Institut Pasteur de Lille, UMR 8199 - EGID, F-59000, Lille, France."
+  affiliation: "Université de Lille, CNRS, Institut Pasteur de Lille, UMR 1283 - EGID, F-59000, Lille, France."
   email: "mickael.canouil@cnrs.fr"
 date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: 
@@ -471,28 +471,28 @@ If Docker is not installed on your cluster/grid/computer/laptop, you can install
 
 #### Pull the image
 
-You can download the Docker image from Docker Hub: [/r/umr8199/rhapsody](https://hub.docker.com/r/umr8199/rhapsody).
+You can download the Docker image from Docker Hub: [/r/umr1283/rhapsody](https://hub.docker.com/r/umr1283/rhapsody).
 
 ```{sh, eval = FALSE}
-docker pull umr8199/rhapsody
+docker pull umr1283/rhapsody
 ```
 
 To pull a particular version (*i.e.*, not the latest), you can add the tag version.  
-Tags are listed in the repository [/r/umr8199/rhapsody/tags](https://hub.docker.com/r/umr8199/rhapsody/tags).
+Tags are listed in the repository [/r/umr1283/rhapsody/tags](https://hub.docker.com/r/umr1283/rhapsody/tags).
 
 ```{sh, eval = FALSE}
-docker pull umr8199/rhapsody:latest
+docker pull umr1283/rhapsody:latest
 ```
 
 #### Run a container
 
-The easiest way to start a the Docker container using `umr8199/rhapsody` image is to run the following Docker command.
+The easiest way to start a the Docker container using `umr1283/rhapsody` image is to run the following Docker command.
 
 ```{sh, eval = FALSE}
 docker run \
   --name rhapsody \
   --detach \
-  umr8199/rhapsody:latest
+  umr1283/rhapsody:latest
 ```
 
 With those settings, the Docker container will not have access to any data stored in your cluster/grid/computer/laptop.  
@@ -503,7 +503,7 @@ docker run \
   --name rhapsody \
   --detach \
   --volume /path/to/vcf:/media/vcf \
-  umr8199/rhapsody:latest
+  umr1283/rhapsody:latest
 ```
 
 If you want to more carefully set the Docker container, (, CPUs, memory, etc.), you can find all the parameters at the following address: [https://docs.docker.com/engine/reference/commandline/run/](https://docs.docker.com/engine/reference/commandline/run/)
@@ -875,7 +875,7 @@ docker run \
   --volume /path/to/RunAnalysis:/media/RunAnalysis \
   --volume /path/to/rhapsody_output:/media/rhapsody_output \
   --rm \
-  umr8199/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R
+  umr1283/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R
 ```
 
 In that configuration, the script `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R` will be as follow:
@@ -961,7 +961,7 @@ In the case you want to format your VCF files before running the script.
       --volume /path/to/RunAnalysis:/media/RunAnalysis \
       --volume /path/to/rhapsody_output:/media/rhapsody_output \
       --rm \
-      umr8199/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R
+      umr1283/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R
     ```
     In that configuration, the script `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R` will be as follow:
     ```{r, eval = FALSE}
@@ -1056,7 +1056,7 @@ In the case you want to format your VCF files before running the script.
       --volume /path/to/RunAnalysis:/media/RunAnalysis \
       --volume /path/to/rhapsody_output:/media/rhapsody_output \
       --rm \
-      umr8199/rhapsody:latest sh /media/rhapsody_output/handleVCF_Cohort_Name.sh
+      umr1283/rhapsody:latest sh /media/rhapsody_output/handleVCF_Cohort_Name.sh
     ```
     
 4. Run the whole analysis with the proper parameter
@@ -1074,7 +1074,7 @@ In the case you want to format your VCF files before running the script.
       --volume /path/to/RunAnalysis:/media/RunAnalysis \
       --volume /path/to/rhapsody_output:/media/rhapsody_output \
       --rm \
-      umr8199/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R
+      umr1283/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R
     ```
     In that configuration, the script `~/WP3/scripts/utils/RunAnalysis.R` will be as follow:
     ```{r, eval = FALSE}

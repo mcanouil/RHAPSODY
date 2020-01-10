@@ -1,4 +1,4 @@
-FROM umr8199/rhapsody:latest
+FROM umr1283/rhapsody:latest
 
 RUN rm -R /home/rhapsody/WP3 \
   && mkdir -p -m 777 /home/rhapsody/WP3 \
