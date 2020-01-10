@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.23)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.24)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -1072,15 +1072,15 @@ if (exists("CM")) {
     x = dplyr::filter(check_medication, CMCAT %in% "BLOOD GLUCOSE LOWERING DRUGS, EXCL. INSULINS")[["ID"]],
     y = samples_with_insulin
   )
-  
-  # List incident diabetic samples without medication information an/or 'INSULINS AND ANALOGUES'
-  FollowUpDiabetesSamples.ToExclude <- setdiff(
-    x = incident_t2d_samples_list,
-    y = diabetic_samples_with_medication_info
-  )
 } else {
-  FollowUpDiabetesSamples.ToExclude <- incident_t2d_samples_list
+  diabetic_samples_with_medication_info <- NULL
 }
+
+# List incident diabetic samples without medication information an/or 'INSULINS AND ANALOGUES'
+FollowUpDiabetesSamples.ToExclude <- setdiff(
+  x = incident_t2d_samples_list,
+  y = diabetic_samples_with_medication_info
+)
 
 # Exclude samples in 'FollowUpDiabetesSamples.ToExclude'
 DMVSLB_QC3 <- DMVSLB_QC2 %>%
@@ -1190,7 +1190,7 @@ for (ivariable in variables_names) {
       .data = fit_data,
       ID = paste(STUDYID, SUBJID, sep = "_"),
       pT2D = ifelse(
-        ID%in%diabetic_samples_with_medication_info,
+        ID %in% diabetic_samples_with_medication_info,
         "Pre-Diabetes",
         "Normoglycaemia"
       )
