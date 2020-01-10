@@ -13,7 +13,7 @@ VERSION=1.2.24
 docker build \
   --tag umr1283/rhapsody:$VERSION \
   --compress \
-  --file /media/Project/RHAPSODY/Scripts/docker/Dockerfile_update \
+  --file /media/Project/RHAPSODY/Scripts/docker/Dockerfile \
   /media/Project/RHAPSODY/Scripts/docker/
 
 ## Tag image with name and version
