@@ -267,6 +267,15 @@ COPY logo.png  /usr/lib/rstudio-server/www/images/logo.png
 RUN echo 'auth-login-page-html=/etc/rstudio/login.html' >> /etc/rstudio/rserver.conf
 
 
+COPY r_devtools.R /tmp/r_devtools.R
+RUN chmod 777 /tmp/r_devtools.R \
+  && Rscript /tmp/r_devtools.R \
+  && rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
+  && rm -rf /var/lib/apt/lists/ \
+  && apt-get clean \
+  && apt-get autoremove -y
+
+
 COPY r_packages.R /tmp/r_packages.R
 RUN chmod 777 /tmp/r_packages.R \
   && Rscript /tmp/r_packages.R \

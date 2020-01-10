@@ -2,21 +2,6 @@
 
 options(stringsAsFactors = FALSE)
 
-utils::install.packages(
-  pkgs = c('udunits2', 'units', 'devtools', 'caTools'),
-  configure.args = '--with-udunits2-lib=/usr/local/lib',
-  quiet = TRUE,
-  repos = c('http://cran.us.r-project.org', 'https://cran.rstudio.com/')
-)
-
-utils::install.packages(
-  pkgs = 'opal', 
-  repos = c('https://cran.obiba.org', 'https://cran.rstudio.com/'), 
-  dependencies = TRUE, 
-  quiet = TRUE
-)
-
-
 list_packages <- read.table(
   col.names = c('package', 'version'), 
   text = "'acepack'	'1.4.1'
@@ -86,7 +71,7 @@ list_packages <- read.table(
   'dbplyr'	'1.2.1'
   'devtools'	'1.13.5'
   'digest'	'0.6.15'
-  'evaluate'	'0.10.1'
+  'evaluate'	'0.14'
   'forcats'	'0.3.0'
   'Formula'	'1.2-2'
   'git2r'	'0.19.0'
