@@ -15,8 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gsfonts \
     libblas-dev \
     libbz2-1.0 \
-    libcurl3 \
-    libicu57 \
+    libcurl4 \
     libjpeg62-turbo \
     libopenblas-dev \
     libpangocairo-1.0-0 \
@@ -277,25 +276,23 @@ RUN chmod 777 /tmp/r_packages.R \
   && apt-get autoremove -y
   
 
-RUN mkdir -p /home/rhapsody/WP3 \
-  && chmod 777 -R /home/rhapsody/WP3 \
-  && cd /home/rhapsody/WP3 \
+RUN cd /tmp \
   && git clone https://github.com/vcftools/vcftools.git \
   && cd vcftools \
   && ./autogen.sh \
   && ./configure \
   && make \
   && make install \
+  && cd /tmp \
+  && rm -rf vcftools
+
+
+RUN mkdir -p -m 777 /home/rhapsody/WP3 \
   && cd /home/rhapsody/WP3 \
-  && rm -rf vcftools \
-  && git clone https://gist.github.com/15362a96c1561bb51af98760b41c478e.git scripts \
-  && cd scripts \
-  && git clone https://gist.github.com/f3e2fdc59757fd8577abfe233854580a.git utils \
+  && git clone https://github.com/mcanouil/RHAPSODY.git scripts \
   && chown -R rhapsody:rhapsody /home/rhapsody/ \
   && chown -R rhapsody:rhapsody /home/rhapsody/WP3/scripts/.git \
-  && chmod -R 777 /home/rhapsody/WP3/scripts/.git \
-  && chown -R rhapsody:rhapsody /home/rhapsody/WP3/scripts/utils/.git \
-  && chmod -R 777 /home/rhapsody/WP3/scripts/utils/.git
+  && chmod -R 777 /home/rhapsody/WP3/scripts/.git
 
   
 EXPOSE 8787
