@@ -30,8 +30,8 @@ docker system prune --all
 ## Build Docker container
 ``` sh
 docker run \
-  --name stat-rhapsody \
-  --hostname stat-rhapsody \
+  --name rhapsody \
+  --hostname rhapsody \
   --detach \
   --volume /media/Data:/media/DATA \
   --volume /media/Project:/media/PROJECT \
