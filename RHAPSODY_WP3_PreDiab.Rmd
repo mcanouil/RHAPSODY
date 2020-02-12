@@ -19,7 +19,7 @@ params:
   warning: FALSE
   message: FALSE
   debug: FALSE
-title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.24)"
+title: "RHAPSODY WP3 Pre-Diabetes Analysis Plan (Version 1.2.25)"
 subtitle: '`r params$cohort_name`'
 author: '`r params$author_name`'
 date: '`r format(Sys.Date(), "%d %B %Y")`'
@@ -1556,8 +1556,8 @@ list_files <- list.files(
   pattern = ".*.vcf.gz$",
   full.names = TRUE
 )
-if (params$exclude_X) list_files <- list_files[!(grepl("X", list_files) | grepl("23", list_files))]
-if (params$debug) list_files <- list_files[grepl("21", list_files) | grepl("22", list_files)]
+if (params$exclude_X) list_files <- list_files[!(grepl("X", basename(list_files)) | grepl("23", basename(list_files)))]
+if (params$debug) list_files <- list_files[grepl("21", basename(list_files)) | grepl("22", basename(list_files))]
 cat(list_files, sep = "\n", file = paste0(params$output_directory, "/vcffilespath.txt"))
 cat(unique(DMVSLB_QC4[["SUBJID"]]), sep = "\n", file = paste0(params$output_directory, "/sample_qced.txt"))
 ```
