@@ -55,11 +55,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tcl8.6-dev \
     tk8.6-dev \
     texinfo \
-    texlive-extra-utils \
-    texlive-fonts-recommended \
-    texlive-fonts-extra \
-    texlive-latex-recommended \
-    texlive-full \
     x11proto-core-dev \
     xauth \
     xfonts-base \
