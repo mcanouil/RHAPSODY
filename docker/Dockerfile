@@ -1,9 +1,9 @@
-FROM library/debian:stretch-20180716
+FROM library/debian:stretch-20181011
 
 LABEL description="Docker image for RHAPSODY WP3-PreDiabetes" \
   maintainer="mickael.canouil@cnrs.fr"
   
-ENV BUILD_DATE=2018-08-02
+ENV BUILD_DATE=2018-10-19
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-utils \

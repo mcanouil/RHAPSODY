@@ -153,7 +153,7 @@ mapply(
     devtools::install_version( 
       package = x,
       version = as.character(y),
-      repos = c('http://cran.us.r-project.org', 'https://cran.rstudio.com/'),
+      # repos = c('http://cran.us.r-project.org', 'https://cran.rstudio.com/'),
       dependencies = FALSE,
       quiet = FALSE,
       upgrade = "never"
