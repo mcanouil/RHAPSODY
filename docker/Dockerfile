@@ -1,8 +1,10 @@
-FROM library/debian
+FROM library/debian:stretch-20180716
 
 LABEL description="Docker image for RHAPSODY WP3-PreDiabetes" \
   maintainer="mickael.canouil@cnrs.fr"
   
+ENV BUILD_DATE=2018-08-02
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-utils \
     nano \
@@ -15,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gsfonts \
     libblas-dev \
     libbz2-1.0 \
-    libcurl4 \
+    libcurl3 \
     libjpeg62-turbo \
     libopenblas-dev \
     libpangocairo-1.0-0 \
@@ -96,11 +98,11 @@ RUN sed -i '/^#.* en_US.* /s/^#//' /etc/locale.gen \
   && git config --system push.default simple \
   && sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
  
-ENV R_VERSION=3.4.2 \
-  RSTUDIO_VERSION=1.1.456 \
-  LANGUAGE=en_US.UTF-8 \
-  LANG=en_US.UTF-8 \
-  PATH=/usr/lib/rstudio-server/bin:$PATH
+ENV R_VERSION=3.4.2
+ENV RSTUDIO_VERSION=1.1.456
+ENV LANGUAGE=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV PATH=/usr/lib/rstudio-server/bin:$PATH
 
 RUN useradd rhapsody \
   && echo "rhapsody:wp3" | chpasswd \
@@ -182,7 +184,11 @@ RUN cd /tmp \
   && make \
   && make install \
   && mkdir -p /usr/local/lib/R/etc \
-  && echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/local/lib/R/etc/Rprofile.site \
+  && MRAN=https://mran.microsoft.com/snapshot/${BUILD_DATE} \
+  && echo MRAN=$MRAN >> /etc/environment \
+  && export MRAN=$MRAN \
+  && echo "options(repos = c(CRAN='$MRAN'), download.file.method = 'libcurl')" >> /usr/local/lib/R/etc/Rprofile.site \
+  # && echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/local/lib/R/etc/Rprofile.site \
   && mkdir -p /usr/local/lib/R/site-library \
   && chown root:rhapsody /usr/local/lib/R/site-library \
   && chmod g+wx /usr/local/lib/R/site-library \
@@ -261,7 +267,6 @@ COPY logo.png  /usr/lib/rstudio-server/www/images/logo.png
 
 RUN echo 'auth-login-page-html=/etc/rstudio/login.html' >> /etc/rstudio/rserver.conf
 
-
 COPY r_devtools.R /tmp/r_devtools.R
 RUN chmod 777 /tmp/r_devtools.R \
   && Rscript /tmp/r_devtools.R \
@@ -270,7 +275,6 @@ RUN chmod 777 /tmp/r_devtools.R \
   && apt-get clean \
   && apt-get autoremove -y
 
-
 COPY r_packages.R /tmp/r_packages.R
 RUN chmod 777 /tmp/r_packages.R \
   && Rscript /tmp/r_packages.R \
@@ -278,11 +282,13 @@ RUN chmod 777 /tmp/r_packages.R \
   && rm -rf /var/lib/apt/lists/ \
   && apt-get clean \
   && apt-get autoremove -y
-  
 
 RUN cd /tmp \
   && git clone https://github.com/vcftools/vcftools.git \
   && cd vcftools \
+  && git fetch \
+  && git fetch --tags \
+  && git checkout v0.1.16 \
   && ./autogen.sh \
   && ./configure \
   && make \
@@ -290,16 +296,13 @@ RUN cd /tmp \
   && cd /tmp \
   && rm -rf vcftools
 
-
 RUN mkdir -p -m 777 /home/rhapsody/WP3 \
   && cd /home/rhapsody/WP3 \
   && git clone https://github.com/mcanouil/RHAPSODY.git scripts \
   && chown -R rhapsody:rhapsody /home/rhapsody/ \
   && chown -R rhapsody:rhapsody /home/rhapsody/WP3/scripts/.git \
   && chmod -R 777 /home/rhapsody/WP3/scripts/.git
-
   
 EXPOSE 8787
-
 
 CMD ["/bin/sh", "/tmp/boot.sh"]
