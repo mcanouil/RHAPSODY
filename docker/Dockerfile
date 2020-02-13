@@ -290,10 +290,15 @@ RUN cd /tmp \
 
 RUN mkdir -p -m 777 /home/rhapsody/WP3 \
   && cd /home/rhapsody/WP3 \
-  && git clone https://github.com/mcanouil/RHAPSODY.git scripts \
-  && chown -R rhapsody:rhapsody /home/rhapsody/ \
-  && chown -R rhapsody:rhapsody /home/rhapsody/WP3/scripts/.git \
-  && chmod -R 777 /home/rhapsody/WP3/scripts/.git
+  # && git clone https://github.com/mcanouil/RHAPSODY.git scripts \
+  # && cd scripts \
+  # && git fetch \
+  # && git fetch --tags \
+  # && git checkout v1.3.0 \
+  && wget -P /tmp/ https://github.com/mcanouil/RHAPSODY/archive/v1.3.0.tar.gz \
+  && tar xzf /tmp/v1.3.0.tar.gz -C . \
+  && mv RHAPSODY-1.3.0 scripts \
+  && chown -R rhapsody:rhapsody /home/rhapsody/
   
 EXPOSE 8787
 
