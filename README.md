@@ -1,4 +1,4 @@
-# <img src="utils/RHAPSODY_Logo_WEB_Color.png" width="300" />
+# <img src="docs/RHAPSODY_Logo_WEB_Color.png" width="300" />
 
 https://imi-rhapsody.eu/
 
