@@ -163,8 +163,8 @@ Scripts will be downloaded into your home directory within a directory named <co
 ## 13          ¦   ¦--rhapsody.R                       
 ## 14          ¦   °--rhapsody.sh                      
 ## 15          ¦--docs                                 
-## 16          ¦   ¦--howto.html                       
-## 17          ¦   ¦--howto.Rmd                        
+## 16          ¦   ¦--howto.Rmd                        
+## 17          ¦   ¦--index.html                       
 ## 18          ¦   °--RHAPSODY_Logo_WEB_Color.png      
 ## 19          ¦--opal_credentials.txt                 
 ## 20          ¦--README.md                            
@@ -367,148 +367,6 @@ tidyverse
 <li><p>Non-interactively using bash/shell</p>
 <pre class="sh"><code>Rscript ~/WP3/scripts/utils/Install_Rpackages.R</code></pre></li>
 </ul></li>
-<li><p>To only check R packages version, you can copy/paste the following code (<em>i.e.</em>, line <code>#14</code> to line <code>#153</code> of <code>~/WP3/scripts/utils/Install_Rpackages.R</code>) and display the <code>data.frame</code> (<em>i.e.</em>, <code>show(list_packages)</code>).<br />
-Either you get a zero line <code>data.frame</code> (<em>i.e.</em>, everything is as it should be), or you get a line for each discrepancy (<em>i.e.</em>, package name, recommended version and your local version).</p>
-<pre class="r"><code>utils::install.packages(pkgs = list_packages, quiet = TRUE)
-utils::install.packages(pkgs = &quot;opal&quot;, repos = &quot;https://cran.obiba.org&quot;, quiet = TRUE)
-
-# list_packages &lt;- utils::read.table(header = TRUE, text =
-#   &quot;package version
-#   broom   0.5.0
-#   scales   1.0.0
-#   cowplot   0.9.3
-#   viridis   0.5.1
-#   data.tree   0.7.8
-#   devtools  1.13.6
-#   grid   3.4.2
-#   Hmisc   4.1-1
-#   kableExtra   0.9.0
-#   knitr    1.20
-#   lme4  1.1-18-1
-#   lmerTest   3.0-1
-#   parallel   3.4.2
-#   readxl   1.1.0
-#   writexl     01.0
-#   tidyverse   1.2.1&quot;
-# )
-# list_packages[, &quot;local_version&quot;] &lt;- sapply(list_packages[, &quot;package&quot;], utils::packageDescription, fields = &quot;Version&quot;)
-# list_packages[, &quot;local_version&quot;] &lt;- ifelse(is.na(list_packages[, &quot;local_version&quot;]), &quot;&quot;, list_packages[, &quot;local_version&quot;])
-# list_packages &lt;- list_packages[list_packages[, &quot;local_version&quot;]!=list_packages[, &quot;version&quot;], ]
-# 
-# mapply(
-#   x = list_packages[, &quot;package&quot;],
-#   y = list_packages[, &quot;version&quot;],
-#   FUN = function(x, y) {
-#     remotes::install_version(
-#       package = x,
-#       version = as.character(y),
-#       dependencies = FALSE,
-#       quiet = FALSE,
-#       upgrade = &quot;never&quot;
-#     )
-#   }
-# )
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA
-NA</code></pre></li>
 </ul>
 </div>
 <div id="vcftools-version" class="section level4">
@@ -738,23 +596,23 @@ This will pull (<em>i.e.</em>, download) the scripts from <strong>GitHub</strong
 ## 8               ¦   ¦--login.html                       
 ## 9               ¦   ¦--logo.png                         
 ## 10              ¦   ¦--markdown_packages.R              
-## 11              ¦   ¦--r_devtools.R                     
-## 12              ¦   °--r_packages.R                     
-## 13              ¦--docker_analysis                      
-## 14              ¦   ¦--opal_credentials.txt             
-## 15              ¦   ¦--rhapsody.R                       
-## 16              ¦   °--rhapsody.sh                      
-## 17              ¦--opal_credentials.txt                 
-## 18              ¦--README.md                            
-## 19              ¦--RHAPSODY_WP3_PreDiab.Rmd             
-## 20              °--utils                                
-## 21                  ¦--ethnicity_template.csv           
-## 22                  ¦--ethnicity_template.R             
-## 23                  ¦--handleVCF.sh                     
-## 24                  ¦--howto.html                       
-## 25                  ¦--howto.Rmd                        
-## 26                  ¦--Install_Rpackages.R              
-## 27                  ¦--RHAPSODY_Logo_WEB_Color.png      
+## 11              ¦   °--r_packages.R                     
+## 12              ¦--docker_analysis                      
+## 13              ¦   ¦--opal_credentials.txt             
+## 14              ¦   ¦--rhapsody.R                       
+## 15              ¦   °--rhapsody.sh                      
+## 16              ¦--docs                                 
+## 17              ¦   ¦--howto.Rmd                        
+## 18              ¦   ¦--index.html                       
+## 19              ¦   °--RHAPSODY_Logo_WEB_Color.png      
+## 20              ¦--opal_credentials.txt                 
+## 21              ¦--README.md                            
+## 22              ¦--RHAPSODY_WP3_PreDiab.Rmd             
+## 23              °--utils                                
+## 24                  ¦--ethnicity_template.csv           
+## 25                  ¦--ethnicity_template.R             
+## 26                  ¦--handleVCF.sh                     
+## 27                  ¦--Install_Rpackages.R              
 ## 28                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R     
 ## 29                  ¦--RHAPSODY_WP3_PreDiab_OPAL_DEBUG.R
 ## 30                  °--RunAnalysis.R</code></pre>
@@ -980,23 +838,23 @@ This will pull (<em>i.e.</em>, download) the scripts from <strong>GitHub</strong
 ## 8               ¦   ¦--login.html                       
 ## 9               ¦   ¦--logo.png                         
 ## 10              ¦   ¦--markdown_packages.R              
-## 11              ¦   ¦--r_devtools.R                     
-## 12              ¦   °--r_packages.R                     
-## 13              ¦--docker_analysis                      
-## 14              ¦   ¦--opal_credentials.txt             
-## 15              ¦   ¦--rhapsody.R                       
-## 16              ¦   °--rhapsody.sh                      
-## 17              ¦--opal_credentials.txt                 
-## 18              ¦--README.md                            
-## 19              ¦--RHAPSODY_WP3_PreDiab.Rmd             
-## 20              °--utils                                
-## 21                  ¦--ethnicity_template.csv           
-## 22                  ¦--ethnicity_template.R             
-## 23                  ¦--handleVCF.sh                     
-## 24                  ¦--howto.html                       
-## 25                  ¦--howto.Rmd                        
-## 26                  ¦--Install_Rpackages.R              
-## 27                  ¦--RHAPSODY_Logo_WEB_Color.png      
+## 11              ¦   °--r_packages.R                     
+## 12              ¦--docker_analysis                      
+## 13              ¦   ¦--opal_credentials.txt             
+## 14              ¦   ¦--rhapsody.R                       
+## 15              ¦   °--rhapsody.sh                      
+## 16              ¦--docs                                 
+## 17              ¦   ¦--howto.Rmd                        
+## 18              ¦   ¦--index.html                       
+## 19              ¦   °--RHAPSODY_Logo_WEB_Color.png      
+## 20              ¦--opal_credentials.txt                 
+## 21              ¦--README.md                            
+## 22              ¦--RHAPSODY_WP3_PreDiab.Rmd             
+## 23              °--utils                                
+## 24                  ¦--ethnicity_template.csv           
+## 25                  ¦--ethnicity_template.R             
+## 26                  ¦--handleVCF.sh                     
+## 27                  ¦--Install_Rpackages.R              
 ## 28                  ¦--RHAPSODY_WP3_PreDiab_DEBUG.R     
 ## 29                  ¦--RHAPSODY_WP3_PreDiab_OPAL_DEBUG.R
 ## 30                  °--RunAnalysis.R</code></pre>

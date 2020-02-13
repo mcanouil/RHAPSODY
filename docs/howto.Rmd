@@ -188,11 +188,6 @@ x %>%
         Rscript ~/WP3/scripts/utils/Install_Rpackages.R
         ```
 
-* To only check R packages version, you can copy/paste the following code (*i.e.*, line `#14` to line `#153` of `~/WP3/scripts/utils/Install_Rpackages.R`) and display the `data.frame` (*i.e.*, `show(list_packages)`).  
-  Either you get a zero line `data.frame` (*i.e.*, everything is as it should be), or you get a line for each discrepancy (*i.e.*, package name, recommended version and your local version).
-    ```{r, eval = FALSE, code = readLines("~/WP3/scripts/utils/Install_Rpackages.R")[14:153]}
-    ```
-
 
 #### VCFtools version
 
