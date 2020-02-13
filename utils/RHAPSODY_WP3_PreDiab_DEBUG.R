@@ -213,22 +213,9 @@ all_installed <- all(sapply(
 if (!all_installed) {
   # Install R packages and load them
   options(repos = c(CRAN = "https://mran.microsoft.com/snapshot/2018-10-19"))
-  if (!all(c("udunits2", "units", "devtools", "caTools")%in%rownames(utils::installed.packages()))) {
-    utils::install.packages(
-      pkgs = setdiff(c("udunits2", "units", "devtools", "caTools"), rownames(utils::installed.packages())),
-      configure.args = "--with-udunits2-lib=/usr/local/lib",
-      quiet = TRUE
-    )
-  }
-  if (!all(c("opal")%in%rownames(utils::installed.packages()))) {
-    utils::install.packages(
-      pkgs = "opal", 
-      repos = "https://cran.obiba.org", 
-      dependencies = TRUE, 
-      quiet = TRUE
-    )
-  }
   list_packages <- c(
+    "udunits2", "units", "remotes", "devtools", "caTools", 
+    "RCurl", "rjson", "e1071", "knitrBootstrap",
     #"parallel", "grid", "methods", "utils", "opal",
     "tidyverse", "devtools", "scales",
     "broom", "viridis", "readxl", "writexl",
@@ -236,16 +223,18 @@ if (!all_installed) {
     "lmerTest", "Hmisc", "data.tree"
   )
   utils::install.packages(pkgs = list_packages, quiet = TRUE)
-}
+  utils::install.packages(pkgs = "opal", repos = "https://cran.obiba.org", quiet = TRUE)
+  
+  list_packages <- c(
+    "parallel", "grid", "methods", "utils", "opal",
+    "tidyverse", "devtools", "scales",
+    "broom", "viridis", "readxl", "writexl",
+    "cowplot", "knitr", "kableExtra", "lme4",
+    "lmerTest", "Hmisc", "data.tree"
+  )
+  invisible(sapply(X = list_packages, FUN = library, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE))
 
-list_packages <- c(
-  "parallel", "grid", "methods", "utils", "opal",
-  "tidyverse", "devtools", "scales",
-  "broom", "viridis", "readxl", "writexl",
-  "cowplot", "knitr", "kableExtra", "lme4",
-  "lmerTest", "Hmisc", "data.tree"
-)
-invisible(sapply(X = list_packages, FUN = library, character.only = TRUE, quietly = TRUE, warn.conflicts = FALSE))
+}
 
 
 ###############

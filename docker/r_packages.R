@@ -3,6 +3,8 @@
 options(stringsAsFactors = FALSE)
 
 list_packages <- c(
+  "udunits2", "units", "remotes", "devtools", "caTools", 
+  "RCurl", "rjson", "e1071", "knitrBootstrap",
   #"parallel", "grid", "methods", "utils", "opal",
   "tidyverse", "devtools", "scales",
   "broom", "viridis", "readxl", "writexl",
@@ -10,6 +12,7 @@ list_packages <- c(
   "lmerTest", "Hmisc", "data.tree"
 )
 utils::install.packages(pkgs = list_packages, quiet = TRUE)
+utils::install.packages(pkgs = "opal", repos = "https://cran.obiba.org", quiet = TRUE)
 
 # list_packages <- utils::read.table(header = TRUE, text =
 #   "package version
