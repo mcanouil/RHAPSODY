@@ -7,7 +7,7 @@ docker run --rm --volume /media/Project/RHAPSODY/Scripts/utils:/media/utils umr1
 
 ## Build/Update Docker image
 ``` sh
-VERSION=1.2.25
+VERSION=1.3.0
 
 ## Build image
 docker build \
