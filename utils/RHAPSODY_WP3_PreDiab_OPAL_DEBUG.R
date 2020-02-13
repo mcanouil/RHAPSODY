@@ -5,6 +5,9 @@
 #---------------------------------------------------------------------------------------------------
 options(stringsAsFactors = FALSE)
 
+library(opal)
+library(utils)
+
 
 ###############
 # Node settings
