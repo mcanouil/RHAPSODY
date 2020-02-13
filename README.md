@@ -4,7 +4,7 @@ https://imi-rhapsody.eu/
 
 ## Render `docs/howto.html`
 ``` sh
-docker run --rm --volume /media/Project/RHAPSODY/Scripts/docs:/media/utils umr1283/rhapsody:latest Rscript -e 'rmarkdown::render("/media/docs/howto.Rmd", encoding = "UTF-8")'
+docker run --rm --volume /media/Project/RHAPSODY/Scripts/docs:/media/docs umr1283/rhapsody:latest Rscript -e 'rmarkdown::render("/media/docs/howto.Rmd", output_file = "index.html", encoding = "UTF-8")'
 ```
 
 ## Build/Update Docker image

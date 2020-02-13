@@ -157,23 +157,23 @@ Scripts will be downloaded into your home directory within a directory named <co
 ## 7           ¦   ¦--login.html                       
 ## 8           ¦   ¦--logo.png                         
 ## 9           ¦   ¦--markdown_packages.R              
-## 10          ¦   ¦--r_devtools.R                     
-## 11          ¦   °--r_packages.R                     
-## 12          ¦--docker_analysis                      
-## 13          ¦   ¦--opal_credentials.txt             
-## 14          ¦   ¦--rhapsody.R                       
-## 15          ¦   °--rhapsody.sh                      
-## 16          ¦--opal_credentials.txt                 
-## 17          ¦--README.md                            
-## 18          ¦--RHAPSODY_WP3_PreDiab.Rmd             
-## 19          °--utils                                
-## 20              ¦--ethnicity_template.csv           
-## 21              ¦--ethnicity_template.R             
-## 22              ¦--handleVCF.sh                     
-## 23              ¦--howto.html                       
-## 24              ¦--howto.Rmd                        
-## 25              ¦--Install_Rpackages.R              
-## 26              ¦--RHAPSODY_Logo_WEB_Color.png      
+## 10          ¦   °--r_packages.R                     
+## 11          ¦--docker_analysis                      
+## 12          ¦   ¦--opal_credentials.txt             
+## 13          ¦   ¦--rhapsody.R                       
+## 14          ¦   °--rhapsody.sh                      
+## 15          ¦--docs                                 
+## 16          ¦   ¦--howto.html                       
+## 17          ¦   ¦--howto.Rmd                        
+## 18          ¦   °--RHAPSODY_Logo_WEB_Color.png      
+## 19          ¦--opal_credentials.txt                 
+## 20          ¦--README.md                            
+## 21          ¦--RHAPSODY_WP3_PreDiab.Rmd             
+## 22          °--utils                                
+## 23              ¦--ethnicity_template.csv           
+## 24              ¦--ethnicity_template.R             
+## 25              ¦--handleVCF.sh                     
+## 26              ¦--Install_Rpackages.R              
 ## 27              ¦--RHAPSODY_WP3_PreDiab_DEBUG.R     
 ## 28              ¦--RHAPSODY_WP3_PreDiab_OPAL_DEBUG.R
 ## 29              °--RunAnalysis.R</code></pre>
@@ -369,7 +369,10 @@ tidyverse
 </ul></li>
 <li><p>To only check R packages version, you can copy/paste the following code (<em>i.e.</em>, line <code>#14</code> to line <code>#153</code> of <code>~/WP3/scripts/utils/Install_Rpackages.R</code>) and display the <code>data.frame</code> (<em>i.e.</em>, <code>show(list_packages)</code>).<br />
 Either you get a zero line <code>data.frame</code> (<em>i.e.</em>, everything is as it should be), or you get a line for each discrepancy (<em>i.e.</em>, package name, recommended version and your local version).</p>
-<pre class="r"><code># list_packages &lt;- utils::read.table(header = TRUE, text =
+<pre class="r"><code>utils::install.packages(pkgs = list_packages, quiet = TRUE)
+utils::install.packages(pkgs = &quot;opal&quot;, repos = &quot;https://cran.obiba.org&quot;, quiet = TRUE)
+
+# list_packages &lt;- utils::read.table(header = TRUE, text =
 #   &quot;package version
 #   broom   0.5.0
 #   scales   1.0.0
@@ -405,8 +408,6 @@ Either you get a zero line <code>data.frame</code> (<em>i.e.</em>, everything is
 #     )
 #   }
 # )
-NA
-NA
 NA
 NA
 NA
