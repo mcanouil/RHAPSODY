@@ -1,2 +1,6 @@
 BuildScripts/
 Slides/
+.Rproj.user
+.Rhistory
+.RData
+*.Rproj
