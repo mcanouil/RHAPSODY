@@ -1,5 +1,6 @@
 ### Pipeline for running easyQC on results generated from Mickaels pipeline. GWAMA (meta analysis) is next step 
 
+Note: Initially from https://gitlab.com/tspr/rhapsody_qc_gwas
 
 ##### easyQC
 Use the following command to run the easyQC part:
