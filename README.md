@@ -1,7 +1,7 @@
 # <a href = "https://imi-rhapsody.eu/"><img src="docs/RHAPSODY_Logo_WEB_Color.png" width="300" /></a>
 
 <!-- badges: start -->
-![License](https://img.shields.io/github/license/mcanouil/RHAPSODY)
+[![License](https://img.shields.io/github/license/mcanouil/RHAPSODY)](LICENSE)
 <!-- badges: end -->
 
 Website: https://imi-rhapsody.eu/
