@@ -1,6 +1,10 @@
-# <img src="docs/RHAPSODY_Logo_WEB_Color.png" width="300" />
+# <a href = "https://imi-rhapsody.eu/"><img src="docs/RHAPSODY_Logo_WEB_Color.png" width="300" /></a>
 
-https://imi-rhapsody.eu/
+<!-- badges: start -->
+![License](https://img.shields.io/github/license/mcanouil/RHAPSODY)
+<!-- badges: end -->
+
+Website: https://imi-rhapsody.eu/
 
 ## Render `docs/howto.html`
 ``` sh
