@@ -1,18 +1,18 @@
 ---
 title: "RHAPSODY WP3 Pre-Diabetes"
 subtitle: "How-To"
-author: 
+author:
 - name: "Mickaël Canouil, Ph.D."
   affiliation: "Université de Lille, CNRS, Institut Pasteur de Lille, UMR 1283 - EGID, F-59000, Lille, France."
   email: "mickael.canouil@cnrs.fr"
 date: '`r format(Sys.time(), "%B %d, %Y")`'
-output: 
+output:
   html_document:
     keep_md: false
     theme: simplex
     toc: false
     toc_depth: 4
-    toc_float: 
+    toc_float:
       collapsed: false
     fig_width: 5
     fig_height: 4
@@ -36,7 +36,7 @@ knitr::opts_chunk$set(
   fig.align = "center",
   fig.pos = "!H",
   dpi = 120,
-  size = "small", 
+  size = "small",
   results = "asis",
   dev = "png",
   fig.path = paste0(tempdir(), "/")
@@ -49,8 +49,8 @@ library(kableExtra)
 
 ```{r logo, echo = FALSE}
 htmltools::img(
-  src = "RHAPSODY_Logo_WEB_Color.png", 
-  alt = "logo", 
+  src = "RHAPSODY_Logo_WEB_Color.png",
+  alt = "logo",
   style = "position:absolute; top:0; right:0; padding:10px;"
 )
 ```
@@ -66,8 +66,8 @@ htmltools::img(
 
 #### Retrieve the latest version
 
-In order to retrieve the latest version of the main script `RHAPSODY_WP3_PreDiab.Rmd` and `utils/*` scripts, you can copy/paste the git commands below.  
-This will clone (*i.e.*, download) the scripts from **GitHub**.  
+In order to retrieve the latest version of the main script `RHAPSODY_WP3_PreDiab.Rmd` and `utils/*` scripts, you can copy/paste the git commands below.
+This will clone (*i.e.*, download) the scripts from **GitHub**.
 Scripts will be downloaded into your home directory within a directory named `WP3`.
 
 ```{sh, eval = TRUE, echo = FALSE, results = "hide"}
@@ -83,11 +83,11 @@ Once donwload is complete, you should get the following directory tree in your h
 ```{r, echo = FALSE, results = "markup"}
 outout_tree_structure <- c(
   list.files(
-    path = "~/WP3/scripts", 
+    path = "~/WP3/scripts",
     full.names = TRUE, include.dirs = TRUE
-  ), 
+  ),
   list.files(
-    path = "~/WP3/scripts", 
+    path = "~/WP3/scripts",
     full.names = TRUE, include.dirs = TRUE
   ) %>%
     list.files(full.names = TRUE)
@@ -101,39 +101,39 @@ cat(paste(sapply(capture.output(outout_tree_structure)[-1], paste0, "\n"), colla
 
 #### Description
 
-* `~/WP3/scripts/README.pdf`  
+* `~/WP3/scripts/README.pdf`
   a short README file;
-* `~/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd`  
+* `~/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd`
   a Rmarkdown script which perform:
     * opal node access,
-    * phenotype QC, 
+    * phenotype QC,
     * preliminary modelling,
     * VCFs formatting/filtering,
     * variants analysis;
-* `~/WP3/scripts/opal_credentials.txt`  
+* `~/WP3/scripts/opal_credentials.txt`
   the server, login and password informations to access phenotype data on your local node;
-* `~/WP3/scripts/utils/RHAPSODY_WP3_PreDiab_DEBUG.R`,  
+* `~/WP3/scripts/utils/RHAPSODY_WP3_PreDiab_DEBUG.R`,
   a small part of the main Rmarkdown script, which includes only node access and phenotype QC;
-* `~/WP3/scripts/utils/RunAnalysis.R`  
-  a example of a R script to run the whole analysis in bash (parameters have to be filled properly according to your informations)  
+* `~/WP3/scripts/utils/RunAnalysis.R`
+  a example of a R script to run the whole analysis in bash (parameters have to be filled properly according to your informations)
   using `` `Rscript ~/WP3/scripts/utils/RunAnalysis.R` ``;
-* `~/WP3/scripts/utils/handleVCF.sh`  
-  the bash/shell script used to format/filter VCFs files prior to the variant analysis.  
+* `~/WP3/scripts/utils/handleVCF.sh`
+  the bash/shell script used to format/filter VCFs files prior to the variant analysis.
   This bash/shell script is also included within the main script, but you can use it directly as a standalone, if so (or if your already done formatting and don't want to do it again), parameter `format_vcfs` must be set to `FALSE`).
-* `~/WP3/scripts/utils/Install_Rpackages.R`  
+* `~/WP3/scripts/utils/Install_Rpackages.R`
   a R script which install a predefined version of all R packages loaded in the Rmarkdown script, only if needed (also avaiable within the main script);
-* `~/WP3/scripts/utils/check_analysis.Rmd`  
+* `~/WP3/scripts/utils/check_analysis.Rmd`
   a Rmarkdown script to ''quickly'' check if the analyses went well (*i.e.*, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);
-* `~/WP3/scripts/utils/README.Rmd`  
+* `~/WP3/scripts/utils/README.Rmd`
   a Rmarkdown script to create `README.pdf`.
-* `~/WP3/scripts/utils/howto.Rmd`  
+* `~/WP3/scripts/utils/howto.Rmd`
   a how-to document and its html version `howto.html`.
 
 ### Check environment settings
 
 #### R and R packages version
 
-Before runing anything, you can check the current settings of your cluster/grid/computer/laptop.  
+Before runing anything, you can check the current settings of your cluster/grid/computer/laptop.
 **For reproducibility:**
 
 * The default R version is **`r R.version.string`**.
@@ -159,22 +159,22 @@ x <- utils::read.table(stringsAsFactors = FALSE, header = TRUE, text =
   writexl     01.0
   tidyverse   1.2.1"
 )
-x %>% 
-  group_by(fac = cut(x = seq_len(nrow(x)), 4)) %>% 
-  nest() %>% 
-  .[["data"]] %>% 
-  .[order(map_int(., nrow), decreasing = TRUE)] %>% 
-  map(~as.data.frame(t(.x), stringsAsFactors = FALSE)) %>% 
-  bind_rows() %>% 
-  t() %>% 
-  `colnames<-`(rep(colnames(x), 4)) %>% 
-  replace_na("") %>% 
-  knitr::kable(format = "html", row.names = FALSE) %>% 
+x %>%
+  group_by(fac = cut(x = seq_len(nrow(x)), 4)) %>%
+  nest() %>%
+  .[["data"]] %>%
+  .[order(map_int(., nrow), decreasing = TRUE)] %>%
+  map(~as.data.frame(t(.x), stringsAsFactors = FALSE)) %>%
+  bind_rows() %>%
+  t() %>%
+  `colnames<-`(rep(colnames(x), 4)) %>%
+  replace_na("") %>%
+  knitr::kable(format = "html", row.names = FALSE) %>%
   kableExtra::kable_styling(
     bootstrap_options = c("striped", "hover", "condensed", "responsive"),
     full_width = TRUE,
     position = "center"
-  ) %>% 
+  ) %>%
   kableExtra::column_spec(column = seq(from = 1, to = 2*4, by = 2), bold = TRUE)
 ```
 
@@ -191,7 +191,7 @@ x %>%
 
 #### VCFtools version
 
-If VCFtools is not available on your machine, please install it following the instructions on [https://vcftools.github.io/](https://vcftools.github.io/).  
+If VCFtools is not available on your machine, please install it following the instructions on [https://vcftools.github.io/](https://vcftools.github.io/).
 **For reproducibility:**
 
 * The default version is **`r system(command = "vcftools --version", intern = TRUE)`**.
@@ -201,29 +201,29 @@ If VCFtools is not available on your machine, please install it following the in
 
 #### OPAL database credentials
 
-To avoid OPAL database credentials to be hard written within the script, you should create a text file with the `server`, `username` and `password` to access your local OPAL database (*i.e.*, RHAPSODY node hosting the phenotype data).  
+To avoid OPAL database credentials to be hard written within the script, you should create a text file with the `server`, `username` and `password` to access your local OPAL database (*i.e.*, RHAPSODY node hosting the phenotype data).
 You can also modify the default file `~/WP3/scripts/opal_credentials.txt`.
 
 ```{r, eval = FALSE, code = readLines("~/WP3/scripts/opal_credentials.txt")}
 ```
 
-**NOTE:** The `username` provided in that file should have **"download"** rights.  
-The data are downloaded locally in the R session for and during the analysis, then all local data are deleted (*i.e.*, the data are not leaving the R session in any way).  
+**NOTE:** The `username` provided in that file should have **"download"** rights.
+The data are downloaded locally in the R session for and during the analysis, then all local data are deleted (*i.e.*, the data are not leaving the R session in any way).
 
 #### Imputation quality (VCF)
 
-Please check where the imputation quality is stored in your VCF files.  
+Please check where the imputation quality is stored in your VCF files.
 Depending on where (*i.e.*, locally, Sanger Imputation Server, Michigan Imputation Server, etc.) and with which softwares (*i.e.*, impute2, PBWT, etc.) you used to impute your genetic data, this information might be stored as `INFO` or `R2` (*most frequent names used, but it might be something else*).
 
 #### Set the parameters
 
 A template script (*i.e.*, `~/WP3/scripts/utils/RunAnalysis.R`) is available to help run the analysis as a bash/shell command.
 
-1. Set the output directory.  
+1. Set the output directory.
     The default outputs will be generated in the current directory (`./`).
     ```{r, eval = FALSE, code = readLines("~/WP3/scripts/utils/RunAnalysis.R")[3]}
     ```
-2. Set a cohort name.  
+2. Set a cohort name.
     It's a identifier for a cohort and array.
     For example, "DESIR_Metabochip" for the results from the Metabochip Array in the DESIR cohort.
     ```{r, eval = FALSE, code = readLines("~/WP3/scripts/utils/RunAnalysis.R")[6]}
@@ -242,28 +242,28 @@ A template script (*i.e.*, `~/WP3/scripts/utils/RunAnalysis.R`) is available to 
 6. Set the imputation quality tag for your VCF
     ```{r, eval = FALSE, code = readLines("~/WP3/scripts/utils/RunAnalysis.R")[13]}
     ```
-7. Set the path to VCFtools.  
+7. Set the path to VCFtools.
     Default location of the software is usually `/usr/local/bin`.
     ```{r, eval = FALSE, code = readLines("~/WP3/scripts/utils/RunAnalysis.R")[14]}
     ```
-8. Define if you want to format/split the VCF files.  
+8. Define if you want to format/split the VCF files.
     Default is to format and split the VCF files available within the script.
     ```{r, eval = FALSE, code = readLines("~/WP3/scripts/utils/RunAnalysis.R")[16]}
     ```
-9. Define to which part of the analysis you want to go.  
+9. Define to which part of the analysis you want to go.
     1. Node access
     2. Phenotype QC
     3. Run Mixed Model without variants
     4. Check VCFs files
     5. Format VCFs files
     6. Run Mixed Model with (imputed) variants
-    7. Check output files 
+    7. Check output files
     ```{r, eval = FALSE, code = readLines("~/WP3/scripts/utils/RunAnalysis.R")[17]}
     ```
-10. Define if genetic variants analyses should be performed.  
+10. Define if genetic variants analyses should be performed.
     ```{r, eval = FALSE, code = readLines("~/WP3/scripts/utils/RunAnalysis.R")[18]}
     ```
-11. Define if genetic components should be used.  
+11. Define if genetic components should be used.
     ```{r, eval = FALSE, code = readLines("~/WP3/scripts/utils/RunAnalysis.R")[20]}
     ```
 
@@ -299,9 +299,9 @@ In the case you want to format your VCF files before running the script.
     Rscript ~/WP3/scripts/utils/RunAnalysis.R
     ```
     This will create (*i.e.*, in the output directory you set up):
-    * `./RHAPSODY_WP3_PreDiab_Cohort_Name_step4.html`  
+    * `./RHAPSODY_WP3_PreDiab_Cohort_Name_step4.html`
         The report with the phenotype QC and without the genetic variant analyses.
-    * `./vcffilespath.txt`  
+    * `./vcffilespath.txt`
         The list of all available VCF files to format using `./handleVCF_Cohort_Name.sh`.
         The files are also listed in the report in *Section 6.2.1 Check available VCF files*.
         ```{sh, eval = FALSE}
@@ -312,13 +312,13 @@ In the case you want to format your VCF files before running the script.
         ...
         /media/vcf/chr22.vcf.gz
         ```
-    * `./handleVCF_Cohort_Name.sh`  
+    * `./handleVCF_Cohort_Name.sh`
         The command (with the correct parameters) to format the VCF using `~/WP3/scripts/utils/handleVCF.sh`.
         This is also stated in the report in *Section 6.2.2.3.1 Manually format VCFs*.
         ```{sh, eval = FALSE}
         #!/bin/sh
-        
-        ./handleVCF.sh Cohort_Name /media/vcf INFO /usr/local/bin 
+
+        ./handleVCF.sh Cohort_Name /media/vcf INFO /usr/local/bin
         ```
 
 3. Run the script to format the VCF
@@ -347,31 +347,31 @@ If Docker is not installed on your cluster/grid/computer/laptop, you can install
 
 #### Pull the image
 
-You can download the Docker image from Docker Hub: [/r/umr1283/rhapsody](https://hub.docker.com/r/umr1283/rhapsody).
+You can download the Docker image from GitHub:
 
 ```{sh, eval = FALSE}
-docker pull umr1283/rhapsody
+docker pull ghcr.io/mcanouil/rhapsody:1.3.0
 ```
 
-To pull a particular version (*i.e.*, not the latest), you can add the tag version.  
-Tags are listed in the repository [/r/umr1283/rhapsody/tags](https://hub.docker.com/r/umr1283/rhapsody/tags).
+To pull a particular version (*i.e.*, not the latest), you can add the tag version.
+Tags are listed in the repository.
 
 ```{sh, eval = FALSE}
-docker pull umr1283/rhapsody:latest
+docker pull ghcr.io/mcanouil/rhapsody:1.3.0:latest
 ```
 
 #### Run a container
 
-The easiest way to start a the Docker container using `umr1283/rhapsody` image is to run the following Docker command.
+The easiest way to start a the Docker container using `ghcr.io/mcanouil/rhapsody:1.3.0` image is to run the following Docker command.
 
 ```{sh, eval = FALSE}
 docker run \
   --name rhapsody \
   --detach \
-  umr1283/rhapsody:latest
+  ghcr.io/mcanouil/rhapsody:1.3.0:latest
 ```
 
-With those settings, the Docker container will not have access to any data stored in your cluster/grid/computer/laptop.  
+With those settings, the Docker container will not have access to any data stored in your cluster/grid/computer/laptop.
 In order to allow the Docker container to see some data, you have to use `--volume from:to` argument.
 
 ```{sh, eval = FALSE}
@@ -379,14 +379,14 @@ docker run \
   --name rhapsody \
   --detach \
   --volume /path/to/vcf:/media/vcf \
-  umr1283/rhapsody:latest
+  ghcr.io/mcanouil/rhapsody:1.3.0:latest
 ```
 
 If you want to more carefully set the Docker container, (, CPUs, memory, etc.), you can find all the parameters at the following address: [https://docs.docker.com/engine/reference/commandline/run/](https://docs.docker.com/engine/reference/commandline/run/)
 
-### Connect to the container 
+### Connect to the container
 
-Open a web browser and type [http://localhost:8787](http://localhost:8787).  
+Open a web browser and type [http://localhost:8787](http://localhost:8787).
 You will see an authentication box with `Username` and `Password`:
     * Username: `rhapsody`
     * Password: `wp3`
@@ -395,8 +395,8 @@ You will see an authentication box with `Username` and `Password`:
 
 #### Retrieve the latest version
 
-In order to retrieve the latest version of the main script `RHAPSODY_WP3_PreDiab.Rmd` and `utils/*` scripts, you can copy/paste the git commands below.  
-This will pull (*i.e.*, download) the scripts from **GitHub**.  
+In order to retrieve the latest version of the main script `RHAPSODY_WP3_PreDiab.Rmd` and `utils/*` scripts, you can copy/paste the git commands below.
+This will pull (*i.e.*, download) the scripts from **GitHub**.
 
 ```{sh, eval = FALSE}
 sudo git -C /home/rhapsody/WP3/scripts pull origin master
@@ -407,11 +407,11 @@ Once donwload is complete, you should get the following directory tree in your h
 ```{r, echo = FALSE, results = "markup"}
 outout_tree_structure <- c(
   list.files(
-    path = "/home/rhapsody/WP3/scripts", 
+    path = "/home/rhapsody/WP3/scripts",
     full.names = TRUE, include.dirs = TRUE
-  ), 
+  ),
   list.files(
-    path = "/home/rhapsody/WP3/scripts", 
+    path = "/home/rhapsody/WP3/scripts",
     full.names = TRUE, include.dirs = TRUE
   ) %>%
     list.files(full.names = TRUE)
@@ -425,61 +425,61 @@ cat(paste(sapply(capture.output(outout_tree_structure)[-1], paste0, "\n"), colla
 
 #### Description
 
-* `/home/rhapsody/WP3/scripts/README.pdf`  
+* `/home/rhapsody/WP3/scripts/README.pdf`
   a short README file;
-* `/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd`  
+* `/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd`
   a Rmarkdown script which perform:
     * opal node access,
-    * phenotype QC, 
+    * phenotype QC,
     * preliminary modelling,
     * VCFs formatting/filtering,
     * variants analysis;
-* `/home/rhapsody/WP3/scripts/opal_credentials.txt`  
+* `/home/rhapsody/WP3/scripts/opal_credentials.txt`
   the server, login and password informations to access phenotype data on your local node;
-* `/home/rhapsody/WP3/scripts/utils/RHAPSODY_WP3_PreDiab_DEBUG.R`,  
+* `/home/rhapsody/WP3/scripts/utils/RHAPSODY_WP3_PreDiab_DEBUG.R`,
   a small part of the main Rmarkdown script, which includes only node access and phenotype QC;
-* `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R`  
-  a example of a R script to run the whole analysis in bash (parameters have to be filled properly according to your informations)  
+* `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R`
+  a example of a R script to run the whole analysis in bash (parameters have to be filled properly according to your informations)
   using `` `Rscript ~/WP3/scripts/utils/RunAnalysis.R` ``;
-* `/home/rhapsody/WP3/scripts/utils/handleVCF.sh`  
-  the bash/shell script used to format/filter VCFs files prior to the variant analysis.  
+* `/home/rhapsody/WP3/scripts/utils/handleVCF.sh`
+  the bash/shell script used to format/filter VCFs files prior to the variant analysis.
   This bash/shell script is also included within the main script, but you can use it directly as a standalone, if so (or if your already done formatting and don't want to do it again), parameter `format_vcfs` must be set to `FALSE`).
-* `/home/rhapsody/WP3/scripts/utils/Install_Rpackages.R`  
+* `/home/rhapsody/WP3/scripts/utils/Install_Rpackages.R`
   a R script which install a predefined version of all R packages loaded in the Rmarkdown script, only if needed (also avaiable within the main script);
-* `/home/rhapsody/WP3/scripts/utils/check_analysis.Rmd`  
+* `/home/rhapsody/WP3/scripts/utils/check_analysis.Rmd`
   a Rmarkdown script to ''quickly'' check if the analyses went well (*i.e.*, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);
-* `/home/rhapsody/WP3/scripts/utils/README.Rmd`  
+* `/home/rhapsody/WP3/scripts/utils/README.Rmd`
   a Rmarkdown script to create `README.pdf`.
-* `/home/rhapsody/WP3/scripts/utils/howto.Rmd`  
+* `/home/rhapsody/WP3/scripts/utils/howto.Rmd`
   a how-to document and its html version `howto.html`.
 
 ### Run the analysis
 
 #### OPAL database credentials
 
-To avoid OPAL database credentials to be hard written within the script, you should create a text file with the `server`, `username` and `password` to access your local OPAL database (*i.e.*, RHAPSODY node hosting the phenotype data).  
+To avoid OPAL database credentials to be hard written within the script, you should create a text file with the `server`, `username` and `password` to access your local OPAL database (*i.e.*, RHAPSODY node hosting the phenotype data).
 You can also modify the default file `/home/rhapsody/WP3/scripts/opal_credentials.txt`.
 
 ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/opal_credentials.txt")}
 ```
 
-**NOTE:** The `username` provided in that file should have **"download"** rights.  
-The data are downloaded locally in the R session for and during the analysis, then all local data are deleted (*i.e.*, the data are not leaving the R session in any way).  
+**NOTE:** The `username` provided in that file should have **"download"** rights.
+The data are downloaded locally in the R session for and during the analysis, then all local data are deleted (*i.e.*, the data are not leaving the R session in any way).
 
 #### Imputation quality (VCF)
 
-Please check where the imputation quality is stored in your VCF files.  
+Please check where the imputation quality is stored in your VCF files.
 Depending on where (*i.e.*, locally, Sanger Imputation Server, Michigan Imputation Server, etc.) and with which softwares (*i.e.*, impute2, PBWT, etc.) you used to impute your genetic data, this information might be stored as `INFO` or `R2` (*most frequent names used, but it might be something else*).
 
 #### Set the parameters
 
 A template script (*i.e.*, `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R`) is available to help run the analysis as a bash/shell command.
 
-1. Set the output directory.  
+1. Set the output directory.
     The default outputs will be generated in the current directory (`./`).
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[3]}
     ```
-2. Set a cohort name.  
+2. Set a cohort name.
     It's a identifier for a cohort and array.
     For example, "DESIR_Metabochip" for the results from the Metabochip Array in the DESIR cohort.
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[6]}
@@ -498,28 +498,28 @@ A template script (*i.e.*, `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R`) is 
 6. Set the imputation quality tag for your VCF
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[13]}
     ```
-7. Set the path to VCFtools.  
+7. Set the path to VCFtools.
     Default location of the software is usually `/usr/local/bin`.
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[14]}
     ```
-8. Define if you want to format/split the VCF files.  
+8. Define if you want to format/split the VCF files.
     Default is to format and split the VCF files available within the script.
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[16]}
     ```
-9. Define to which part of the analysis you want to go.  
+9. Define to which part of the analysis you want to go.
     1. Node access
     2. Phenotype QC
     3. Run Mixed Model without variants
     4. Check VCFs files
     5. Format VCFs files
     6. Run Mixed Model with (imputed) variants
-    7. Check output files 
+    7. Check output files
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[17]}
     ```
-10. Define if genetic variants analyses should be performed.  
+10. Define if genetic variants analyses should be performed.
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[18]}
     ```
-11. Define if genetic components should be used.  
+11. Define if genetic components should be used.
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[20]}
     ```
 
@@ -555,9 +555,9 @@ In the case you want to format your VCF files before running the script.
     Rscript /home/rhapsody/WP3/scripts/utils/RunAnalysis.R
     ```
     This will create (*i.e.*, in the output directory you set up):
-    * `./RHAPSODY_WP3_PreDiab_Cohort_Name_step4.html`  
+    * `./RHAPSODY_WP3_PreDiab_Cohort_Name_step4.html`
         The report with the phenotype QC and without the genetic variant analyses.
-    * `./vcffilespath.txt`  
+    * `./vcffilespath.txt`
         The list of all available VCF files to format using `./handleVCF_Cohort_Name.sh`.
         The files are also listed in the report in *Section 6.2.1 Check available VCF files*.
         ```{sh, eval = FALSE}
@@ -568,13 +568,13 @@ In the case you want to format your VCF files before running the script.
         ...
         /media/vcf/chr22.vcf.gz
         ```
-    * `./handleVCF_Cohort_Name.sh`  
+    * `./handleVCF_Cohort_Name.sh`
         The command (with the correct parameters) to format the VCF using `/home/rhapsody/WP3/scripts/utils/handleVCF.sh`.
         This is also stated in the report in *Section 6.2.2.3.1 Manually format VCFs*.
         ```{sh, eval = FALSE}
         #!/bin/sh
-        
-        ./handleVCF.sh Cohort_Name /media/vcf INFO /usr/local/bin 
+
+        ./handleVCF.sh Cohort_Name /media/vcf INFO /usr/local/bin
         ```
 
 3. Run the script to format the VCF
@@ -603,8 +603,8 @@ If Docker is not installed on your cluster/grid/computer/laptop, you can install
 
 #### Retrieve the latest version
 
-In order to retrieve the latest version of the main script `RHAPSODY_WP3_PreDiab.Rmd` and `utils/*` scripts, you can copy/paste the git commands below.  
-This will pull (*i.e.*, download) the scripts from **GitHub**.  
+In order to retrieve the latest version of the main script `RHAPSODY_WP3_PreDiab.Rmd` and `utils/*` scripts, you can copy/paste the git commands below.
+This will pull (*i.e.*, download) the scripts from **GitHub**.
 
 ```{sh, eval = FALSE}
 sudo git -C /home/rhapsody/WP3/scripts pull origin master
@@ -615,11 +615,11 @@ Once donwload is complete, you should get the following directory tree in your h
 ```{r, echo = FALSE, results = "markup"}
 outout_tree_structure <- c(
   list.files(
-    path = "/home/rhapsody/WP3/scripts", 
+    path = "/home/rhapsody/WP3/scripts",
     full.names = TRUE, include.dirs = TRUE
-  ), 
+  ),
   list.files(
-    path = "/home/rhapsody/WP3/scripts", 
+    path = "/home/rhapsody/WP3/scripts",
     full.names = TRUE, include.dirs = TRUE
   ) %>%
     list.files(full.names = TRUE)
@@ -633,61 +633,61 @@ cat(paste(sapply(capture.output(outout_tree_structure)[-1], paste0, "\n"), colla
 
 #### Description
 
-* `/home/rhapsody/WP3/scripts/README.pdf`  
+* `/home/rhapsody/WP3/scripts/README.pdf`
   a short README file;
-* `/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd`  
+* `/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd`
   a Rmarkdown script which perform:
     * opal node access,
-    * phenotype QC, 
+    * phenotype QC,
     * preliminary modelling,
     * VCFs formatting/filtering,
     * variants analysis;
-* `/home/rhapsody/WP3/scripts/opal_credentials.txt`  
+* `/home/rhapsody/WP3/scripts/opal_credentials.txt`
   the server, login and password informations to access phenotype data on your local node;
-* `/home/rhapsody/WP3/scripts/utils/RHAPSODY_WP3_PreDiab_DEBUG.R`,  
+* `/home/rhapsody/WP3/scripts/utils/RHAPSODY_WP3_PreDiab_DEBUG.R`,
   a small part of the main Rmarkdown script, which includes only node access and phenotype QC;
-* `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R`  
-  a example of a R script to run the whole analysis in bash (parameters have to be filled properly according to your informations)  
+* `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R`
+  a example of a R script to run the whole analysis in bash (parameters have to be filled properly according to your informations)
   using `` `Rscript ~/WP3/scripts/utils/RunAnalysis.R` ``;
-* `/home/rhapsody/WP3/scripts/utils/handleVCF.sh`  
-  the bash/shell script used to format/filter VCFs files prior to the variant analysis.  
+* `/home/rhapsody/WP3/scripts/utils/handleVCF.sh`
+  the bash/shell script used to format/filter VCFs files prior to the variant analysis.
   This bash/shell script is also included within the main script, but you can use it directly as a standalone, if so (or if your already done formatting and don't want to do it again), parameter `format_vcfs` must be set to `FALSE`).
-* `/home/rhapsody/WP3/scripts/utils/Install_Rpackages.R`  
+* `/home/rhapsody/WP3/scripts/utils/Install_Rpackages.R`
   a R script which install a predefined version of all R packages loaded in the Rmarkdown script, only if needed (also avaiable within the main script);
-* `/home/rhapsody/WP3/scripts/utils/check_analysis.Rmd`  
+* `/home/rhapsody/WP3/scripts/utils/check_analysis.Rmd`
   a Rmarkdown script to ''quickly'' check if the analyses went well (*i.e.*, compute quantile-quatile plot, manhattan plot and a plot to compare chromosomal position to sequencial position);
-* `/home/rhapsody/WP3/scripts/utils/README.Rmd`  
+* `/home/rhapsody/WP3/scripts/utils/README.Rmd`
   a Rmarkdown script to create `README.pdf`.
-* `/home/rhapsody/WP3/scripts/utils/howto.Rmd`  
+* `/home/rhapsody/WP3/scripts/utils/howto.Rmd`
   a how-to document and its html version `howto.html`.
 
 ### Run the analysis
 
 #### OPAL database credentials
 
-To avoid OPAL database credentials to be hard written within the script, you should create a text file with the `server`, `username` and `password` to access your local OPAL database (*i.e.*, RHAPSODY node hosting the phenotype data).  
+To avoid OPAL database credentials to be hard written within the script, you should create a text file with the `server`, `username` and `password` to access your local OPAL database (*i.e.*, RHAPSODY node hosting the phenotype data).
 You can also modify the default file `/home/rhapsody/WP3/scripts/opal_credentials.txt`.
 
 ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/opal_credentials.txt")}
 ```
 
-**NOTE:** The `username` provided in that file should have **"download"** rights.  
-The data are downloaded locally in the R session for and during the analysis, then all local data are deleted (*i.e.*, the data are not leaving the R session in any way).  
+**NOTE:** The `username` provided in that file should have **"download"** rights.
+The data are downloaded locally in the R session for and during the analysis, then all local data are deleted (*i.e.*, the data are not leaving the R session in any way).
 
 #### Imputation quality (VCF)
 
-Please check where the imputation quality is stored in your VCF files.  
+Please check where the imputation quality is stored in your VCF files.
 Depending on where (*i.e.*, locally, Sanger Imputation Server, Michigan Imputation Server, etc.) and with which softwares (*i.e.*, impute2, PBWT, etc.) you used to impute your genetic data, this information might be stored as `INFO` or `R2` (*most frequent names used, but it might be something else*).
 
 #### Set the parameters
 
 A template script (*i.e.*, `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R`) is available to help run the analysis as a bash/shell command.
 
-1. Set the output directory.  
+1. Set the output directory.
     The default outputs will be generated in the current directory (`./`).
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[3]}
     ```
-2. Set a cohort name.  
+2. Set a cohort name.
     It's a identifier for a cohort and array.
     For example, "DESIR_Metabochip" for the results from the Metabochip Array in the DESIR cohort.
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[6]}
@@ -706,28 +706,28 @@ A template script (*i.e.*, `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R`) is 
 6. Set the imputation quality tag for your VCF
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[13]}
     ```
-7. Set the path to VCFtools.  
+7. Set the path to VCFtools.
     Default location of the software is usually `/usr/local/bin`.
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[14]}
     ```
-8. Define if you want to format/split the VCF files.  
+8. Define if you want to format/split the VCF files.
     Default is to format and split the VCF files available within the script.
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[16]}
     ```
-9. Define to which part of the analysis you want to go.  
+9. Define to which part of the analysis you want to go.
     1. Node access
     2. Phenotype QC
     3. Run Mixed Model without variants
     4. Check VCFs files
     5. Format VCFs files
     6. Run Mixed Model with (imputed) variants
-    7. Check output files 
+    7. Check output files
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[17]}
     ```
-10. Define if genetic variants analyses should be performed.  
+10. Define if genetic variants analyses should be performed.
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[18]}
     ```
-11. Define if genetic components should be used.  
+11. Define if genetic components should be used.
     ```{r, eval = FALSE, code = readLines("/home/rhapsody/WP3/scripts/utils/RunAnalysis.R")[20]}
     ```
 
@@ -751,15 +751,15 @@ docker run \
   --volume /path/to/RunAnalysis:/media/RunAnalysis \
   --volume /path/to/rhapsody_output:/media/rhapsody_output \
   --rm \
-  umr1283/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R
+  ghcr.io/mcanouil/rhapsody:1.3.0:latest Rscript /media/RunAnalysis/RunAnalysis.R
 ```
 
 In that configuration, the script `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R` will be as follow:
 
 ```{r, eval = FALSE}
-# set the output directory or leave as is; 
+# set the output directory or leave as is;
 # output will be generated where the Rmarkdown file is
-working_directory <- "/media/rhapsody_output" 
+working_directory <- "/media/rhapsody_output"
 
 cohort_name <- "Cohort_Name"
 author_name <- "Firstname LASTNAME"
@@ -783,20 +783,20 @@ genomic_component <- NULL # A csv file with SUBJID as first column and PC01 to P
 # Run the analysis
 dir.create(path = working_directory, showWarnings = FALSE, mode = "0777")
 rmarkdown::render(
-  input = "/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd", 
-  output_format = "html_document", 
+  input = "/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd",
+  output_format = "html_document",
   output_file = paste0(
-    "RHAPSODY_WP3_PreDiab_", 
-    cohort_name, "_step", 
+    "RHAPSODY_WP3_PreDiab_",
+    cohort_name, "_step",
     analysis_step, ".html"
-  ), 
+  ),
   output_dir = working_directory,
   params = list(
-    cohort_name = cohort_name, 
-    author_name = author_name, 
+    cohort_name = cohort_name,
+    author_name = author_name,
     opal_credentials = opal_credentials,
-    vcf_input_directory = vcf_directory, 
-    imputation_quality_tag = imputation_quality_tag, 
+    vcf_input_directory = vcf_directory,
+    imputation_quality_tag = imputation_quality_tag,
     vcftools_binary_path = vcftools_binary_path,
     output_directory = working_directory,
     analysis_step = analysis_step,
@@ -837,50 +837,50 @@ In the case you want to format your VCF files before running the script.
       --volume /path/to/RunAnalysis:/media/RunAnalysis \
       --volume /path/to/rhapsody_output:/media/rhapsody_output \
       --rm \
-      umr1283/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R
+      ghcr.io/mcanouil/rhapsody:1.3.0:latest Rscript /media/RunAnalysis/RunAnalysis.R
     ```
     In that configuration, the script `/home/rhapsody/WP3/scripts/utils/RunAnalysis.R` will be as follow:
     ```{r, eval = FALSE}
-    # set the output directory or leave as is; 
+    # set the output directory or leave as is;
     # output will be generated where the Rmarkdown file is
-    working_directory <- "/media/rhapsody_output" 
-    
+    working_directory <- "/media/rhapsody_output"
+
     cohort_name <- "Cohort_Name"
     author_name <- "Firstname LASTNAME"
-    
+
     n_cpu <- 2
-    
+
     opal_credentials <- "/media/credentials/opal_credentials.txt"
-    
+
     vcf_directory <- "/media/vcf"
     imputation_quality_tag <- "INFO" # To be set according to VCF (could also be "R2")
     vcftools_binary_path <- "/usr/local/bin"
-    
+
     format_vcfs <- FALSE
     analysis_step <- 4
     variants_analysis <- FALSE
-    
+
     genomic_component <- NULL # A csv file with SUBJID as first column and PC01 to PCXX
-    
-    
-    
+
+
+
     # Run the analysis
     dir.create(path = working_directory, showWarnings = FALSE, mode = "0777")
     rmarkdown::render(
-      input = "/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd", 
-      output_format = "html_document", 
+      input = "/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd",
+      output_format = "html_document",
       output_file = paste0(
-        "RHAPSODY_WP3_PreDiab_", 
-        cohort_name, "_step", 
+        "RHAPSODY_WP3_PreDiab_",
+        cohort_name, "_step",
         analysis_step, ".html"
-      ), 
+      ),
       output_dir = working_directory,
       params = list(
-        cohort_name = cohort_name, 
-        author_name = author_name, 
+        cohort_name = cohort_name,
+        author_name = author_name,
         opal_credentials = opal_credentials,
-        vcf_input_directory = vcf_directory, 
-        imputation_quality_tag = imputation_quality_tag, 
+        vcf_input_directory = vcf_directory,
+        imputation_quality_tag = imputation_quality_tag,
         vcftools_binary_path = vcftools_binary_path,
         output_directory = working_directory,
         analysis_step = analysis_step,
@@ -900,9 +900,9 @@ In the case you want to format your VCF files before running the script.
 
     ```
     This will create (*i.e.*, in the output directory you set up):
-    * `/media/rhapsody_output/RHAPSODY_WP3_PreDiab_Cohort_Name_step4.html`  
+    * `/media/rhapsody_output/RHAPSODY_WP3_PreDiab_Cohort_Name_step4.html`
         The report with the phenotype QC and without the genetic variant analyses.
-    * `/media/rhapsody_output/vcffilespath.txt`  
+    * `/media/rhapsody_output/vcffilespath.txt`
         The list of all available VCF files to format using `./handleVCF_Cohort_Name.sh`.
         The files are also listed in the report in *Section 6.2.1 Check available VCF files*.
         ```{sh, eval = FALSE}
@@ -913,13 +913,13 @@ In the case you want to format your VCF files before running the script.
         ...
         /media/vcf/chr22.vcf.gz
         ```
-    * `/media/rhapsody_output/handleVCF_Cohort_Name.sh`  
+    * `/media/rhapsody_output/handleVCF_Cohort_Name.sh`
         The command (with the correct parameters) to format the VCF using `~/WP3/scripts/utils/handleVCF.sh`.
         This is also stated in the report in *Section 6.2.2.3.1 Manually format VCFs*.
         ```{sh, eval = FALSE}
         #!/bin/sh
-        
-        ./handleVCF.sh Cohort_Name /media/vcf INFO /usr/local/bin 
+
+        ./handleVCF.sh Cohort_Name /media/vcf INFO /usr/local/bin
         ```
 
 3. Run the script to format the VCF
@@ -932,9 +932,9 @@ In the case you want to format your VCF files before running the script.
       --volume /path/to/RunAnalysis:/media/RunAnalysis \
       --volume /path/to/rhapsody_output:/media/rhapsody_output \
       --rm \
-      umr1283/rhapsody:latest sh /media/rhapsody_output/handleVCF_Cohort_Name.sh
+      ghcr.io/mcanouil/rhapsody:1.3.0:latest sh /media/rhapsody_output/handleVCF_Cohort_Name.sh
     ```
-    
+
 4. Run the whole analysis with the proper parameter
     ```{r, eval = FALSE}
     format_vcfs <- FALSE # keep this to FALSE
@@ -950,50 +950,50 @@ In the case you want to format your VCF files before running the script.
       --volume /path/to/RunAnalysis:/media/RunAnalysis \
       --volume /path/to/rhapsody_output:/media/rhapsody_output \
       --rm \
-      umr1283/rhapsody:latest Rscript /media/RunAnalysis/RunAnalysis.R
+      ghcr.io/mcanouil/rhapsody:1.3.0:latest Rscript /media/RunAnalysis/RunAnalysis.R
     ```
     In that configuration, the script `~/WP3/scripts/utils/RunAnalysis.R` will be as follow:
     ```{r, eval = FALSE}
-    # set the output directory or leave as is; 
+    # set the output directory or leave as is;
     # output will be generated where the Rmarkdown file is
-    working_directory <- "/media/rhapsody_output" 
-    
+    working_directory <- "/media/rhapsody_output"
+
     cohort_name <- "Cohort_Name"
     author_name <- "Firstname LASTNAME"
-    
+
     n_cpu <- 2
-    
+
     opal_credentials <- "/media/credentials/opal_credentials.txt"
-    
+
     vcf_directory <- "/media/vcf"
     imputation_quality_tag <- "INFO" # To be set according to VCF (could also be "R2")
     vcftools_binary_path <- "/usr/local/bin"
-    
+
     format_vcfs <- FALSE # keep this to FALSE
     analysis_step <- 7
     variants_analysis <- TRUE
-    
+
     genomic_component <- NULL # A csv file with SUBJID as first column and PC01 to PCXX
-    
-    
-    
+
+
+
     # Run the analysis
     dir.create(path = working_directory, showWarnings = FALSE, mode = "0777")
     rmarkdown::render(
-      input = "/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd", 
-      output_format = "html_document", 
+      input = "/home/rhapsody/WP3/scripts/RHAPSODY_WP3_PreDiab.Rmd",
+      output_format = "html_document",
       output_file = paste0(
-        "RHAPSODY_WP3_PreDiab_", 
-        cohort_name, "_step", 
+        "RHAPSODY_WP3_PreDiab_",
+        cohort_name, "_step",
         analysis_step, ".html"
-      ), 
+      ),
       output_dir = working_directory,
       params = list(
-        cohort_name = cohort_name, 
-        author_name = author_name, 
+        cohort_name = cohort_name,
+        author_name = author_name,
         opal_credentials = opal_credentials,
-        vcf_input_directory = vcf_directory, 
-        imputation_quality_tag = imputation_quality_tag, 
+        vcf_input_directory = vcf_directory,
+        imputation_quality_tag = imputation_quality_tag,
         vcftools_binary_path = vcftools_binary_path,
         output_directory = working_directory,
         analysis_step = analysis_step,
