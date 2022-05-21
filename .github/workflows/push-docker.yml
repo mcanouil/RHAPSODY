@@ -1,5 +1,5 @@
 on:
-  wokflow_dispatch:
+  workflow_dispatch:
 
 name: archive-docker
 
