@@ -15,5 +15,5 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Push Docker image
         run: |
-          docker tag umr1283/rhapsody:1.3.0 ghcr.io/mcanouil/eggla:1.3.0
-          docker push umr1283/rhapsody:1.3.0
+          docker tag docker.io/umr1283/rhapsody:1.3.0 ghcr.io/mcanouil/eggla:1.3.0
+          docker push ghcr.io/umr1283/rhapsody:1.3.0
